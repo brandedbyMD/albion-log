@@ -3,25 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Albion Battle Log Viewer</title>
+  <title>Albion Log</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-dark: #0a0a0f;
-      --bg-card: #12121a;
-      --bg-card-hover: #1a1a25;
-      --border-color: #2a2a3a;
-      --gold: #c9a227;
-      --gold-light: #e6c84a;
-      --gold-dark: #9a7a1a;
-      --text-primary: #e8e8e8;
-      --text-secondary: #888;
-      --red: #c94a4a;
-      --green: #4ac94a;
-      --blue: #4a8ac9;
-      --purple: #9a4ac9;
+      --bg: #fafafa;
+      --bg-card: #ffffff;
+      --bg-hover: #f5f5f5;
+      --border: #e5e5e5;
+      --text: #1a1a1a;
+      --text-secondary: #737373;
+      --accent: #171717;
+      --red: #dc2626;
+      --green: #16a34a;
+      --blue: #2563eb;
     }
 
     * {
@@ -31,105 +28,98 @@
     }
 
     body {
-      font-family: 'Noto Sans JP', sans-serif;
-      background: var(--bg-dark);
-      color: var(--text-primary);
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
-      background-image: 
-        radial-gradient(ellipse at top, rgba(201, 162, 39, 0.03) 0%, transparent 50%),
-        radial-gradient(ellipse at bottom, rgba(10, 10, 15, 1) 0%, transparent 100%);
+      line-height: 1.6;
     }
 
     .container {
-      max-width: 1400px;
+      max-width: 900px;
       margin: 0 auto;
       padding: 20px;
     }
 
     /* Header */
     header {
+      padding: 60px 20px 40px;
       text-align: center;
-      padding: 40px 20px;
-      border-bottom: 1px solid var(--border-color);
-      margin-bottom: 30px;
     }
 
     h1 {
-      font-family: 'Cinzel', serif;
-      font-size: 2.5rem;
-      color: var(--gold);
-      text-shadow: 0 0 30px rgba(201, 162, 39, 0.3);
-      letter-spacing: 3px;
-      margin-bottom: 10px;
+      font-size: 1.75rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
     }
 
     .subtitle {
       color: var(--text-secondary);
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
     /* Search Section */
     .search-section {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 25px;
-      margin-bottom: 30px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
     }
 
     .search-tabs {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 20px;
-      flex-wrap: wrap;
     }
 
     .search-tab {
       background: transparent;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border);
       color: var(--text-secondary);
-      padding: 10px 20px;
-      border-radius: 4px;
+      padding: 8px 16px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
+      font-weight: 500;
     }
 
     .search-tab:hover {
-      border-color: var(--gold-dark);
-      color: var(--text-primary);
+      border-color: var(--text-secondary);
+      color: var(--text);
     }
 
     .search-tab.active {
-      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-      border-color: var(--gold);
-      color: #000;
-      font-weight: 500;
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
     }
 
     .search-form {
       display: flex;
-      gap: 15px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
     .search-input {
       flex: 1;
-      min-width: 250px;
-      background: var(--bg-dark);
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
-      padding: 12px 16px;
-      border-radius: 4px;
-      font-size: 1rem;
+      min-width: 200px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
       font-family: inherit;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s ease;
     }
 
     .search-input:focus {
       outline: none;
-      border-color: var(--gold);
+      border-color: var(--accent);
     }
 
     .search-input::placeholder {
@@ -137,54 +127,53 @@
     }
 
     .server-select {
-      background: var(--bg-dark);
-      border: 1px solid var(--border-color);
-      color: var(--text-primary);
-      padding: 12px 16px;
-      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
       font-family: inherit;
+      font-size: 0.95rem;
       cursor: pointer;
     }
 
     .search-btn {
-      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+      background: var(--accent);
       border: none;
-      color: #000;
-      padding: 12px 30px;
-      border-radius: 4px;
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
       font-family: inherit;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     .search-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(201, 162, 39, 0.3);
+      opacity: 0.9;
     }
 
     .search-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
-      transform: none;
     }
 
     /* Loading */
     .loading {
       text-align: center;
-      padding: 50px;
+      padding: 60px 20px;
       color: var(--text-secondary);
     }
 
     .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border-color);
-      border-top-color: var(--gold);
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
     }
 
     @keyframes spin {
@@ -202,80 +191,54 @@
 
     .battle-header {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 25px;
-      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
     }
 
     .battle-title {
-      font-family: 'Cinzel', serif;
-      font-size: 1.5rem;
-      color: var(--gold);
-      margin-bottom: 15px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 12px;
     }
 
     .battle-meta {
       display: flex;
-      gap: 30px;
+      gap: 24px;
       flex-wrap: wrap;
       color: var(--text-secondary);
-      font-size: 0.9rem;
+      font-size: 0.875rem;
     }
 
-    .battle-meta span {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* Teams */
-    .teams-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 900px) {
-      .teams-container {
-        grid-template-columns: 1fr;
-      }
-    }
-
+    /* Team Card */
     .team-card {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
       overflow: hidden;
     }
 
     .team-header {
-      padding: 15px 20px;
-      border-bottom: 1px solid var(--border-color);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .team-header.killer {
-      background: linear-gradient(90deg, rgba(74, 201, 74, 0.1), transparent);
       border-left: 3px solid var(--green);
-    }
-
-    .team-header.victim {
-      background: linear-gradient(90deg, rgba(201, 74, 74, 0.1), transparent);
-      border-left: 3px solid var(--red);
     }
 
     .team-name {
       font-weight: 600;
-      font-size: 1.1rem;
     }
 
     .team-stats {
       display: flex;
       gap: 20px;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-secondary);
     }
 
@@ -286,9 +249,9 @@
     }
 
     .team-stats .stat-value {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: var(--text);
     }
 
     /* Player List */
@@ -299,16 +262,16 @@
 
     .player-row {
       display: grid;
-      grid-template-columns: 1fr 80px 80px 80px;
+      grid-template-columns: 1fr 80px 80px 60px;
       gap: 10px;
       padding: 12px 20px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border);
       align-items: center;
-      transition: background 0.2s;
+      transition: background 0.1s ease;
     }
 
     .player-row:hover {
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
     }
 
     .player-row:last-child {
@@ -323,7 +286,6 @@
 
     .player-name {
       font-weight: 500;
-      color: var(--text-primary);
     }
 
     .player-guild {
@@ -333,58 +295,58 @@
 
     .player-stat {
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
     }
 
     .player-stat.damage {
       color: var(--red);
+      font-weight: 500;
     }
 
     .player-stat.healing {
       color: var(--green);
+      font-weight: 500;
     }
 
     .player-stat.kills {
-      color: var(--gold);
+      font-weight: 500;
     }
 
     .damage-bar {
-      height: 4px;
-      background: var(--border-color);
+      height: 3px;
+      background: var(--border);
       border-radius: 2px;
-      margin-top: 5px;
+      margin-top: 4px;
       overflow: hidden;
     }
 
     .damage-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--red), var(--gold));
+      background: var(--red);
       border-radius: 2px;
-      transition: width 0.5s ease-out;
+      transition: width 0.4s ease-out;
     }
 
     /* Kill Events */
     .kill-events {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      margin-top: 20px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 16px;
     }
 
     .kill-events-header {
-      padding: 15px 20px;
-      border-bottom: 1px solid var(--border-color);
-      font-family: 'Cinzel', serif;
-      font-size: 1.2rem;
-      color: var(--gold);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
     }
 
     .kill-event {
       display: flex;
       align-items: center;
-      gap: 15px;
-      padding: 15px 20px;
-      border-bottom: 1px solid var(--border-color);
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
     }
 
     .kill-event:last-child {
@@ -392,7 +354,8 @@
     }
 
     .kill-icon {
-      font-size: 1.5rem;
+      font-size: 1.2rem;
+      opacity: 0.6;
     }
 
     .kill-details {
@@ -402,8 +365,9 @@
     .kill-players {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
+      font-size: 0.95rem;
     }
 
     .kill-players .killer-name {
@@ -419,60 +383,47 @@
     .kill-time {
       color: var(--text-secondary);
       font-size: 0.8rem;
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-secondary);
-    }
-
-    .empty-state-icon {
-      font-size: 4rem;
-      margin-bottom: 20px;
-      opacity: 0.3;
+      margin-top: 2px;
     }
 
     /* Error */
     .error-message {
-      background: rgba(201, 74, 74, 0.1);
-      border: 1px solid var(--red);
+      background: #fef2f2;
+      border: 1px solid #fecaca;
       border-radius: 8px;
-      padding: 20px;
+      padding: 16px;
       color: var(--red);
       text-align: center;
       margin: 20px 0;
+      font-size: 0.95rem;
     }
 
-    /* Recent Battles List */
+    /* Battles List */
     .battles-list {
       display: grid;
-      gap: 15px;
+      gap: 12px;
     }
 
     .battle-item {
       background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
 
     .battle-item:hover {
-      border-color: var(--gold-dark);
-      transform: translateX(5px);
+      border-color: var(--text-secondary);
     }
 
     .battle-item-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .battle-item-id {
-      color: var(--gold);
       font-weight: 600;
     }
 
@@ -483,52 +434,43 @@
 
     .battle-item-stats {
       display: flex;
-      gap: 20px;
+      gap: 16px;
       color: var(--text-secondary);
-      font-size: 0.9rem;
+      font-size: 0.875rem;
     }
 
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      border-top: 1px solid var(--border-color);
-      margin-top: 50px;
-    }
-
-    footer a {
-      color: var(--gold);
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
+    @media (max-width: 600px) {
+      .search-tabs {
+        flex-wrap: wrap;
+      }
+      
+      .player-row {
+        grid-template-columns: 1fr 60px 60px 50px;
+        font-size: 0.85rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>⚔️ ALBION BATTLE LOG</h1>
+      <h1>Albion Log</h1>
       <p class="subtitle">過去の戦闘履歴を検索・分析</p>
     </header>
 
     <section class="search-section">
       <div class="search-tabs">
-        <button class="search-tab active" data-type="battle">バトルID検索</button>
-        <button class="search-tab" data-type="player">プレイヤー検索</button>
-        <button class="search-tab" data-type="guild">ギルド検索</button>
+        <button class="search-tab active" data-type="battle">バトルID</button>
+        <button class="search-tab" data-type="player">プレイヤー</button>
         <button class="search-tab" data-type="recent">最近のバトル</button>
       </div>
       
       <form class="search-form" id="searchForm">
         <input type="text" class="search-input" id="searchInput" placeholder="バトルIDを入力...">
         <select class="server-select" id="serverSelect">
+          <option value="asia">Asia</option>
           <option value="americas">Americas</option>
           <option value="europe">Europe</option>
-          <option value="asia">Asia</option>
         </select>
         <button type="submit" class="search-btn" id="searchBtn">検索</button>
       </form>
@@ -544,17 +486,12 @@
     <section class="results-section" id="resultsSection">
       <!-- Results will be rendered here -->
     </section>
-
-    <footer>
-      <p>Powered by Albion Online API | 非公式ツール</p>
-      <p>データは <a href="https://albiononline.com" target="_blank">Sandbox Interactive GmbH</a> の提供によるものです</p>
-    </footer>
   </div>
 
   <script>
     // State
     let currentSearchType = 'battle';
-    let currentServer = 'americas';
+    let currentServer = 'asia';
 
     // DOM Elements
     const searchTabs = document.querySelectorAll('.search-tab');
@@ -576,7 +513,6 @@
         const placeholders = {
           battle: 'バトルIDを入力...',
           player: 'プレイヤー名を入力...',
-          guild: 'ギルド名を入力...',
           recent: '（入力不要 - そのまま検索）'
         };
         searchInput.placeholder = placeholders[currentSearchType];
@@ -610,9 +546,6 @@
             break;
           case 'player':
             await searchPlayer(query);
-            break;
-          case 'guild':
-            await searchGuild(query);
             break;
           case 'recent':
             await searchRecent();
@@ -665,23 +598,6 @@
       const kills = await fetchAPI(`/players/${player.Id}/kills`);
       
       renderPlayerBattles(player, deaths, kills);
-    }
-
-    async function searchGuild(guildName) {
-      // Search for guild
-      const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(guildName)}`);
-      
-      if (!searchResult.guilds || searchResult.guilds.length === 0) {
-        showError('ギルドが見つかりませんでした');
-        return;
-      }
-
-      const guild = searchResult.guilds[0];
-      
-      // Get guild's top kills
-      const topKills = await fetchAPI(`/guilds/${guild.Id}/top?limit=20`);
-      
-      renderGuildBattles(guild, topKills);
     }
 
     async function searchRecent() {
@@ -772,18 +688,18 @@
       
       resultsSection.innerHTML = `
         <div class="battle-header">
-          <h2 class="battle-title">⚔️ Battle #${battle.id}</h2>
+          <h2 class="battle-title">Battle #${battle.id}</h2>
           <div class="battle-meta">
-            <span>📅 ${battleTime}</span>
-            <span>👥 ${battle.totalPlayers || Object.keys(participants).length} プレイヤー</span>
-            <span>💀 ${battle.totalKills || events.length} キル</span>
-            <span>⭐ ${(battle.totalFame || 0).toLocaleString()} Fame</span>
+            <span>${battleTime}</span>
+            <span>${battle.totalPlayers || Object.keys(participants).length} players</span>
+            <span>${battle.totalKills || events.length} kills</span>
+            <span>${(battle.totalFame || 0).toLocaleString()} Fame</span>
           </div>
         </div>
 
         <div class="team-card">
           <div class="team-header killer">
-            <span class="team-name">参加者一覧（ダメージ順）</span>
+            <span class="team-name">参加者（ダメージ順）</span>
             <div class="team-stats">
               <div class="stat">
                 <span class="stat-value">${sortedParticipants.length}</span>
@@ -796,10 +712,10 @@
             </div>
           </div>
           <div class="player-list">
-            <div class="player-row" style="background: var(--bg-dark); font-weight: 600; font-size: 0.8rem; color: var(--text-secondary);">
+            <div class="player-row" style="background: var(--bg); font-weight: 600; font-size: 0.75rem; color: var(--text-secondary);">
               <div>プレイヤー</div>
-              <div style="text-align: center;">ダメージ%</div>
-              <div style="text-align: center;">ヒール%</div>
+              <div style="text-align: center;">DMG%</div>
+              <div style="text-align: center;">HEAL%</div>
               <div style="text-align: center;">K/D</div>
             </div>
             ${sortedParticipants.map(p => `
@@ -822,17 +738,17 @@
         </div>
 
         <div class="kill-events">
-          <div class="kill-events-header">💀 キルログ（最新20件）</div>
+          <div class="kill-events-header">キルログ</div>
           ${events.slice(0, 20).map(event => `
             <div class="kill-event">
-              <span class="kill-icon">⚔️</span>
+              <span class="kill-icon">→</span>
               <div class="kill-details">
                 <div class="kill-players">
                   <span class="killer-name">${escapeHtml(event.Killer?.Name || 'Unknown')}</span>
-                  <span>→</span>
+                  <span>killed</span>
                   <span class="victim-name">${escapeHtml(event.Victim?.Name || 'Unknown')}</span>
                 </div>
-                <div class="kill-time">${new Date(event.TimeStamp).toLocaleString('ja-JP')} | Fame: ${(event.TotalVictimKillFame || 0).toLocaleString()}</div>
+                <div class="kill-time">${new Date(event.TimeStamp).toLocaleString('ja-JP')} · ${(event.TotalVictimKillFame || 0).toLocaleString()} Fame</div>
               </div>
             </div>
           `).join('')}
@@ -849,11 +765,11 @@
 
       resultsSection.innerHTML = `
         <div class="battle-header">
-          <h2 class="battle-title">👤 ${escapeHtml(player.Name)}</h2>
+          <h2 class="battle-title">${escapeHtml(player.Name)}</h2>
           <div class="battle-meta">
-            <span>🏰 ${escapeHtml(player.GuildName || 'No Guild')}</span>
-            <span>💀 ${kills.length} キル</span>
-            <span>☠️ ${deaths.length} デス</span>
+            <span>${escapeHtml(player.GuildName || 'No Guild')}</span>
+            <span>${kills.length} kills</span>
+            <span>${deaths.length} deaths</span>
           </div>
         </div>
 
@@ -865,12 +781,12 @@
             return `
               <div class="battle-item" onclick="searchBattleById('${event.BattleId}')">
                 <div class="battle-item-header">
-                  <span class="battle-item-id">${isKill ? '⚔️ Kill' : '💀 Death'} - Battle #${event.BattleId}</span>
+                  <span class="battle-item-id">${isKill ? 'Kill' : 'Death'} · Battle #${event.BattleId}</span>
                   <span class="battle-item-time">${new Date(event.TimeStamp).toLocaleString('ja-JP')}</span>
                 </div>
                 <div class="battle-item-stats">
                   <span>${isKill ? 'Killed' : 'Killed by'}: ${escapeHtml(otherPlayer?.Name || 'Unknown')}</span>
-                  <span>Fame: ${(event.TotalVictimKillFame || 0).toLocaleString()}</span>
+                  <span>${(event.TotalVictimKillFame || 0).toLocaleString()} Fame</span>
                 </div>
               </div>
             `;
@@ -881,54 +797,23 @@
       resultsSection.classList.add('visible');
     }
 
-    function renderGuildBattles(guild, topKills) {
-      resultsSection.innerHTML = `
-        <div class="battle-header">
-          <h2 class="battle-title">🏰 ${escapeHtml(guild.Name)}</h2>
-          <div class="battle-meta">
-            <span>[${escapeHtml(guild.AllianceTag || 'No Alliance')}]</span>
-            <span>👥 ${guild.MemberCount || '?'} メンバー</span>
-          </div>
-        </div>
-
-        <div class="kill-events">
-          <div class="kill-events-header">🏆 トップキル</div>
-          ${topKills.slice(0, 20).map(event => `
-            <div class="kill-event" style="cursor: pointer;" onclick="searchBattleById('${event.BattleId}')">
-              <span class="kill-icon">⚔️</span>
-              <div class="kill-details">
-                <div class="kill-players">
-                  <span class="killer-name">${escapeHtml(event.Killer?.Name || 'Unknown')}</span>
-                  <span>→</span>
-                  <span class="victim-name">${escapeHtml(event.Victim?.Name || 'Unknown')}</span>
-                </div>
-                <div class="kill-time">${new Date(event.TimeStamp).toLocaleString('ja-JP')} | Fame: ${(event.TotalVictimKillFame || 0).toLocaleString()}</div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      
-      resultsSection.classList.add('visible');
-    }
-
     function renderRecentBattles(battles) {
       resultsSection.innerHTML = `
         <div class="battle-header">
-          <h2 class="battle-title">📋 最近のバトル</h2>
+          <h2 class="battle-title">最近のバトル</h2>
         </div>
 
         <div class="battles-list">
           ${battles.map(battle => `
             <div class="battle-item" onclick="searchBattleById('${battle.id}')">
               <div class="battle-item-header">
-                <span class="battle-item-id">⚔️ Battle #${battle.id}</span>
+                <span class="battle-item-id">Battle #${battle.id}</span>
                 <span class="battle-item-time">${new Date(battle.startTime).toLocaleString('ja-JP')}</span>
               </div>
               <div class="battle-item-stats">
-                <span>👥 ${battle.totalPlayers || '?'} プレイヤー</span>
-                <span>💀 ${battle.totalKills || '?'} キル</span>
-                <span>⭐ ${(battle.totalFame || 0).toLocaleString()} Fame</span>
+                <span>${battle.totalPlayers || '?'} players</span>
+                <span>${battle.totalKills || '?'} kills</span>
+                <span>${(battle.totalFame || 0).toLocaleString()} Fame</span>
               </div>
             </div>
           `).join('')}
