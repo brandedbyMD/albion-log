@@ -36,7 +36,7 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -51,12 +51,12 @@
       font-size: 1.75rem;
       font-weight: 600;
       letter-spacing: -0.02em;
-      margin-bottom: 8px;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
     }
 
-    .subtitle {
-      color: var(--text-secondary);
-      font-size: 0.95rem;
+    h1:hover {
+      opacity: 0.7;
     }
 
     /* Search Section */
@@ -66,36 +66,6 @@
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 24px;
-    }
-
-    .search-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .search-tab {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .search-tab:hover {
-      border-color: var(--text-secondary);
-      color: var(--text);
-    }
-
-    .search-tab.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
     }
 
     .search-form {
@@ -217,6 +187,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
+      margin-bottom: 16px;
     }
 
     .team-header {
@@ -225,9 +196,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-
-    .team-header.killer {
       border-left: 3px solid var(--green);
     }
 
@@ -256,18 +224,18 @@
 
     /* Player List */
     .player-list {
-      max-height: 500px;
-      overflow-y: auto;
+      overflow-x: auto;
     }
 
     .player-row {
       display: grid;
-      grid-template-columns: 1fr 80px 80px 60px;
+      grid-template-columns: 1fr 100px 100px 60px 180px;
       gap: 10px;
       padding: 12px 20px;
       border-bottom: 1px solid var(--border);
       align-items: center;
       transition: background 0.1s ease;
+      min-width: 700px;
     }
 
     .player-row:hover {
@@ -276,6 +244,19 @@
 
     .player-row:last-child {
       border-bottom: none;
+    }
+
+    .player-row.header-row {
+      background: var(--bg);
+      font-weight: 600;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .player-row.header-row:hover {
+      background: var(--bg);
     }
 
     .player-info {
@@ -289,7 +270,7 @@
     }
 
     .player-guild {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text-secondary);
     }
 
@@ -325,6 +306,31 @@
       background: var(--red);
       border-radius: 2px;
       transition: width 0.4s ease-out;
+    }
+
+    .damage-value {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    /* Equipment */
+    .equipment-icons {
+      display: flex;
+      gap: 2px;
+      justify-content: center;
+    }
+
+    .equip-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      object-fit: contain;
+    }
+
+    .equip-icon.empty {
+      opacity: 0.3;
     }
 
     /* Kill Events */
@@ -439,14 +445,26 @@
       font-size: 0.875rem;
     }
 
-    @media (max-width: 600px) {
-      .search-tabs {
-        flex-wrap: wrap;
+    /* Location Badge */
+    .location-badge {
+      display: inline-block;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 700px) {
+      .player-row {
+        grid-template-columns: 1fr 70px 70px 50px 120px;
+        font-size: 0.8rem;
       }
       
-      .player-row {
-        grid-template-columns: 1fr 60px 60px 50px;
-        font-size: 0.85rem;
+      .equip-icon {
+        width: 22px;
+        height: 22px;
       }
     }
   </style>
@@ -454,19 +472,12 @@
 <body>
   <div class="container">
     <header>
-      <h1>Albion Log</h1>
-      <p class="subtitle">過去の戦闘履歴を検索・分析</p>
+      <h1 id="logo" onclick="goHome()">Albion Log</h1>
     </header>
 
-    <section class="search-section">
-      <div class="search-tabs">
-        <button class="search-tab active" data-type="battle">バトルID</button>
-        <button class="search-tab" data-type="player">プレイヤー</button>
-        <button class="search-tab" data-type="recent">最近のバトル</button>
-      </div>
-      
+    <section class="search-section" id="searchSection">
       <form class="search-form" id="searchForm">
-        <input type="text" class="search-input" id="searchInput" placeholder="バトルIDを入力...">
+        <input type="text" class="search-input" id="searchInput" placeholder="プレイヤー名を入力...">
         <select class="server-select" id="serverSelect">
           <option value="asia">Asia</option>
           <option value="americas">Americas</option>
@@ -490,11 +501,9 @@
 
   <script>
     // State
-    let currentSearchType = 'battle';
     let currentServer = 'asia';
 
     // DOM Elements
-    const searchTabs = document.querySelectorAll('.search-tab');
     const searchInput = document.getElementById('searchInput');
     const searchForm = document.getElementById('searchForm');
     const serverSelect = document.getElementById('serverSelect');
@@ -502,23 +511,7 @@
     const loading = document.getElementById('loading');
     const errorMessage = document.getElementById('errorMessage');
     const resultsSection = document.getElementById('resultsSection');
-
-    // Tab switching
-    searchTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        searchTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentSearchType = tab.dataset.type;
-        
-        const placeholders = {
-          battle: 'バトルIDを入力...',
-          player: 'プレイヤー名を入力...',
-          recent: '（入力不要 - そのまま検索）'
-        };
-        searchInput.placeholder = placeholders[currentSearchType];
-        searchInput.value = '';
-      });
-    });
+    const searchSection = document.getElementById('searchSection');
 
     // Server select
     serverSelect.addEventListener('change', () => {
@@ -530,8 +523,8 @@
       e.preventDefault();
       const query = searchInput.value.trim();
 
-      if (currentSearchType !== 'recent' && !query) {
-        showError('検索語を入力してください');
+      if (!query) {
+        showError('プレイヤー名を入力してください');
         return;
       }
 
@@ -540,17 +533,7 @@
       resultsSection.classList.remove('visible');
 
       try {
-        switch (currentSearchType) {
-          case 'battle':
-            await searchBattle(query);
-            break;
-          case 'player':
-            await searchPlayer(query);
-            break;
-          case 'recent':
-            await searchRecent();
-            break;
-        }
+        await searchPlayer(query);
       } catch (error) {
         console.error('Search error:', error);
         showError(error.message || 'エラーが発生しました');
@@ -558,6 +541,14 @@
         hideLoading();
       }
     });
+
+    // Go home function
+    function goHome() {
+      resultsSection.classList.remove('visible');
+      resultsSection.innerHTML = '';
+      searchInput.value = '';
+      hideError();
+    }
 
     // API Functions - Using local proxy
     async function fetchAPI(endpoint) {
@@ -570,16 +561,6 @@
         throw new Error(`APIエラー: ${response.status} - ${errorText}`);
       }
       return response.json();
-    }
-
-    async function searchBattle(battleId) {
-      // Get battle info
-      const battle = await fetchAPI(`/battles/${battleId}`);
-      
-      // Get kill events for this battle
-      const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
-      
-      renderBattleDetails(battle, events);
     }
 
     async function searchPlayer(playerName) {
@@ -600,9 +581,25 @@
       renderPlayerBattles(player, deaths, kills);
     }
 
-    async function searchRecent() {
-      const battles = await fetchAPI(`/battles?limit=20&sort=recent`);
-      renderRecentBattles(battles);
+    async function searchBattle(battleId) {
+      // Get battle info
+      const battle = await fetchAPI(`/battles/${battleId}`);
+      
+      // Get kill events for this battle
+      const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=100`);
+      
+      renderBattleDetails(battle, events);
+    }
+
+    // Equipment render helper
+    function getEquipmentIcon(item) {
+      if (!item || !item.Type) {
+        return '<div class="equip-icon empty"></div>';
+      }
+      const itemId = item.Type;
+      const quality = item.Quality || 1;
+      const url = `https://render.albiononline.com/v1/item/${itemId}.png?quality=${quality}&size=64`;
+      return `<img class="equip-icon" src="${url}" alt="${itemId}" title="${itemId}" onerror="this.classList.add('empty'); this.src='';">`;
     }
 
     // Render Functions
@@ -625,10 +622,14 @@
               deaths: 0,
               damage: 0,
               healing: 0,
-              side: 'killer'
+              equipment: event.Killer.Equipment || {}
             };
           }
           participants[id].kills++;
+          // Update equipment if not set
+          if (!participants[id].equipment || Object.keys(participants[id].equipment).length === 0) {
+            participants[id].equipment = event.Killer.Equipment || {};
+          }
         }
 
         // Process victim
@@ -643,10 +644,14 @@
               deaths: 0,
               damage: 0,
               healing: 0,
-              side: 'victim'
+              equipment: event.Victim.Equipment || {}
             };
           }
           participants[id].deaths++;
+          // Update equipment from victim (often more complete)
+          if (event.Victim.Equipment) {
+            participants[id].equipment = event.Victim.Equipment;
+          }
         }
 
         // Process participants (damage dealers)
@@ -662,13 +667,17 @@
                 deaths: 0,
                 damage: 0,
                 healing: 0,
-                side: 'killer'
+                equipment: p.Equipment || {}
               };
             }
             participants[id].damage += p.DamageDone || 0;
             participants[id].healing += p.SupportHealingDone || 0;
             totalDamage += p.DamageDone || 0;
             totalHealing += p.SupportHealingDone || 0;
+            // Update equipment
+            if (p.Equipment && Object.keys(p.Equipment).length > 0) {
+              participants[id].equipment = p.Equipment;
+            }
           });
         }
       });
@@ -683,6 +692,9 @@
       const sortedParticipants = Object.values(participants).sort((a, b) => b.damage - a.damage);
       const maxDamage = sortedParticipants[0]?.damage || 1;
 
+      // Get location if available
+      const location = events[0]?.Location || battle.clusterName || '';
+
       // Render
       const battleTime = new Date(battle.startTime).toLocaleString('ja-JP');
       
@@ -694,11 +706,12 @@
             <span>${battle.totalPlayers || Object.keys(participants).length} players</span>
             <span>${battle.totalKills || events.length} kills</span>
             <span>${(battle.totalFame || 0).toLocaleString()} Fame</span>
+            ${location ? `<span class="location-badge">${escapeHtml(location)}</span>` : ''}
           </div>
         </div>
 
         <div class="team-card">
-          <div class="team-header killer">
+          <div class="team-header">
             <span class="team-name">参加者（ダメージ順）</span>
             <div class="team-stats">
               <div class="stat">
@@ -712,11 +725,12 @@
             </div>
           </div>
           <div class="player-list">
-            <div class="player-row" style="background: var(--bg); font-weight: 600; font-size: 0.75rem; color: var(--text-secondary);">
+            <div class="player-row header-row">
               <div>プレイヤー</div>
-              <div style="text-align: center;">DMG%</div>
-              <div style="text-align: center;">HEAL%</div>
+              <div style="text-align: center;">ダメージ</div>
+              <div style="text-align: center;">ヒール</div>
               <div style="text-align: center;">K/D</div>
+              <div style="text-align: center;">装備</div>
             </div>
             ${sortedParticipants.map(p => `
               <div class="player-row">
@@ -726,12 +740,23 @@
                 </div>
                 <div class="player-stat damage">
                   ${p.damagePercent}%
+                  <div class="damage-value">${p.damage.toLocaleString()}</div>
                   <div class="damage-bar">
                     <div class="damage-bar-fill" style="width: ${(p.damage / maxDamage * 100)}%"></div>
                   </div>
                 </div>
-                <div class="player-stat healing">${p.healingPercent}%</div>
+                <div class="player-stat healing">
+                  ${p.healingPercent}%
+                  <div class="damage-value">${p.healing.toLocaleString()}</div>
+                </div>
                 <div class="player-stat kills">${p.kills}/${p.deaths}</div>
+                <div class="equipment-icons">
+                  ${getEquipmentIcon(p.equipment?.MainHand)}
+                  ${getEquipmentIcon(p.equipment?.OffHand)}
+                  ${getEquipmentIcon(p.equipment?.Head)}
+                  ${getEquipmentIcon(p.equipment?.Armor)}
+                  ${getEquipmentIcon(p.equipment?.Shoes)}
+                </div>
               </div>
             `).join('')}
           </div>
@@ -739,7 +764,7 @@
 
         <div class="kill-events">
           <div class="kill-events-header">キルログ</div>
-          ${events.slice(0, 20).map(event => `
+          ${events.slice(0, 30).map(event => `
             <div class="kill-event">
               <span class="kill-icon">→</span>
               <div class="kill-details">
@@ -774,7 +799,7 @@
         </div>
 
         <div class="battles-list">
-          ${allEvents.slice(0, 20).map(event => {
+          ${allEvents.slice(0, 30).map(event => {
             const isKill = kills.includes(event);
             const otherPlayer = isKill ? event.Victim : event.Killer;
             
@@ -787,6 +812,7 @@
                 <div class="battle-item-stats">
                   <span>${isKill ? 'Killed' : 'Killed by'}: ${escapeHtml(otherPlayer?.Name || 'Unknown')}</span>
                   <span>${(event.TotalVictimKillFame || 0).toLocaleString()} Fame</span>
+                  ${event.Location ? `<span class="location-badge">${escapeHtml(event.Location)}</span>` : ''}
                 </div>
               </div>
             `;
@@ -797,39 +823,8 @@
       resultsSection.classList.add('visible');
     }
 
-    function renderRecentBattles(battles) {
-      resultsSection.innerHTML = `
-        <div class="battle-header">
-          <h2 class="battle-title">最近のバトル</h2>
-        </div>
-
-        <div class="battles-list">
-          ${battles.map(battle => `
-            <div class="battle-item" onclick="searchBattleById('${battle.id}')">
-              <div class="battle-item-header">
-                <span class="battle-item-id">Battle #${battle.id}</span>
-                <span class="battle-item-time">${new Date(battle.startTime).toLocaleString('ja-JP')}</span>
-              </div>
-              <div class="battle-item-stats">
-                <span>${battle.totalPlayers || '?'} players</span>
-                <span>${battle.totalKills || '?'} kills</span>
-                <span>${(battle.totalFame || 0).toLocaleString()} Fame</span>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      
-      resultsSection.classList.add('visible');
-    }
-
-    // Helper function to search battle by ID (called from onclick)
+    // Helper function to search battle by ID
     async function searchBattleById(battleId) {
-      searchInput.value = battleId;
-      searchTabs.forEach(t => t.classList.remove('active'));
-      searchTabs[0].classList.add('active');
-      currentSearchType = 'battle';
-      
       hideError();
       showLoading();
       resultsSection.classList.remove('visible');
