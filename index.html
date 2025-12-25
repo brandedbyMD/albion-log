@@ -586,7 +586,7 @@
       const battle = await fetchAPI(`/battles/${battleId}`);
       
       // Get kill events for this battle
-      const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=100`);
+      const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
       
       renderBattleDetails(battle, events);
     }
