@@ -1544,10 +1544,6 @@
       }
     }
     
-    // Initialize theme and favorites on load
-    initTheme();
-    renderFavorites();
-    
     // Manual weapon name mappings (base type -> display name)
     // For weapons where API doesn't return good names
     const WEAPON_NAME_OVERRIDES = {
@@ -3106,25 +3102,23 @@
               const elapsed = startTime ? Math.floor((eventTime - startTime) / 1000) : 0;
               const minutes = Math.floor(elapsed / 60);
               const seconds = elapsed % 60;
-              const timeStr = minutes > 0 ? \`\${minutes}:\${seconds.toString().padStart(2, '0')}\` : \`0:\${seconds.toString().padStart(2, '0')}\`;
+              const timeStr = minutes > 0 ? minutes + ':' + seconds.toString().padStart(2, '0') : '0:' + seconds.toString().padStart(2, '0');
               
               const killerColor = getTeamColor({ guildId: event.Killer?.GuildId, allianceId: event.Killer?.AllianceId });
               const victimColor = getTeamColor({ guildId: event.Victim?.GuildId, allianceId: event.Victim?.AllianceId });
               
-              return \`
-                <div class="timeline-event">
-                  <div class="timeline-time">\${timeStr}</div>
-                  <div class="timeline-dot" style="background:\${killerColor}"></div>
-                  <div class="timeline-content">
-                    <span class="team-indicator" style="background:\${killerColor}"></span>
-                    <span class="killer-name" onclick="searchPlayerByName('\${escapeHtml(event.Killer?.Name || '')}')">\${escapeHtml(event.Killer?.Name || '?')}</span>
-                    <span class="kill-arrow">⚔️</span>
-                    <span class="victim-name" onclick="searchPlayerByName('\${escapeHtml(event.Victim?.Name || '')}')">\${escapeHtml(event.Victim?.Name || '?')}</span>
-                    <span class="team-indicator" style="background:\${victimColor}"></span>
-                    <span class="kill-fame">\${(event.TotalVictimKillFame || 0).toLocaleString()}</span>
-                  </div>
-                </div>
-              \`;
+              return '<div class="timeline-event">' +
+                '<div class="timeline-time">' + timeStr + '</div>' +
+                '<div class="timeline-dot" style="background:' + killerColor + '"></div>' +
+                '<div class="timeline-content">' +
+                  '<span class="team-indicator" style="background:' + killerColor + '"></span>' +
+                  '<span class="killer-name" onclick="searchPlayerByName(\'' + escapeHtml(event.Killer?.Name || '') + '\')">' + escapeHtml(event.Killer?.Name || '?') + '</span>' +
+                  '<span class="kill-arrow">⚔️</span>' +
+                  '<span class="victim-name" onclick="searchPlayerByName(\'' + escapeHtml(event.Victim?.Name || '') + '\')">' + escapeHtml(event.Victim?.Name || '?') + '</span>' +
+                  '<span class="team-indicator" style="background:' + victimColor + '"></span>' +
+                  '<span class="kill-fame">' + (event.TotalVictimKillFame || 0).toLocaleString() + '</span>' +
+                '</div>' +
+              '</div>';
             }).join('');
           })()}
         </div>
@@ -3235,6 +3229,10 @@
     
     // Initialize with initial state
     history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
+    
+    // Initialize theme and favorites
+    initTheme();
+    renderFavorites();
   </script>
 </body>
 </html>
