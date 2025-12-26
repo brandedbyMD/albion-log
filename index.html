@@ -39,7 +39,7 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
@@ -267,6 +267,95 @@
       border-color: var(--accent);
     }
 
+    /* Filter Section */
+    .filter-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .filter-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      min-width: 140px;
+    }
+
+    .filter-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .filter-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      min-width: 120px;
+    }
+
+    .filter-checkboxes {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .filter-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .filter-checkbox input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--orange);
+      cursor: pointer;
+    }
+
+    .filter-checkbox.kill {
+      color: var(--green);
+    }
+
+    .filter-checkbox.death {
+      color: var(--red);
+    }
+
+    .filter-checkbox.assist {
+      color: var(--blue);
+    }
+
     /* Battle Header */
     .battle-header {
       background: var(--bg-card);
@@ -465,6 +554,133 @@
       border-color: var(--text-secondary);
     }
 
+    /* New Battle Card Style */
+    .battle-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      overflow: hidden;
+    }
+
+    .battle-card:hover {
+      border-color: var(--text-secondary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .battle-card.win {
+      border-left: 4px solid var(--green);
+    }
+
+    .battle-card.loss {
+      border-left: 4px solid var(--red);
+    }
+
+    .battle-card.neutral {
+      border-left: 4px solid var(--text-secondary);
+    }
+
+    .battle-card-main {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      gap: 24px;
+    }
+
+    .battle-card-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 100px;
+    }
+
+    .battle-card-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .stat-kill {
+      color: var(--green);
+    }
+
+    .stat-assist {
+      color: var(--blue);
+    }
+
+    .stat-death {
+      color: var(--red);
+    }
+
+    .stat-separator {
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .battle-card-labels {
+      display: flex;
+      gap: 20px;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .battle-card-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .battle-card-fame {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .battle-card-info {
+      display: flex;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .battle-card-location {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .battle-card-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .battle-card-arrow {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 600px) {
+      .battle-card-main {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 14px;
+      }
+      
+      .battle-card-stats {
+        font-size: 1.2rem;
+      }
+      
+      .battle-card-right {
+        display: none;
+      }
+    }
+
     .event-card-header {
       display: flex;
       justify-content: space-between;
@@ -596,8 +812,8 @@
     }
 
     .ml-equip-icon {
-      width: 42px;
-      height: 42px;
+      width: 52px;
+      height: 52px;
       border-radius: 6px;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -825,10 +1041,22 @@
     let currentPlayer = null;
     let currentDeaths = [];
     let currentKills = [];
-    let currentSoloKills = []; // Solo kills (where player is the killer)
-    let currentAssists = []; // Assists
-    let currentViewMode = 'battles';
+    let currentSoloKills = [];
+    let currentAssists = [];
+    let currentViewMode = 'events'; // Default to individual logs
     let autocompleteTimeout = null;
+    
+    // Filter state
+    let filters = {
+      opponentSearch: '',
+      battleSize: 'any',
+      orderBy: 'date',
+      myWeapon: 'any',
+      opponentWeapon: 'any',
+      showKills: true,
+      showDeaths: true,
+      showAssists: true
+    };
     
     // Search history (localStorage)
     const HISTORY_KEY = 'albion_log_search_history';
@@ -1135,19 +1363,91 @@
         battleMap.get(bid).events.push(event);
       });
 
+      // Collect unique weapons for filter dropdowns
+      const myWeapons = new Set();
+      const opponentWeapons = new Set();
+      allEvents.forEach(event => {
+        const isDeath = event.eventType === 'death';
+        const myEquip = isDeath ? event.Victim?.Equipment : (event.Killer?.Equipment || {});
+        const enemyEquip = isDeath ? event.Killer?.Equipment : event.Victim?.Equipment;
+        
+        if (myEquip?.MainHand?.Type) myWeapons.add(myEquip.MainHand.Type);
+        if (enemyEquip?.MainHand?.Type) opponentWeapons.add(enemyEquip.MainHand.Type);
+      });
+
+      // Get guild display (remove empty brackets)
+      const guildDisplay = currentPlayer.GuildName ? escapeHtml(currentPlayer.GuildName) : 'No Guild';
+
       resultsSection.innerHTML = `
         <div class="player-header">
           <div class="player-name-title">${escapeHtml(currentPlayer.Name)}</div>
-          <div class="player-guild-name">${escapeHtml(currentPlayer.GuildName || 'No Guild')}</div>
+          <div class="player-guild-name">${guildDisplay}</div>
         </div>
 
         <div class="view-tabs">
-          <button class="view-tab ${currentViewMode === 'battles' ? 'active' : ''}" onclick="switchView('battles')">
-            バトル別 (${battleMap.size})
-          </button>
           <button class="view-tab ${currentViewMode === 'events' ? 'active' : ''}" onclick="switchView('events')">
             個別ログ (${allEvents.length})
           </button>
+          <button class="view-tab ${currentViewMode === 'battles' ? 'active' : ''}" onclick="switchView('battles')">
+            バトル別 (${battleMap.size})
+          </button>
+        </div>
+
+        <div id="filterSection" class="filter-section" style="display: ${currentViewMode === 'events' ? 'block' : 'none'}">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label class="filter-label">相手検索</label>
+              <input type="text" class="filter-input" id="filterOpponent" placeholder="名前で検索..." value="${filters.opponentSearch}" onkeyup="updateFilter('opponentSearch', this.value)">
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">バトルサイズ</label>
+              <select class="filter-select" id="filterBattleSize" onchange="updateFilter('battleSize', this.value)">
+                <option value="any" ${filters.battleSize === 'any' ? 'selected' : ''}>Any</option>
+                <option value="1v1" ${filters.battleSize === '1v1' ? 'selected' : ''}>1v1</option>
+                <option value="2v2" ${filters.battleSize === '2v2' ? 'selected' : ''}>2v2</option>
+                <option value="5v5" ${filters.battleSize === '5v5' ? 'selected' : ''}>5v5+</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">並び順</label>
+              <select class="filter-select" id="filterOrderBy" onchange="updateFilter('orderBy', this.value)">
+                <option value="date" ${filters.orderBy === 'date' ? 'selected' : ''}>日時</option>
+                <option value="fame" ${filters.orderBy === 'fame' ? 'selected' : ''}>Fame</option>
+                <option value="ip" ${filters.orderBy === 'ip' ? 'selected' : ''}>IP差</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">自分の武器</label>
+              <select class="filter-select" id="filterMyWeapon" onchange="updateFilter('myWeapon', this.value)">
+                <option value="any">Any</option>
+                ${Array.from(myWeapons).map(w => `<option value="${w}" ${filters.myWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">相手の武器</label>
+              <select class="filter-select" id="filterOpponentWeapon" onchange="updateFilter('opponentWeapon', this.value)">
+                <option value="any">Any</option>
+                ${Array.from(opponentWeapons).map(w => `<option value="${w}" ${filters.opponentWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">表示</label>
+              <div class="filter-checkboxes">
+                <label class="filter-checkbox kill">
+                  <input type="checkbox" ${filters.showKills ? 'checked' : ''} onchange="updateFilter('showKills', this.checked)">
+                  Kills
+                </label>
+                <label class="filter-checkbox death">
+                  <input type="checkbox" ${filters.showDeaths ? 'checked' : ''} onchange="updateFilter('showDeaths', this.checked)">
+                  Deaths
+                </label>
+                <label class="filter-checkbox assist">
+                  <input type="checkbox" ${filters.showAssists ? 'checked' : ''} onchange="updateFilter('showAssists', this.checked)">
+                  Assists
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="playerContent"></div>
@@ -1156,21 +1456,48 @@
       renderPlayerContent();
       resultsSection.classList.add('visible');
     }
+    
+    // Get readable weapon name from item ID
+    function getWeaponName(itemId) {
+      if (!itemId) return 'Unknown';
+      // Extract readable name from item ID (e.g., T8_MAIN_SWORD -> Sword)
+      const parts = itemId.split('_');
+      if (parts.length >= 2) {
+        return parts.slice(1).join(' ').substring(0, 15);
+      }
+      return itemId.substring(0, 15);
+    }
+    
+    // Update filter and re-render
+    function updateFilter(key, value) {
+      filters[key] = value;
+      renderPlayerContent();
+    }
 
     function switchView(mode) {
       currentViewMode = mode;
       document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
-      document.querySelector(`.view-tab:${mode === 'battles' ? 'first' : 'last'}-child`).classList.add('active');
+      document.querySelector(`.view-tab:${mode === 'events' ? 'first' : 'last'}-child`).classList.add('active');
+      
+      // Toggle filter section visibility
+      const filterSection = document.getElementById('filterSection');
+      if (filterSection) {
+        filterSection.style.display = mode === 'events' ? 'block' : 'none';
+      }
+      
       renderPlayerContent();
     }
 
     function renderPlayerContent() {
       const container = document.getElementById('playerContent');
-      const allEvents = [...currentDeaths, ...currentSoloKills, ...currentAssists].sort((a, b) => 
-        new Date(b.TimeStamp) - new Date(a.TimeStamp)
-      );
+      const playerId = String(currentPlayer.Id);
+      
+      let allEvents = [...currentDeaths, ...currentSoloKills, ...currentAssists];
 
       if (currentViewMode === 'battles') {
+        // Sort by date
+        allEvents.sort((a, b) => new Date(b.TimeStamp) - new Date(a.TimeStamp));
+        
         // Group by battle
         const battleMap = new Map();
         allEvents.forEach(event => {
@@ -1181,87 +1508,151 @@
           battleMap.get(bid).events.push(event);
         });
 
+        // Improved battle log cards
         container.innerHTML = Array.from(battleMap.entries()).slice(0, 30).map(([battleId, data]) => {
           const kills = data.events.filter(e => e.eventType === 'kill').length;
           const assists = data.events.filter(e => e.eventType === 'assist').length;
           const deaths = data.events.filter(e => e.eventType === 'death').length;
           const fame = data.events.reduce((sum, e) => sum + (e.TotalVictimKillFame || 0), 0);
           const location = data.events[0]?.Location || '';
+          const timeAgo = getTimeAgo(new Date(data.time));
+          
+          // Get participants count
+          const participants = new Set();
+          data.events.forEach(e => {
+            if (e.Killer?.Name) participants.add(e.Killer.Name);
+            if (e.Victim?.Name) participants.add(e.Victim.Name);
+            e.Participants?.forEach(p => participants.add(p.Name));
+          });
+          
+          // Determine result style
+          const netKills = kills + assists - deaths;
+          const resultClass = netKills > 0 ? 'win' : netKills < 0 ? 'loss' : 'neutral';
 
           return `
-            <div class="event-card" onclick="searchBattle('${battleId}')">
-              <div class="event-card-header">
-                <span class="event-type">Battle #${battleId}</span>
-                <span class="event-time">${new Date(data.time).toLocaleString('ja-JP')}</span>
+            <div class="battle-card ${resultClass}" onclick="searchBattle('${battleId}')">
+              <div class="battle-card-main">
+                <div class="battle-card-left">
+                  <div class="battle-card-stats">
+                    <span class="stat-kill">${kills}</span>
+                    <span class="stat-separator">/</span>
+                    <span class="stat-assist">${assists}</span>
+                    <span class="stat-separator">/</span>
+                    <span class="stat-death">${deaths}</span>
+                  </div>
+                  <div class="battle-card-labels">
+                    <span>K</span><span>A</span><span>D</span>
+                  </div>
+                </div>
+                <div class="battle-card-center">
+                  <div class="battle-card-fame">${fame.toLocaleString()} Fame</div>
+                  <div class="battle-card-info">
+                    <span>${timeAgo}</span>
+                    <span>•</span>
+                    <span>${participants.size}人参加</span>
+                  </div>
+                  ${location ? `<div class="battle-card-location">📍 ${escapeHtml(location)}</div>` : ''}
+                </div>
+                <div class="battle-card-right">
+                  <div class="battle-card-arrow">→</div>
+                </div>
               </div>
-              <div class="event-details">
-                <span>
-                  ${kills > 0 ? `<span style="color:var(--green)">${kills} Kill</span>` : ''}
-                  ${assists > 0 ? `${kills > 0 ? ' / ' : ''}<span style="color:var(--blue)">${assists} Assist</span>` : ''}
-                  ${deaths > 0 ? `${(kills > 0 || assists > 0) ? ' / ' : ''}<span style="color:var(--red)">${deaths} Death</span>` : ''}
-                </span>
-                <span class="event-fame">${fame.toLocaleString()} Fame</span>
-              </div>
-              ${location ? `<div style="margin-top:6px"><span class="location-badge">📍 ${escapeHtml(location)}</span></div>` : ''}
             </div>
           `;
         }).join('');
       } else {
+        // Apply filters for individual events
+        let filteredEvents = allEvents.filter(event => {
+          // Filter by event type
+          if (event.eventType === 'kill' && !filters.showKills) return false;
+          if (event.eventType === 'death' && !filters.showDeaths) return false;
+          if (event.eventType === 'assist' && !filters.showAssists) return false;
+          
+          const isDeath = event.eventType === 'death';
+          const enemyData = isDeath ? event.Killer : event.Victim;
+          const meData = isDeath ? event.Victim : event.Killer;
+          const myEquip = meData?.Equipment || {};
+          const enemyEquip = enemyData?.Equipment || {};
+          
+          // Filter by opponent name
+          if (filters.opponentSearch) {
+            const searchTerm = filters.opponentSearch.toLowerCase();
+            const enemyName = (enemyData?.Name || '').toLowerCase();
+            if (!enemyName.includes(searchTerm)) return false;
+          }
+          
+          // Filter by battle size
+          if (filters.battleSize !== 'any') {
+            const participantCount = (event.Participants?.length || 0) + 2; // +2 for killer and victim
+            if (filters.battleSize === '1v1' && participantCount > 2) return false;
+            if (filters.battleSize === '2v2' && (participantCount < 3 || participantCount > 4)) return false;
+            if (filters.battleSize === '5v5' && participantCount < 5) return false;
+          }
+          
+          // Filter by my weapon
+          if (filters.myWeapon !== 'any') {
+            if (myEquip?.MainHand?.Type !== filters.myWeapon) return false;
+          }
+          
+          // Filter by opponent weapon
+          if (filters.opponentWeapon !== 'any') {
+            if (enemyEquip?.MainHand?.Type !== filters.opponentWeapon) return false;
+          }
+          
+          return true;
+        });
+        
+        // Sort
+        if (filters.orderBy === 'date') {
+          filteredEvents.sort((a, b) => new Date(b.TimeStamp) - new Date(a.TimeStamp));
+        } else if (filters.orderBy === 'fame') {
+          filteredEvents.sort((a, b) => (b.TotalVictimKillFame || 0) - (a.TotalVictimKillFame || 0));
+        } else if (filters.orderBy === 'ip') {
+          filteredEvents.sort((a, b) => {
+            const aIpDiff = Math.abs((a.Killer?.AverageItemPower || 0) - (a.Victim?.AverageItemPower || 0));
+            const bIpDiff = Math.abs((b.Killer?.AverageItemPower || 0) - (b.Victim?.AverageItemPower || 0));
+            return bIpDiff - aIpDiff;
+          });
+        }
+        
         // Murder Ledger style individual events
-        container.innerHTML = allEvents.slice(0, 50).map(event => {
+        container.innerHTML = filteredEvents.length === 0 
+          ? '<div style="text-align:center;padding:40px;color:var(--text-secondary)">フィルター条件に一致するログがありません</div>'
+          : filteredEvents.slice(0, 50).map(event => {
           const eventType = event.eventType;
           const isKill = eventType === 'kill';
           const isAssist = eventType === 'assist';
           const isDeath = eventType === 'death';
           
-          const playerId = String(currentPlayer.Id);
-          
           // Determine "me" and "enemy" based on event type
           let meData, enemyData;
           
           if (isDeath) {
-            // I'm the victim
             meData = event.Victim;
             enemyData = event.Killer;
           } else {
-            // I'm the killer or assisted - enemy is always the victim
             enemyData = event.Victim;
             
             if (isKill) {
-              // I'm the killer
               meData = event.Killer;
             } else {
-              // Assist - find my data from participants first
               meData = event.Participants?.find(p => String(p.Id) === playerId);
-              
-              // If not in participants, try GroupMembers
               if (!meData && event.GroupMembers) {
                 meData = event.GroupMembers.find(gm => String(gm.Id) === playerId);
               }
-              
-              // Fallback to creating minimal data
               if (!meData) {
-                meData = {
-                  Name: currentPlayer.Name,
-                  GuildName: currentPlayer.GuildName,
-                  Equipment: {},
-                  AverageItemPower: 0
-                };
+                meData = { Name: currentPlayer.Name, GuildName: currentPlayer.GuildName, Equipment: {}, AverageItemPower: 0 };
               }
             }
           }
           
-          // Get equipment - also try GroupMembers
           let myEquip = meData?.Equipment || {};
           let enemyEquip = enemyData?.Equipment || {};
           
-          // Try to get my equipment from GroupMembers if not available
           if (Object.keys(myEquip).length === 0 && event.GroupMembers) {
             const me = event.GroupMembers.find(gm => String(gm.Id) === playerId);
             if (me && me.Equipment) myEquip = me.Equipment;
           }
-          
-          // Try to get from Participants
           if (Object.keys(myEquip).length === 0 && event.Participants) {
             const me = event.Participants.find(p => String(p.Id) === playerId);
             if (me && me.Equipment) myEquip = me.Equipment;
@@ -1271,9 +1662,14 @@
           const enemyIp = enemyData?.AverageItemPower || 0;
           const location = event.Location || '';
           const fame = event.TotalVictimKillFame || 0;
-          
-          // Time ago
           const timeAgo = getTimeAgo(new Date(event.TimeStamp));
+          
+          // Build enemy guild display (avoid empty brackets)
+          let enemyGuildDisplay = '';
+          if (enemyData?.GuildName) {
+            const allianceTag = enemyData.AllianceTag ? `[${enemyData.AllianceTag}] ` : '';
+            enemyGuildDisplay = `<span class="ml-player-guild">${allianceTag}${escapeHtml(enemyData.GuildName)}</span>`;
+          }
           
           return `
             <div class="ml-event-card">
@@ -1282,7 +1678,7 @@
                 <div class="ml-player-side">
                   <div class="ml-player-header">
                     <span class="ml-player-name" onclick="event.stopPropagation()">${escapeHtml(currentPlayer.Name)}</span>
-                    <span class="ml-player-guild">${escapeHtml(currentPlayer.GuildName || '')}</span>
+                    ${currentPlayer.GuildName ? `<span class="ml-player-guild">${escapeHtml(currentPlayer.GuildName)}</span>` : ''}
                     ${myIp ? `<span class="ml-player-ip">(${Math.round(myIp)} IP)</span>` : ''}
                   </div>
                   <div class="ml-equip-grid">
@@ -1315,7 +1711,7 @@
                 <div class="ml-player-side right">
                   <div class="ml-player-header">
                     <span class="ml-player-name" onclick="event.stopPropagation(); searchPlayerByName('${escapeHtml(enemyData?.Name || '')}')">${escapeHtml(enemyData?.Name || 'Unknown')}</span>
-                    ${enemyData?.GuildName ? `<span class="ml-player-guild">[${escapeHtml(enemyData.AllianceTag || '')}] ${escapeHtml(enemyData.GuildName)}</span>` : ''}
+                    ${enemyGuildDisplay}
                     ${enemyIp ? `<span class="ml-player-ip">(${Math.round(enemyIp)} IP)</span>` : ''}
                   </div>
                   <div class="ml-equip-grid">
