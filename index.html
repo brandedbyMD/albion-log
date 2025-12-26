@@ -732,6 +732,21 @@
       overflow: hidden;
     }
 
+    .ml-event-card.kill {
+      background: rgba(76, 175, 80, 0.08);
+      border-color: rgba(76, 175, 80, 0.3);
+    }
+
+    .ml-event-card.death {
+      background: rgba(244, 67, 54, 0.08);
+      border-color: rgba(244, 67, 54, 0.3);
+    }
+
+    .ml-event-card.assist {
+      background: rgba(33, 150, 243, 0.08);
+      border-color: rgba(33, 150, 243, 0.3);
+    }
+
     .ml-event-inner {
       display: grid;
       grid-template-columns: 1fr auto 1fr;
@@ -1387,6 +1402,10 @@
       currentDeaths = currentDeaths.map(e => ({ ...e, eventType: 'death' }));
       
       currentViewMode = 'events';
+      
+      // Push history state
+      pushState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
+      
       renderPlayerPage();
     }
 
@@ -1396,14 +1415,102 @@
       resultsSection.classList.remove('visible');
 
       try {
-        const battle = await fetchAPI(`/battles/${battleId}`);
+        // Get events first (this usually works)
         const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
+        
+        if (!events || events.length === 0) {
+          showError('バトルデータが見つかりませんでした（古いバトルはAPIから削除されている可能性があります）');
+          hideLoading();
+          return;
+        }
+        
+        // Try to get battle info, but don't fail if it doesn't exist
+        let battle = null;
+        try {
+          battle = await fetchAPI(`/battles/${battleId}`);
+        } catch (e) {
+          console.log('Battle endpoint not available, using events data');
+          // Build battle info from events
+          battle = buildBattleFromEvents(battleId, events);
+        }
+        
+        // Push history state
+        pushState('battle', { battleId });
+        
         renderBattleDetails(battle, events);
       } catch (error) {
-        showError(error.message);
+        showError('バトルデータの取得に失敗しました：' + error.message);
       } finally {
         hideLoading();
       }
+    }
+    
+    // Build battle info from events when /battles/ endpoint fails
+    function buildBattleFromEvents(battleId, events) {
+      const players = new Map();
+      let totalKills = 0;
+      let totalFame = 0;
+      let startTime = null;
+      let endTime = null;
+      let location = '';
+      
+      events.forEach(event => {
+        totalKills++;
+        totalFame += event.TotalVictimKillFame || 0;
+        
+        const eventTime = new Date(event.TimeStamp);
+        if (!startTime || eventTime < startTime) startTime = eventTime;
+        if (!endTime || eventTime > endTime) endTime = eventTime;
+        
+        if (!location && event.Location) location = event.Location;
+        
+        // Collect players
+        if (event.Killer) {
+          const id = event.Killer.Id;
+          if (!players.has(id)) {
+            players.set(id, {
+              Id: id,
+              Name: event.Killer.Name,
+              GuildName: event.Killer.GuildName,
+              AllianceName: event.Killer.AllianceName,
+              AllianceTag: event.Killer.AllianceTag,
+              AverageItemPower: event.Killer.AverageItemPower,
+              Equipment: event.Killer.Equipment,
+              Kills: 0,
+              Deaths: 0
+            });
+          }
+          players.get(id).Kills++;
+        }
+        
+        if (event.Victim) {
+          const id = event.Victim.Id;
+          if (!players.has(id)) {
+            players.set(id, {
+              Id: id,
+              Name: event.Victim.Name,
+              GuildName: event.Victim.GuildName,
+              AllianceName: event.Victim.AllianceName,
+              AllianceTag: event.Victim.AllianceTag,
+              AverageItemPower: event.Victim.AverageItemPower,
+              Equipment: event.Victim.Equipment,
+              Kills: 0,
+              Deaths: 0
+            });
+          }
+          players.get(id).Deaths++;
+        }
+      });
+      
+      return {
+        id: battleId,
+        startTime: startTime?.toISOString(),
+        endTime: endTime?.toISOString(),
+        totalKills: totalKills,
+        totalFame: totalFame,
+        location: location,
+        players: Array.from(players.values())
+      };
     }
 
     // Search player by name (for clicking names in battle log)
@@ -1799,7 +1906,7 @@
           : '';
           
           return `
-            <div class="ml-event-card">
+            <div class="ml-event-card ${eventType}">
               <div class="ml-event-inner">
                 <!-- Left: Me -->
                 <div class="ml-player-side">
@@ -2133,6 +2240,65 @@
       div.textContent = text;
       return div.innerHTML;
     }
+
+    // History API for back button support
+    let historyStack = [];
+    
+    function pushState(type, data) {
+      const state = { type, data, timestamp: Date.now() };
+      historyStack.push(state);
+      history.pushState(state, '', `#${type}/${encodeURIComponent(JSON.stringify(data))}`);
+    }
+    
+    function goToHome() {
+      currentPlayer = null;
+      currentDeaths = [];
+      currentKills = [];
+      currentSoloKills = [];
+      currentAssists = [];
+      resultsSection.innerHTML = '';
+      resultsSection.classList.remove('visible');
+      searchInput.value = '';
+      hideError();
+    }
+    
+    // Handle browser back/forward
+    window.addEventListener('popstate', async (event) => {
+      if (event.state) {
+        const { type, data } = event.state;
+        
+        hideError();
+        showLoading();
+        
+        try {
+          if (type === 'player') {
+            await searchPlayer(data.playerName);
+            // Don't push state again since we're navigating via history
+            historyStack.pop();
+          } else if (type === 'battle') {
+            const events = await fetchAPI(`/events/battle/${data.battleId}?offset=0&limit=51`);
+            let battle = null;
+            try {
+              battle = await fetchAPI(`/battles/${data.battleId}`);
+            } catch (e) {
+              battle = buildBattleFromEvents(data.battleId, events);
+            }
+            renderBattleDetails(battle, events);
+            historyStack.pop();
+          }
+        } catch (error) {
+          showError(error.message);
+        } finally {
+          hideLoading();
+        }
+      } else {
+        // No state means we're back to initial page
+        goToHome();
+      }
+    });
+    
+    // Initialize with initial state
+    history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
   </script>
 </body>
 </html>
