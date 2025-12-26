@@ -1003,6 +1003,8 @@
       }
 
       currentPlayer = searchResult.players[0];
+      const playerId = String(currentPlayer.Id); // Ensure string for comparison
+      
       currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths`);
       const allKills = await fetchAPI(`/players/${currentPlayer.Id}/kills`);
       
@@ -1011,15 +1013,33 @@
       currentAssists = [];
       currentKills = allKills; // Keep for backwards compatibility
       
+      console.log('Player ID:', playerId);
+      console.log('Total kills/assists from API:', allKills.length);
+      
       allKills.forEach(event => {
-        if (event.Killer && event.Killer.Id === currentPlayer.Id) {
-          // Player is the killer
+        const killerId = String(event.Killer?.Id || '');
+        const isKiller = killerId === playerId;
+        
+        // Also check if player is in Participants but not killer
+        const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
+        
+        console.log('Event:', event.EventId, 'Killer:', event.Killer?.Name, 'KillerId:', killerId, 'isKiller:', isKiller, 'inParticipants:', inParticipants);
+        
+        if (isKiller) {
+          // Player is the killer (solo kill or final blow)
           currentSoloKills.push({ ...event, eventType: 'kill' });
+        } else if (inParticipants) {
+          // Player assisted (in participants but not killer)
+          currentAssists.push({ ...event, eventType: 'assist' });
         } else {
-          // Player assisted
+          // Fallback - still count as assist since it came from kills endpoint
           currentAssists.push({ ...event, eventType: 'assist' });
         }
       });
+      
+      console.log('Solo kills:', currentSoloKills.length);
+      console.log('Assists:', currentAssists.length);
+      console.log('Deaths:', currentDeaths.length);
       
       // Add event type to deaths
       currentDeaths = currentDeaths.map(e => ({ ...e, eventType: 'death' }));
@@ -1167,6 +1187,8 @@
           const isAssist = eventType === 'assist';
           const isDeath = eventType === 'death';
           
+          const playerId = String(currentPlayer.Id);
+          
           // Determine "me" and "enemy" based on event type
           let meData, enemyData;
           
@@ -1175,15 +1197,31 @@
             meData = event.Victim;
             enemyData = event.Killer;
           } else {
-            // I'm the killer or assisted
-            // Find my data from Participants or Killer
+            // I'm the killer or assisted - enemy is always the victim
+            enemyData = event.Victim;
+            
             if (isKill) {
+              // I'm the killer
               meData = event.Killer;
             } else {
-              // Assist - find my data from participants
-              meData = event.Participants?.find(p => p.Id === currentPlayer.Id) || event.Killer;
+              // Assist - find my data from participants first
+              meData = event.Participants?.find(p => String(p.Id) === playerId);
+              
+              // If not in participants, try GroupMembers
+              if (!meData && event.GroupMembers) {
+                meData = event.GroupMembers.find(gm => String(gm.Id) === playerId);
+              }
+              
+              // Fallback to creating minimal data
+              if (!meData) {
+                meData = {
+                  Name: currentPlayer.Name,
+                  GuildName: currentPlayer.GuildName,
+                  Equipment: {},
+                  AverageItemPower: 0
+                };
+              }
             }
-            enemyData = event.Victim;
           }
           
           // Get equipment - also try GroupMembers
@@ -1192,13 +1230,13 @@
           
           // Try to get my equipment from GroupMembers if not available
           if (Object.keys(myEquip).length === 0 && event.GroupMembers) {
-            const me = event.GroupMembers.find(gm => gm.Id === currentPlayer.Id);
+            const me = event.GroupMembers.find(gm => String(gm.Id) === playerId);
             if (me && me.Equipment) myEquip = me.Equipment;
           }
           
           // Try to get from Participants
           if (Object.keys(myEquip).length === 0 && event.Participants) {
-            const me = event.Participants.find(p => p.Id === currentPlayer.Id);
+            const me = event.Participants.find(p => String(p.Id) === playerId);
             if (me && me.Equipment) myEquip = me.Equipment;
           }
           
