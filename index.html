@@ -356,6 +356,20 @@
       color: var(--blue);
     }
 
+    .filter-weapon-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filter-weapon-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
     /* Battle Header */
     .battle-header {
       background: var(--bg-card);
@@ -827,8 +841,8 @@
     }
 
     .ml-equip-icon {
-      width: 58px;
-      height: 58px;
+      width: 64px;
+      height: 64px;
       border-radius: 6px;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -949,6 +963,37 @@
 
     .ml-inventory-content.visible {
       display: block;
+    }
+
+    .ml-inventory-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .ml-inventory-col {
+      min-height: 60px;
+    }
+
+    .ml-inventory-col.left {
+      text-align: left;
+    }
+
+    .ml-inventory-col.right {
+      text-align: right;
+    }
+
+    .ml-inventory-col.right .ml-inventory-grid {
+      justify-content: flex-end;
+    }
+
+    .ml-inventory-empty-side {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-secondary);
+      opacity: 0.3;
     }
 
     .ml-inventory-grid {
@@ -1324,7 +1369,7 @@
       return response.json();
     }
 
-    async function searchPlayer(playerName) {
+    async function searchPlayer(playerName, skipHistory = false) {
       const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
       
       if (!searchResult.players || searchResult.players.length === 0) {
@@ -1401,16 +1446,24 @@
       // Add event type to deaths
       currentDeaths = currentDeaths.map(e => ({ ...e, eventType: 'death' }));
       
-      currentViewMode = 'events';
-      
-      // Push history state
-      pushState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
+      // Only set default viewMode if not restoring from history
+      if (!skipHistory) {
+        currentViewMode = 'events';
+        // Push history state (viewMode will be added by pushState)
+        pushState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
+      }
       
       renderPlayerPage();
     }
 
     async function searchBattle(battleId) {
       hideError();
+      
+      // Save current scroll position before navigating
+      if (currentPlayer) {
+        replaceState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
+      }
+      
       showLoading();
       resultsSection.classList.remove('visible');
 
@@ -1560,10 +1613,30 @@
       // Collect unique weapons for filter dropdowns
       const myWeapons = new Set();
       const opponentWeapons = new Set();
+      const playerId = String(currentPlayer.Id);
+      
       allEvents.forEach(event => {
         const isDeath = event.eventType === 'death';
-        const myEquip = isDeath ? event.Victim?.Equipment : (event.Killer?.Equipment || {});
-        const enemyEquip = isDeath ? event.Killer?.Equipment : event.Victim?.Equipment;
+        const isKill = event.eventType === 'kill';
+        const isAssist = event.eventType === 'assist';
+        
+        let myEquip = {};
+        if (isDeath) {
+          myEquip = event.Victim?.Equipment || {};
+        } else if (isKill) {
+          myEquip = event.Killer?.Equipment || {};
+        } else if (isAssist) {
+          // For assists, find my data from Participants or GroupMembers
+          const me = event.Participants?.find(p => String(p.Id) === playerId);
+          if (me && me.Equipment) {
+            myEquip = me.Equipment;
+          } else if (event.GroupMembers) {
+            const meGm = event.GroupMembers.find(gm => String(gm.Id) === playerId);
+            if (meGm && meGm.Equipment) myEquip = meGm.Equipment;
+          }
+        }
+        
+        const enemyEquip = (isDeath ? event.Killer?.Equipment : event.Victim?.Equipment) || {};
         
         if (myEquip?.MainHand?.Type) myWeapons.add(myEquip.MainHand.Type);
         if (enemyEquip?.MainHand?.Type) opponentWeapons.add(enemyEquip.MainHand.Type);
@@ -1611,17 +1684,23 @@
             </div>
             <div class="filter-group">
               <label class="filter-label">自分の武器</label>
-              <select class="filter-select" id="filterMyWeapon" onchange="updateFilter('myWeapon', this.value)">
-                <option value="any">Any</option>
-                ${Array.from(myWeapons).map(w => `<option value="${w}" ${filters.myWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
-              </select>
+              <div class="filter-weapon-wrapper">
+                ${filters.myWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(filters.myWeapon)}" alt="">` : ''}
+                <select class="filter-select" id="filterMyWeapon" onchange="updateFilter('myWeapon', this.value)">
+                  <option value="any">Any</option>
+                  ${Array.from(myWeapons).map(w => `<option value="${w}" ${filters.myWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
+                </select>
+              </div>
             </div>
             <div class="filter-group">
               <label class="filter-label">相手の武器</label>
-              <select class="filter-select" id="filterOpponentWeapon" onchange="updateFilter('opponentWeapon', this.value)">
-                <option value="any">Any</option>
-                ${Array.from(opponentWeapons).map(w => `<option value="${w}" ${filters.opponentWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
-              </select>
+              <div class="filter-weapon-wrapper">
+                ${filters.opponentWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(filters.opponentWeapon)}" alt="">` : ''}
+                <select class="filter-select" id="filterOpponentWeapon" onchange="updateFilter('opponentWeapon', this.value)">
+                  <option value="any">Any</option>
+                  ${Array.from(opponentWeapons).map(w => `<option value="${w}" ${filters.opponentWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
+                </select>
+              </div>
             </div>
             <div class="filter-group">
               <label class="filter-label">表示</label>
@@ -1653,12 +1732,43 @@
     // Get readable weapon name from item ID
     function getWeaponName(itemId) {
       if (!itemId) return 'Unknown';
-      // Extract readable name from item ID (e.g., T8_MAIN_SWORD -> Sword)
+      // Better weapon name parsing
+      // T8_2H_BOW_AVALON -> Avalon 2H Bow
+      // T4_MAIN_SWORD -> Main Sword
       const parts = itemId.split('_');
-      if (parts.length >= 2) {
-        return parts.slice(1).join(' ').substring(0, 15);
-      }
-      return itemId.substring(0, 15);
+      
+      // Remove tier prefix (T1-T8)
+      let nameParts = parts.filter(p => !p.match(/^T\d+$/));
+      
+      // Common replacements for readability
+      const replacements = {
+        '2H': '2H',
+        'MAIN': '',
+        'OFF': 'Off',
+        'HEAD': '',
+        'ARMOR': '',
+        'SHOES': '',
+        'AVALON': 'Avalon',
+        'HELL': 'Hell',
+        'KEEPER': 'Keeper',
+        'MORGANA': 'Morgana',
+        'UNDEAD': 'Undead',
+        'ROYAL': 'Royal'
+      };
+      
+      nameParts = nameParts.map(p => replacements[p] !== undefined ? replacements[p] : p);
+      nameParts = nameParts.filter(p => p); // Remove empty strings
+      
+      // Capitalize first letter of each word
+      const name = nameParts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+      
+      return name || itemId;
+    }
+    
+    // Get weapon image URL
+    function getWeaponImageUrl(itemId) {
+      if (!itemId) return '';
+      return `https://render.albiononline.com/v1/item/${itemId}.png?size=64`;
     }
     
     // Update filter and re-render
@@ -1676,6 +1786,11 @@
       const filterSection = document.getElementById('filterSection');
       if (filterSection) {
         filterSection.style.display = mode === 'events' ? 'block' : 'none';
+      }
+      
+      // Update history state with new view mode
+      if (currentPlayer) {
+        replaceState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
       }
       
       renderPlayerContent();
@@ -1881,9 +1996,7 @@
             enemyGuildDisplay = `<span class="ml-player-guild">${allianceTag}${escapeHtml(enemyData.GuildName)}</span>`;
           }
           
-          // Build inventory HTML
-          const inventoryLabel = isDeath ? '自分の所持品' : '相手の所持品';
-          const inventoryLabelClass = isDeath ? 'me' : 'enemy';
+          // Build inventory HTML - left side for my items (death), right side for enemy items (kill/assist)
           const inventoryItemsHtml = victimInventory.filter(item => item && item.Type).map(item => {
             const quality = item.Quality || 1;
             const count = item.Count || 1;
@@ -1892,15 +2005,27 @@
             return '<img class="ml-inventory-item" src="' + url + '" alt="' + item.Type + '" title="' + title + '" onerror="this.style.display=\'none\'">';
           }).join('');
           
+          const itemCount = victimInventory.filter(i => i).length;
+          
           const inventoryHtml = hasInventory ? 
             '<div class="ml-inventory-toggle" onclick="toggleInventory(\'' + eventId + '\', this)">' +
               '<span class="arrow">▼</span>' +
-              '<span>所持品を表示 (' + victimInventory.filter(i => i).length + '個)</span>' +
+              '<span>所持品を表示 (' + itemCount + '個)</span>' +
             '</div>' +
             '<div class="ml-inventory-content" id="inv-' + eventId + '">' +
-              '<div class="ml-inventory-side">' +
-                '<div class="ml-inventory-side-label ' + inventoryLabelClass + '">' + inventoryLabel + '</div>' +
-                '<div class="ml-inventory-grid">' + inventoryItemsHtml + '</div>' +
+              '<div class="ml-inventory-row">' +
+                '<div class="ml-inventory-col left">' +
+                  (isDeath ? 
+                    '<div class="ml-inventory-side-label me">自分の所持品</div>' +
+                    '<div class="ml-inventory-grid">' + inventoryItemsHtml + '</div>'
+                  : '<div class="ml-inventory-empty-side"></div>') +
+                '</div>' +
+                '<div class="ml-inventory-col right">' +
+                  (!isDeath ? 
+                    '<div class="ml-inventory-side-label enemy">相手の所持品</div>' +
+                    '<div class="ml-inventory-grid">' + inventoryItemsHtml + '</div>'
+                  : '<div class="ml-inventory-empty-side"></div>') +
+                '</div>' +
               '</div>' +
             '</div>'
           : '';
@@ -2245,9 +2370,23 @@
     let historyStack = [];
     
     function pushState(type, data) {
+      // Include current view mode and scroll position for player pages
+      if (type === 'player') {
+        data.viewMode = currentViewMode;
+      }
       const state = { type, data, timestamp: Date.now() };
       historyStack.push(state);
       history.pushState(state, '', `#${type}/${encodeURIComponent(JSON.stringify(data))}`);
+    }
+    
+    function replaceState(type, data) {
+      // Replace current state without adding to history
+      if (type === 'player') {
+        data.viewMode = currentViewMode;
+        data.scrollY = window.scrollY;
+      }
+      const state = { type, data, timestamp: Date.now() };
+      history.replaceState(state, '', `#${type}/${encodeURIComponent(JSON.stringify(data))}`);
     }
     
     function goToHome() {
@@ -2272,9 +2411,13 @@
         
         try {
           if (type === 'player') {
-            await searchPlayer(data.playerName);
-            // Don't push state again since we're navigating via history
-            historyStack.pop();
+            // Restore view mode before rendering
+            currentViewMode = data.viewMode || 'events';
+            await searchPlayer(data.playerName, true); // skipHistory = true
+            // Restore scroll position after a short delay
+            if (data.scrollY) {
+              setTimeout(() => window.scrollTo(0, data.scrollY), 100);
+            }
           } else if (type === 'battle') {
             const events = await fetchAPI(`/events/battle/${data.battleId}?offset=0&limit=51`);
             let battle = null;
@@ -2284,7 +2427,6 @@
               battle = buildBattleFromEvents(data.battleId, events);
             }
             renderBattleDetails(battle, events);
-            historyStack.pop();
           }
         } catch (error) {
           showError(error.message);
