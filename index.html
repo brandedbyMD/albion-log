@@ -1003,40 +1003,67 @@
       }
 
       currentPlayer = searchResult.players[0];
-      const playerId = String(currentPlayer.Id); // Ensure string for comparison
+      const playerId = String(currentPlayer.Id);
       
+      // Get deaths and kills (where player is killer)
       currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths`);
-      const allKills = await fetchAPI(`/players/${currentPlayer.Id}/kills`);
+      const soloKills = await fetchAPI(`/players/${currentPlayer.Id}/kills`);
       
-      // Separate solo kills and assists
-      currentSoloKills = [];
-      currentAssists = [];
-      currentKills = allKills; // Keep for backwards compatibility
+      // Collect unique battle IDs from kills and deaths
+      const battleIds = new Set();
+      soloKills.forEach(e => e.BattleId && battleIds.add(e.BattleId));
+      currentDeaths.forEach(e => e.BattleId && battleIds.add(e.BattleId));
       
-      console.log('Player ID:', playerId);
-      console.log('Total kills/assists from API:', allKills.length);
+      // Fetch events from each battle to find assists
+      let assists = [];
+      const soloKillEventIds = new Set(soloKills.map(e => e.EventId));
+      const deathEventIds = new Set(currentDeaths.map(e => e.EventId));
       
-      allKills.forEach(event => {
-        const killerId = String(event.Killer?.Id || '');
-        const isKiller = killerId === playerId;
-        
-        // Also check if player is in Participants but not killer
-        const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
-        
-        console.log('Event:', event.EventId, 'Killer:', event.Killer?.Name, 'KillerId:', killerId, 'isKiller:', isKiller, 'inParticipants:', inParticipants);
-        
-        if (isKiller) {
-          // Player is the killer (solo kill or final blow)
-          currentSoloKills.push({ ...event, eventType: 'kill' });
-        } else if (inParticipants) {
-          // Player assisted (in participants but not killer)
-          currentAssists.push({ ...event, eventType: 'assist' });
-        } else {
-          // Fallback - still count as assist since it came from kills endpoint
-          currentAssists.push({ ...event, eventType: 'assist' });
+      console.log('Fetching assists from', battleIds.size, 'battles...');
+      
+      // Limit to first 10 battles to avoid too many requests
+      const battleIdArray = Array.from(battleIds).slice(0, 10);
+      
+      for (const battleId of battleIdArray) {
+        try {
+          const battleEvents = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
+          
+          // Find events where player is in Participants but NOT the killer and NOT a death
+          battleEvents.forEach(event => {
+            // Skip if already in soloKills or deaths
+            if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
+              return;
+            }
+            
+            const killerId = String(event.Killer?.Id || '');
+            const victimId = String(event.Victim?.Id || '');
+            const isKiller = killerId === playerId;
+            const isVictim = victimId === playerId;
+            const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
+            
+            if (inParticipants && !isKiller && !isVictim) {
+              assists.push(event);
+            }
+          });
+        } catch (e) {
+          console.log('Could not fetch battle', battleId, e);
         }
+      }
+      
+      // Remove duplicates
+      const assistEventIds = new Set();
+      assists = assists.filter(e => {
+        if (assistEventIds.has(e.EventId)) return false;
+        assistEventIds.add(e.EventId);
+        return true;
       });
       
+      // Process kills
+      currentSoloKills = soloKills.map(e => ({ ...e, eventType: 'kill' }));
+      currentAssists = assists.map(e => ({ ...e, eventType: 'assist' }));
+      currentKills = [...soloKills, ...assists];
+      
+      console.log('Player ID:', playerId);
       console.log('Solo kills:', currentSoloKills.length);
       console.log('Assists:', currentAssists.length);
       console.log('Deaths:', currentDeaths.length);
