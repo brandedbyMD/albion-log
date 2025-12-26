@@ -1946,7 +1946,7 @@
                 ${filters.myWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(myWeapons.get(filters.myWeapon) || filters.myWeapon)}" alt="">` : ''}
                 <select class="filter-select" id="filterMyWeapon" onchange="updateFilter('myWeapon', this.value)">
                   <option value="any">Any</option>
-                  ${Array.from(myWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.myWeapon === baseType ? 'selected' : ''}>${getWeaponName(itemId)}</option>`).join('')}
+                  ${Array.from(myWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.myWeapon === baseType ? 'selected' : ''}>${getWeaponName(baseType)}</option>`).join('')}
                 </select>
               </div>
             </div>
@@ -1956,7 +1956,7 @@
                 ${filters.opponentWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(opponentWeapons.get(filters.opponentWeapon) || filters.opponentWeapon)}" alt="">` : ''}
                 <select class="filter-select" id="filterOpponentWeapon" onchange="updateFilter('opponentWeapon', this.value)">
                   <option value="any">Any</option>
-                  ${Array.from(opponentWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.opponentWeapon === baseType ? 'selected' : ''}>${getWeaponName(itemId)}</option>`).join('')}
+                  ${Array.from(opponentWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.opponentWeapon === baseType ? 'selected' : ''}>${getWeaponName(baseType)}</option>`).join('')}
                 </select>
               </div>
             </div>
@@ -1998,10 +1998,12 @@
     }
     
     // Get weapon name from cache (synchronous - for display)
-    function getWeaponName(itemId) {
-      if (!itemId) return 'Unknown';
+    // Can accept either full itemId or baseType
+    function getWeaponName(itemIdOrBaseType) {
+      if (!itemIdOrBaseType) return 'Unknown';
       
-      const baseType = getBaseWeaponType(itemId);
+      // Get base type (handles both full itemId and already-extracted baseType)
+      const baseType = getBaseWeaponType(itemIdOrBaseType) || itemIdOrBaseType;
       
       // Check manual overrides first (highest priority)
       if (WEAPON_NAME_OVERRIDES[baseType]) {
@@ -2014,7 +2016,7 @@
       }
       
       // Return fallback if not in cache
-      return getWeaponNameFallback(itemId);
+      return getWeaponNameFallback(itemIdOrBaseType);
     }
     
     // Fallback weapon name parsing
@@ -2073,7 +2075,7 @@
         const currentValue = myWeaponSelect.value;
         myWeaponSelect.innerHTML = '<option value="any">Any</option>' + 
           Array.from(myWeapons.entries()).map(([baseType, itemId]) => 
-            `<option value="${baseType}" ${currentValue === baseType ? 'selected' : ''}>${escapeHtml(getWeaponName(itemId))}</option>`
+            `<option value="${baseType}" ${currentValue === baseType ? 'selected' : ''}>${escapeHtml(getWeaponName(baseType))}</option>`
           ).join('');
         
         // Update icon
@@ -2100,7 +2102,7 @@
         const currentValue = opponentWeaponSelect.value;
         opponentWeaponSelect.innerHTML = '<option value="any">Any</option>' + 
           Array.from(opponentWeapons.entries()).map(([baseType, itemId]) => 
-            `<option value="${baseType}" ${currentValue === baseType ? 'selected' : ''}>${escapeHtml(getWeaponName(itemId))}</option>`
+            `<option value="${baseType}" ${currentValue === baseType ? 'selected' : ''}>${escapeHtml(getWeaponName(baseType))}</option>`
           ).join('');
         
         // Update icon
