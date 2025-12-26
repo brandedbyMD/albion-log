@@ -1685,9 +1685,9 @@
         battleMap.get(bid).events.push(event);
       });
 
-      // Collect unique weapons for filter dropdowns
-      const myWeapons = new Set();
-      const opponentWeapons = new Set();
+      // Collect unique weapons for filter dropdowns (grouped by base type)
+      const myWeapons = new Map(); // baseType -> representative itemId
+      const opponentWeapons = new Map();
       const playerId = String(currentPlayer.Id);
       
       allEvents.forEach(event => {
@@ -1713,12 +1713,23 @@
         
         const enemyEquip = (isDeath ? event.Killer?.Equipment : event.Victim?.Equipment) || {};
         
-        if (myEquip?.MainHand?.Type) myWeapons.add(myEquip.MainHand.Type);
-        if (enemyEquip?.MainHand?.Type) opponentWeapons.add(enemyEquip.MainHand.Type);
+        // Group by base weapon type (ignore tier and enchantment)
+        if (myEquip?.MainHand?.Type) {
+          const baseType = getBaseWeaponType(myEquip.MainHand.Type);
+          if (baseType && !myWeapons.has(baseType)) {
+            myWeapons.set(baseType, myEquip.MainHand.Type); // Store first seen itemId as representative
+          }
+        }
+        if (enemyEquip?.MainHand?.Type) {
+          const baseType = getBaseWeaponType(enemyEquip.MainHand.Type);
+          if (baseType && !opponentWeapons.has(baseType)) {
+            opponentWeapons.set(baseType, enemyEquip.MainHand.Type);
+          }
+        }
       });
 
       // Fetch item names in background
-      const allWeaponIds = [...myWeapons, ...opponentWeapons];
+      const allWeaponIds = [...myWeapons.values(), ...opponentWeapons.values()];
       fetchItemNames(allWeaponIds).then(() => {
         // Update weapon selects after names are fetched
         updateWeaponSelects(myWeapons, opponentWeapons);
@@ -1767,20 +1778,20 @@
             <div class="filter-group">
               <label class="filter-label">自分の武器</label>
               <div class="filter-weapon-wrapper">
-                ${filters.myWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(filters.myWeapon)}" alt="">` : ''}
+                ${filters.myWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(myWeapons.get(filters.myWeapon) || filters.myWeapon)}" alt="">` : ''}
                 <select class="filter-select" id="filterMyWeapon" onchange="updateFilter('myWeapon', this.value)">
                   <option value="any">Any</option>
-                  ${Array.from(myWeapons).map(w => `<option value="${w}" ${filters.myWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
+                  ${Array.from(myWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.myWeapon === baseType ? 'selected' : ''}>${getWeaponName(itemId)}</option>`).join('')}
                 </select>
               </div>
             </div>
             <div class="filter-group">
               <label class="filter-label">相手の武器</label>
               <div class="filter-weapon-wrapper">
-                ${filters.opponentWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(filters.opponentWeapon)}" alt="">` : ''}
+                ${filters.opponentWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(opponentWeapons.get(filters.opponentWeapon) || filters.opponentWeapon)}" alt="">` : ''}
                 <select class="filter-select" id="filterOpponentWeapon" onchange="updateFilter('opponentWeapon', this.value)">
                   <option value="any">Any</option>
-                  ${Array.from(opponentWeapons).map(w => `<option value="${w}" ${filters.opponentWeapon === w ? 'selected' : ''}>${getWeaponName(w)}</option>`).join('')}
+                  ${Array.from(opponentWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.opponentWeapon === baseType ? 'selected' : ''}>${getWeaponName(itemId)}</option>`).join('')}
                 </select>
               </div>
             </div>
@@ -1812,6 +1823,15 @@
     }
     
     // Get readable weapon name from item ID
+    // Get base weapon type (remove tier and enchantment)
+    // T8_2H_LONGBOW@2 → 2H_LONGBOW
+    function getBaseWeaponType(itemId) {
+      if (!itemId) return null;
+      return itemId
+        .replace(/^T\d+_/, '')  // Remove tier prefix (T1-T8)
+        .replace(/@\d+$/, '');   // Remove enchantment suffix (@1-@4)
+    }
+    
     // Get weapon name from cache (synchronous - for display)
     function getWeaponName(itemId) {
       if (!itemId) return 'Unknown';
@@ -1875,8 +1895,8 @@
       if (myWeaponSelect) {
         const currentValue = myWeaponSelect.value;
         myWeaponSelect.innerHTML = '<option value="any">Any</option>' + 
-          Array.from(myWeapons).map(w => 
-            `<option value="${w}" ${currentValue === w ? 'selected' : ''}>${escapeHtml(getWeaponName(w))}</option>`
+          Array.from(myWeapons.entries()).map(([baseType, itemId]) => 
+            `<option value="${baseType}" ${currentValue === baseType ? 'selected' : ''}>${escapeHtml(getWeaponName(itemId))}</option>`
           ).join('');
         
         // Update icon
@@ -1884,12 +1904,13 @@
         if (wrapper) {
           const existingIcon = wrapper.querySelector('.filter-weapon-icon');
           if (currentValue !== 'any') {
+            const itemId = myWeapons.get(currentValue) || currentValue;
             if (existingIcon) {
-              existingIcon.src = getWeaponImageUrl(currentValue);
+              existingIcon.src = getWeaponImageUrl(itemId);
             } else {
               const icon = document.createElement('img');
               icon.className = 'filter-weapon-icon';
-              icon.src = getWeaponImageUrl(currentValue);
+              icon.src = getWeaponImageUrl(itemId);
               wrapper.insertBefore(icon, myWeaponSelect);
             }
           } else if (existingIcon) {
@@ -1901,8 +1922,8 @@
       if (opponentWeaponSelect) {
         const currentValue = opponentWeaponSelect.value;
         opponentWeaponSelect.innerHTML = '<option value="any">Any</option>' + 
-          Array.from(opponentWeapons).map(w => 
-            `<option value="${w}" ${currentValue === w ? 'selected' : ''}>${escapeHtml(getWeaponName(w))}</option>`
+          Array.from(opponentWeapons.entries()).map(([baseType, itemId]) => 
+            `<option value="${baseType}" ${currentValue === baseType ? 'selected' : ''}>${escapeHtml(getWeaponName(itemId))}</option>`
           ).join('');
         
         // Update icon
@@ -1910,12 +1931,13 @@
         if (wrapper) {
           const existingIcon = wrapper.querySelector('.filter-weapon-icon');
           if (currentValue !== 'any') {
+            const itemId = opponentWeapons.get(currentValue) || currentValue;
             if (existingIcon) {
-              existingIcon.src = getWeaponImageUrl(currentValue);
+              existingIcon.src = getWeaponImageUrl(itemId);
             } else {
               const icon = document.createElement('img');
               icon.className = 'filter-weapon-icon';
-              icon.src = getWeaponImageUrl(currentValue);
+              icon.src = getWeaponImageUrl(itemId);
               wrapper.insertBefore(icon, opponentWeaponSelect);
             }
           } else if (existingIcon) {
@@ -2069,14 +2091,16 @@
             if (filters.battleSize === '5v5' && participantCount < 5) return false;
           }
           
-          // Filter by my weapon
+          // Filter by my weapon (compare base types)
           if (filters.myWeapon !== 'any') {
-            if (myEquip?.MainHand?.Type !== filters.myWeapon) return false;
+            const myWeaponBase = getBaseWeaponType(myEquip?.MainHand?.Type);
+            if (myWeaponBase !== filters.myWeapon) return false;
           }
           
-          // Filter by opponent weapon
+          // Filter by opponent weapon (compare base types)
           if (filters.opponentWeapon !== 'any') {
-            if (enemyEquip?.MainHand?.Type !== filters.opponentWeapon) return false;
+            const enemyWeaponBase = getBaseWeaponType(enemyEquip?.MainHand?.Type);
+            if (enemyWeaponBase !== filters.opponentWeapon) return false;
           }
           
           return true;
