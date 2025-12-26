@@ -2681,6 +2681,9 @@
               同じ色 = 同じチーム
             </span>
           </div>
+          <div style="padding:8px 12px;background:rgba(255,193,7,0.1);border-radius:6px;margin:8px 12px;font-size:0.8rem;color:#ffc107;">
+            ⚠️ 死亡者のダメージ/ヒール量はAPIの仕様上、表示されない場合があります
+          </div>
           ${sortedParticipants.map(p => `
             <div class="player-card">
               <div class="player-card-top">
@@ -2696,18 +2699,18 @@
               <div class="player-card-stats">
                 <div class="stat-item">
                   <div class="stat-label">ダメージ</div>
-                  <div class="stat-value damage">${p.damagePercent}%</div>
+                  <div class="stat-value damage">${p.damage > 0 ? p.damagePercent + '%' : '-'}</div>
                   <div class="damage-bar" style="width:80px">
-                    <div class="damage-bar-fill" style="width:${(p.damage / maxDamage * 100)}%"></div>
+                    <div class="damage-bar-fill" style="width:${p.damage > 0 ? (p.damage / maxDamage * 100) : 0}%"></div>
                   </div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">実数</div>
-                  <div class="stat-value">${p.damage.toLocaleString()}</div>
+                  <div class="stat-value">${p.damage > 0 ? p.damage.toLocaleString() : '-'}</div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">ヒール</div>
-                  <div class="stat-value healing">${p.healing.toLocaleString()}</div>
+                  <div class="stat-value healing">${p.healing > 0 ? p.healing.toLocaleString() : '-'}</div>
                 </div>
               </div>
               <div class="equipment-row">
