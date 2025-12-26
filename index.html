@@ -1777,25 +1777,26 @@
           // Build inventory HTML
           const inventoryLabel = isDeath ? '自分の所持品' : '相手の所持品';
           const inventoryLabelClass = isDeath ? 'me' : 'enemy';
-          const inventoryHtml = hasInventory ? `
-            <div class="ml-inventory-toggle" onclick="toggleInventory('${eventId}', this)">
-              <span class="arrow">▼</span>
-              <span>所持品を表示 (${victimInventory.filter(i => i).length}個)</span>
-            </div>
-            <div class="ml-inventory-content" id="inv-${eventId}">
-              <div class="ml-inventory-side">
-                <div class="ml-inventory-side-label ${inventoryLabelClass}">${inventoryLabel}</div>
-                <div class="ml-inventory-grid">
-                  ${victimInventory.filter(item => item && item.Type).map(item => {
-                    const quality = item.Quality || 1;
-                    const count = item.Count || 1;
-                    const url = \`https://render.albiononline.com/v1/item/\${item.Type}.png?quality=\${quality}&size=128\`;
-                    return \`<img class="ml-inventory-item" src="\${url}" alt="\${item.Type}" title="\${item.Type}${count > 1 ? ' x' + count : ''}" onerror="this.style.display='none'">\`;
-                  }).join('')}
-                </div>
-              </div>
-            </div>
-          ` : '';
+          const inventoryItemsHtml = victimInventory.filter(item => item && item.Type).map(item => {
+            const quality = item.Quality || 1;
+            const count = item.Count || 1;
+            const url = 'https://render.albiononline.com/v1/item/' + item.Type + '.png?quality=' + quality + '&size=128';
+            const title = item.Type + (count > 1 ? ' x' + count : '');
+            return '<img class="ml-inventory-item" src="' + url + '" alt="' + item.Type + '" title="' + title + '" onerror="this.style.display=\'none\'">';
+          }).join('');
+          
+          const inventoryHtml = hasInventory ? 
+            '<div class="ml-inventory-toggle" onclick="toggleInventory(\'' + eventId + '\', this)">' +
+              '<span class="arrow">▼</span>' +
+              '<span>所持品を表示 (' + victimInventory.filter(i => i).length + '個)</span>' +
+            '</div>' +
+            '<div class="ml-inventory-content" id="inv-' + eventId + '">' +
+              '<div class="ml-inventory-side">' +
+                '<div class="ml-inventory-side-label ' + inventoryLabelClass + '">' + inventoryLabel + '</div>' +
+                '<div class="ml-inventory-grid">' + inventoryItemsHtml + '</div>' +
+              '</div>' +
+            '</div>'
+          : '';
           
           return `
             <div class="ml-event-card">
