@@ -812,8 +812,8 @@
     }
 
     .ml-equip-icon {
-      width: 52px;
-      height: 52px;
+      width: 58px;
+      height: 58px;
       border-radius: 6px;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -895,6 +895,93 @@
       border-radius: 4px;
       font-size: 0.75rem;
       margin-top: 4px;
+    }
+
+    /* Inventory Section */
+    .ml-inventory-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      transition: background 0.15s ease;
+    }
+
+    .ml-inventory-toggle:hover {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+
+    .ml-inventory-toggle .arrow {
+      transition: transform 0.2s ease;
+    }
+
+    .ml-inventory-toggle.open .arrow {
+      transform: rotate(180deg);
+    }
+
+    .ml-inventory-content {
+      display: none;
+      padding: 16px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+
+    .ml-inventory-content.visible {
+      display: block;
+    }
+
+    .ml-inventory-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ml-inventory-item {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      object-fit: contain;
+      transition: transform 0.15s ease;
+    }
+
+    .ml-inventory-item:hover {
+      transform: scale(1.3);
+      z-index: 10;
+      position: relative;
+    }
+
+    .ml-inventory-empty {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .ml-inventory-side {
+      margin-bottom: 12px;
+    }
+
+    .ml-inventory-side-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .ml-inventory-side-label.me {
+      color: var(--green);
+    }
+
+    .ml-inventory-side-label.enemy {
+      color: var(--red);
     }
 
     /* Error */
@@ -1299,7 +1386,7 @@
       // Add event type to deaths
       currentDeaths = currentDeaths.map(e => ({ ...e, eventType: 'death' }));
       
-      currentViewMode = 'battles';
+      currentViewMode = 'events';
       renderPlayerPage();
     }
 
@@ -1413,7 +1500,6 @@
               <select class="filter-select" id="filterOrderBy" onchange="updateFilter('orderBy', this.value)">
                 <option value="date" ${filters.orderBy === 'date' ? 'selected' : ''}>日時</option>
                 <option value="fame" ${filters.orderBy === 'fame' ? 'selected' : ''}>Fame</option>
-                <option value="ip" ${filters.orderBy === 'ip' ? 'selected' : ''}>IP差</option>
               </select>
             </div>
             <div class="filter-group">
@@ -1569,9 +1655,27 @@
           if (event.eventType === 'assist' && !filters.showAssists) return false;
           
           const isDeath = event.eventType === 'death';
+          const isKill = event.eventType === 'kill';
+          const isAssist = event.eventType === 'assist';
           const enemyData = isDeath ? event.Killer : event.Victim;
-          const meData = isDeath ? event.Victim : event.Killer;
-          const myEquip = meData?.Equipment || {};
+          
+          // Get my equipment correctly based on event type
+          let myEquip = {};
+          if (isDeath) {
+            myEquip = event.Victim?.Equipment || {};
+          } else if (isKill) {
+            myEquip = event.Killer?.Equipment || {};
+          } else if (isAssist) {
+            // For assists, find my data from Participants or GroupMembers
+            const me = event.Participants?.find(p => String(p.Id) === playerId);
+            if (me && me.Equipment) {
+              myEquip = me.Equipment;
+            } else if (event.GroupMembers) {
+              const meGm = event.GroupMembers.find(gm => String(gm.Id) === playerId);
+              if (meGm && meGm.Equipment) myEquip = meGm.Equipment;
+            }
+          }
+          
           const enemyEquip = enemyData?.Equipment || {};
           
           // Filter by opponent name
@@ -1583,7 +1687,7 @@
           
           // Filter by battle size
           if (filters.battleSize !== 'any') {
-            const participantCount = (event.Participants?.length || 0) + 2; // +2 for killer and victim
+            const participantCount = (event.Participants?.length || 0) + 2;
             if (filters.battleSize === '1v1' && participantCount > 2) return false;
             if (filters.battleSize === '2v2' && (participantCount < 3 || participantCount > 4)) return false;
             if (filters.battleSize === '5v5' && participantCount < 5) return false;
@@ -1607,12 +1711,6 @@
           filteredEvents.sort((a, b) => new Date(b.TimeStamp) - new Date(a.TimeStamp));
         } else if (filters.orderBy === 'fame') {
           filteredEvents.sort((a, b) => (b.TotalVictimKillFame || 0) - (a.TotalVictimKillFame || 0));
-        } else if (filters.orderBy === 'ip') {
-          filteredEvents.sort((a, b) => {
-            const aIpDiff = Math.abs((a.Killer?.AverageItemPower || 0) - (a.Victim?.AverageItemPower || 0));
-            const bIpDiff = Math.abs((b.Killer?.AverageItemPower || 0) - (b.Victim?.AverageItemPower || 0));
-            return bIpDiff - aIpDiff;
-          });
         }
         
         // Murder Ledger style individual events
@@ -1664,12 +1762,40 @@
           const fame = event.TotalVictimKillFame || 0;
           const timeAgo = getTimeAgo(new Date(event.TimeStamp));
           
+          // Get inventory data (from Victim - the one who died)
+          const victimInventory = event.Victim?.Inventory || [];
+          const hasInventory = victimInventory.length > 0;
+          const eventId = event.EventId || Math.random().toString(36).substr(2, 9);
+          
           // Build enemy guild display (avoid empty brackets)
           let enemyGuildDisplay = '';
           if (enemyData?.GuildName) {
             const allianceTag = enemyData.AllianceTag ? `[${enemyData.AllianceTag}] ` : '';
             enemyGuildDisplay = `<span class="ml-player-guild">${allianceTag}${escapeHtml(enemyData.GuildName)}</span>`;
           }
+          
+          // Build inventory HTML
+          const inventoryLabel = isDeath ? '自分の所持品' : '相手の所持品';
+          const inventoryLabelClass = isDeath ? 'me' : 'enemy';
+          const inventoryHtml = hasInventory ? `
+            <div class="ml-inventory-toggle" onclick="toggleInventory('${eventId}', this)">
+              <span class="arrow">▼</span>
+              <span>所持品を表示 (${victimInventory.filter(i => i).length}個)</span>
+            </div>
+            <div class="ml-inventory-content" id="inv-${eventId}">
+              <div class="ml-inventory-side">
+                <div class="ml-inventory-side-label ${inventoryLabelClass}">${inventoryLabel}</div>
+                <div class="ml-inventory-grid">
+                  ${victimInventory.filter(item => item && item.Type).map(item => {
+                    const quality = item.Quality || 1;
+                    const count = item.Count || 1;
+                    const url = \`https://render.albiononline.com/v1/item/\${item.Type}.png?quality=\${quality}&size=128\`;
+                    return \`<img class="ml-inventory-item" src="\${url}" alt="\${item.Type}" title="\${item.Type}${count > 1 ? ' x' + count : ''}" onerror="this.style.display='none'">\`;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+          ` : '';
           
           return `
             <div class="ml-event-card">
@@ -1732,6 +1858,7 @@
                   </div>
                 </div>
               </div>
+              ${inventoryHtml}
             </div>
           `;
         }).join('');
@@ -1751,6 +1878,15 @@
       if (hours < 24) return `${hours}時間前`;
       if (days < 7) return `${days}日前`;
       return date.toLocaleDateString('ja-JP');
+    }
+
+    // Toggle inventory display
+    function toggleInventory(eventId, toggleElement) {
+      const content = document.getElementById('inv-' + eventId);
+      if (content) {
+        content.classList.toggle('visible');
+        toggleElement.classList.toggle('open');
+      }
     }
 
     // Get Murder Ledger style equipment icon
