@@ -2533,20 +2533,6 @@
       const participants = {};
       let totalDamage = 0;
 
-      // First, try to get damage from battle.players (more accurate)
-      const battlePlayerDamage = {};
-      if (battle && battle.players) {
-        Object.values(battle.players).forEach(p => {
-          if (p.id) {
-            battlePlayerDamage[p.id] = {
-              damage: p.damageDone || 0,
-              healing: p.healingDone || 0
-            };
-            totalDamage += p.damageDone || 0;
-          }
-        });
-      }
-
       events.forEach(event => {
         // Process killer
         if (event.Killer) {
@@ -2557,8 +2543,8 @@
               guildName: event.Killer.GuildName || '',
               guildId: event.Killer.GuildId || '',
               allianceId: event.Killer.AllianceId || '',
-              damage: battlePlayerDamage[id]?.damage || 0,
-              healing: battlePlayerDamage[id]?.healing || 0,
+              damage: 0,
+              healing: 0,
               equipment: event.Killer.Equipment || {},
               ip: event.Killer.AverageItemPower || 0
             };
@@ -2578,8 +2564,8 @@
               guildName: event.Victim.GuildName || '',
               guildId: event.Victim.GuildId || '',
               allianceId: event.Victim.AllianceId || '',
-              damage: battlePlayerDamage[id]?.damage || 0,
-              healing: battlePlayerDamage[id]?.healing || 0,
+              damage: 0,
+              healing: 0,
               equipment: event.Victim.Equipment || {},
               ip: event.Victim.AverageItemPower || 0
             };
@@ -2590,7 +2576,7 @@
           if (event.Victim.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, event.Victim.AverageItemPower);
         }
 
-        // Process participants (for equipment and as fallback for damage)
+        // Process participants (damage dealers) - accumulate across ALL events
         if (event.Participants) {
           event.Participants.forEach(p => {
             const id = p.Id;
@@ -2600,24 +2586,26 @@
                 guildName: p.GuildName || '',
                 guildId: p.GuildId || '',
                 allianceId: p.AllianceId || '',
-                damage: battlePlayerDamage[id]?.damage || 0,
-                healing: battlePlayerDamage[id]?.healing || 0,
+                damage: 0,
+                healing: 0,
                 equipment: p.Equipment || {},
                 ip: p.AverageItemPower || 0
               };
             }
-            // If no battle data, accumulate from events
-            if (!battle?.players) {
-              participants[id].damage += p.DamageDone || 0;
-              participants[id].healing += p.SupportHealingDone || 0;
-              totalDamage += p.DamageDone || 0;
-            }
+            participants[id].damage += p.DamageDone || 0;
+            participants[id].healing += p.SupportHealingDone || 0;
             if (p.Equipment && Object.keys(p.Equipment).length > 0) {
               participants[id].equipment = p.Equipment;
             }
             if (p.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, p.AverageItemPower);
           });
         }
+      });
+
+      // Calculate total damage after processing all events
+      Object.values(participants).forEach(p => {
+        totalDamage += p.damage;
+      });
 
         // Process GroupMembers for equipment
         if (event.GroupMembers) {
