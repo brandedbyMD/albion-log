@@ -2600,12 +2600,6 @@
             if (p.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, p.AverageItemPower);
           });
         }
-      });
-
-      // Calculate total damage after processing all events
-      Object.values(participants).forEach(p => {
-        totalDamage += p.damage;
-      });
 
         // Process GroupMembers for equipment
         if (event.GroupMembers) {
@@ -2623,6 +2617,11 @@
             }
           });
         }
+      });
+
+      // Calculate total damage after processing all events
+      Object.values(participants).forEach(p => {
+        totalDamage += p.damage;
       });
 
       // Calculate percentages
