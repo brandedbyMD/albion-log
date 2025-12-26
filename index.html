@@ -20,6 +20,7 @@
       --green: #16a34a;
       --blue: #2563eb;
       --orange: #ea580c;
+      --purple: #7c3aed;
     }
 
     * {
@@ -34,17 +35,18 @@
       color: var(--text);
       min-height: 100vh;
       line-height: 1.6;
+      padding-bottom: 80px;
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 900px;
       margin: 0 auto;
       padding: 20px;
     }
 
     /* Header */
     header {
-      padding: 60px 20px 40px;
+      padding: 40px 20px 30px;
       text-align: center;
     }
 
@@ -65,19 +67,23 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .search-wrapper {
+      position: relative;
     }
 
     .search-form {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
     .search-input {
       flex: 1;
-      min-width: 200px;
+      min-width: 180px;
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
@@ -93,8 +99,45 @@
       border-color: var(--accent);
     }
 
-    .search-input::placeholder {
+    /* Autocomplete */
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .autocomplete-list.visible {
+      display: block;
+    }
+
+    .autocomplete-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .autocomplete-item .guild {
       color: var(--text-secondary);
+      font-size: 0.8rem;
     }
 
     .server-select {
@@ -105,46 +148,39 @@
       border-radius: 8px;
       font-family: inherit;
       font-size: 0.95rem;
-      cursor: pointer;
     }
 
     .search-btn {
       background: var(--accent);
       border: none;
       color: #fff;
-      padding: 10px 24px;
+      padding: 10px 20px;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s ease;
       font-family: inherit;
       font-size: 0.95rem;
     }
 
-    .search-btn:hover {
-      opacity: 0.9;
-    }
-
     .search-btn:disabled {
       opacity: 0.4;
-      cursor: not-allowed;
     }
 
     /* Loading */
     .loading {
       text-align: center;
-      padding: 60px 20px;
+      padding: 50px 20px;
       color: var(--text-secondary);
     }
 
     .loading-spinner {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
+      margin: 0 auto 12px;
     }
 
     @keyframes spin {
@@ -160,40 +196,81 @@
       display: block;
     }
 
+    /* Player Header */
+    .player-header {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .player-name-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .player-guild-name {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* View Tabs */
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .view-tab {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+
+    .view-tab.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* Battle Header */
     .battle-header {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 24px;
+      padding: 20px;
       margin-bottom: 16px;
     }
 
     .battle-title {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       font-weight: 600;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .battle-meta {
       display: flex;
-      gap: 20px;
+      gap: 16px;
       flex-wrap: wrap;
       color: var(--text-secondary);
-      font-size: 0.875rem;
-      align-items: center;
+      font-size: 0.85rem;
     }
 
-    /* Location Badge */
     .location-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
       background: var(--accent);
       color: #fff;
+      padding: 4px 10px;
       border-radius: 6px;
-      padding: 5px 12px;
       font-size: 0.8rem;
-      font-weight: 500;
     }
 
     /* Team Card */
@@ -206,176 +283,206 @@
     }
 
     .team-header {
-      padding: 16px 20px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-left: 3px solid var(--green);
-    }
-
-    .team-name {
       font-weight: 600;
+      font-size: 0.95rem;
     }
 
-    .team-stats {
-      display: flex;
-      gap: 20px;
-      font-size: 0.8rem;
-      color: var(--text-secondary);
+    .team-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
     }
 
-    .team-stats .stat {
+    /* Player Card - Mobile First */
+    .player-card {
       display: flex;
       flex-direction: column;
-      align-items: center;
-    }
-
-    .team-stats .stat-value {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    /* Player List */
-    .player-list {
-      overflow-x: auto;
-    }
-
-    .player-row {
-      display: grid;
-      grid-template-columns: minmax(180px, 1fr) 90px 90px 55px 60px 220px;
-      gap: 8px;
-      padding: 14px 20px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border);
-      align-items: center;
-      transition: background 0.1s ease;
-      min-width: 780px;
+      gap: 10px;
     }
 
-    .player-row:hover {
-      background: var(--bg-hover);
-    }
-
-    .player-row:last-child {
+    .player-card:last-child {
       border-bottom: none;
     }
 
-    .player-row.header-row {
-      background: var(--bg);
-      font-weight: 600;
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 10px 20px;
-    }
-
-    .player-row.header-row:hover {
-      background: var(--bg);
+    .player-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
     }
 
     .player-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      flex: 1;
     }
 
     .player-name {
       font-weight: 500;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
     }
 
     .player-guild {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: var(--text-secondary);
     }
 
-    .player-stat {
-      text-align: center;
+    .player-ip {
       font-size: 0.85rem;
-    }
-
-    .player-stat.damage {
-      color: var(--red);
-      font-weight: 500;
-    }
-
-    .player-stat.healing {
-      color: var(--green);
-      font-weight: 500;
-    }
-
-    .player-stat.kills {
-      font-weight: 500;
-    }
-
-    .player-stat.ip {
+      font-weight: 600;
       color: var(--orange);
+    }
+
+    .player-card-stats {
+      display: flex;
+      gap: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 0.9rem;
       font-weight: 600;
     }
 
+    .stat-value.damage {
+      color: var(--red);
+    }
+
+    .stat-value.healing {
+      color: var(--green);
+    }
+
     .damage-bar {
-      height: 3px;
+      height: 4px;
       background: var(--border);
       border-radius: 2px;
       margin-top: 4px;
-      overflow: hidden;
     }
 
     .damage-bar-fill {
       height: 100%;
       background: var(--red);
       border-radius: 2px;
-      transition: width 0.4s ease-out;
     }
 
-    .damage-value {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-
-    /* Equipment - 大きく見やすく */
-    .equipment-icons {
+    /* Equipment */
+    .equipment-row {
       display: flex;
       gap: 4px;
-      justify-content: flex-start;
-    }
-
-    .equip-slot {
-      position: relative;
+      flex-wrap: wrap;
     }
 
     .equip-icon {
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       border-radius: 6px;
       background: var(--bg);
       border: 1px solid var(--border);
       object-fit: contain;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      cursor: pointer;
-    }
-
-    .equip-icon:hover {
-      transform: scale(1.8);
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      border-color: var(--accent);
     }
 
     .equip-icon.empty {
       opacity: 0.2;
-      cursor: default;
     }
 
-    .equip-icon.empty:hover {
-      transform: none;
-      box-shadow: none;
-      border-color: var(--border);
+    /* Kill/Death Event Card */
+    .event-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
     }
 
-    /* Kill Events */
+    .event-card:hover {
+      border-color: var(--text-secondary);
+    }
+
+    .event-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .event-type {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .event-type.kill {
+      color: var(--green);
+    }
+
+    .event-type.death {
+      color: var(--red);
+    }
+
+    .event-time {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .event-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .event-players {
+      font-size: 0.9rem;
+    }
+
+    .event-fame {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .event-equipment {
+      display: flex;
+      gap: 3px;
+      margin-top: 8px;
+    }
+
+    .event-equipment .equip-icon {
+      width: 28px;
+      height: 28px;
+    }
+
+    /* Error */
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--red);
+      text-align: center;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+
+    /* Kill Log Section */
     .kill-events {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -384,7 +491,7 @@
     }
 
     .kill-events-header {
-      padding: 16px 20px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border);
       font-weight: 600;
     }
@@ -392,117 +499,61 @@
     .kill-event {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
+      gap: 10px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
     }
 
     .kill-event:last-child {
       border-bottom: none;
     }
 
-    .kill-icon {
-      font-size: 1.2rem;
-      opacity: 0.6;
+    .kill-arrow {
+      color: var(--text-secondary);
     }
 
-    .kill-details {
-      flex: 1;
-    }
-
-    .kill-players {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      font-size: 0.95rem;
-    }
-
-    .kill-players .killer-name {
+    .killer-name {
       color: var(--green);
       font-weight: 500;
     }
 
-    .kill-players .victim-name {
+    .victim-name {
       color: var(--red);
       font-weight: 500;
     }
 
-    .kill-time {
+    .kill-fame {
+      margin-left: auto;
       color: var(--text-secondary);
       font-size: 0.8rem;
-      margin-top: 2px;
     }
 
-    /* Error */
-    .error-message {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 8px;
-      padding: 16px;
-      color: var(--red);
-      text-align: center;
-      margin: 20px 0;
-      font-size: 0.95rem;
-    }
-
-    /* Battles List */
-    .battles-list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .battle-item {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px 20px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .battle-item:hover {
-      border-color: var(--text-secondary);
-    }
-
-    .battle-item-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-
-    .battle-item-id {
-      font-weight: 600;
-    }
-
-    .battle-item-time {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-    }
-
-    .battle-item-stats {
-      display: flex;
-      gap: 16px;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    @media (max-width: 800px) {
-      .player-row {
-        grid-template-columns: minmax(140px, 1fr) 70px 70px 45px 50px 160px;
-        font-size: 0.8rem;
-        padding: 10px 16px;
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container {
+        padding: 12px;
       }
       
-      .equip-icon {
-        width: 28px;
-        height: 28px;
+      header {
+        padding: 24px 12px 20px;
       }
 
-      .battle-meta {
-        gap: 12px;
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      .search-section {
+        padding: 14px;
+      }
+
+      .player-card-stats {
+        flex-wrap: wrap;
+      }
+
+      .equip-icon {
+        width: 32px;
+        height: 32px;
       }
     }
   </style>
@@ -510,36 +561,42 @@
 <body>
   <div class="container">
     <header>
-      <h1 id="logo" onclick="goHome()">Albion Log</h1>
+      <h1 onclick="goHome()">Albion Log</h1>
     </header>
 
-    <section class="search-section" id="searchSection">
-      <form class="search-form" id="searchForm">
-        <input type="text" class="search-input" id="searchInput" placeholder="プレイヤー名を入力...">
-        <select class="server-select" id="serverSelect">
-          <option value="asia">Asia</option>
-          <option value="americas">Americas</option>
-          <option value="europe">Europe</option>
-        </select>
-        <button type="submit" class="search-btn" id="searchBtn">検索</button>
-      </form>
+    <section class="search-section">
+      <div class="search-wrapper">
+        <form class="search-form" id="searchForm">
+          <input type="text" class="search-input" id="searchInput" placeholder="プレイヤー名を入力..." autocomplete="off">
+          <select class="server-select" id="serverSelect">
+            <option value="asia">Asia</option>
+            <option value="americas">Americas</option>
+            <option value="europe">Europe</option>
+          </select>
+          <button type="submit" class="search-btn" id="searchBtn">検索</button>
+        </form>
+        <div class="autocomplete-list" id="autocompleteList"></div>
+      </div>
     </section>
 
     <div class="loading" id="loading" style="display: none;">
       <div class="loading-spinner"></div>
-      <p>データを取得中...</p>
+      <p>読み込み中...</p>
     </div>
 
     <div class="error-message" id="errorMessage" style="display: none;"></div>
 
-    <section class="results-section" id="resultsSection">
-      <!-- Results will be rendered here -->
-    </section>
+    <section class="results-section" id="resultsSection"></section>
   </div>
 
   <script>
     // State
     let currentServer = 'asia';
+    let currentPlayer = null;
+    let currentDeaths = [];
+    let currentKills = [];
+    let currentViewMode = 'battles';
+    let autocompleteTimeout = null;
 
     // DOM Elements
     const searchInput = document.getElementById('searchInput');
@@ -549,12 +606,57 @@
     const loading = document.getElementById('loading');
     const errorMessage = document.getElementById('errorMessage');
     const resultsSection = document.getElementById('resultsSection');
-    const searchSection = document.getElementById('searchSection');
+    const autocompleteList = document.getElementById('autocompleteList');
 
     // Server select
     serverSelect.addEventListener('change', () => {
       currentServer = serverSelect.value;
     });
+
+    // Autocomplete
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim();
+      
+      if (autocompleteTimeout) clearTimeout(autocompleteTimeout);
+      
+      if (query.length < 2) {
+        autocompleteList.classList.remove('visible');
+        return;
+      }
+
+      autocompleteTimeout = setTimeout(async () => {
+        try {
+          const results = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
+          if (results.players && results.players.length > 0) {
+            renderAutocomplete(results.players.slice(0, 5));
+          } else {
+            autocompleteList.classList.remove('visible');
+          }
+        } catch (e) {
+          autocompleteList.classList.remove('visible');
+        }
+      }, 300);
+    });
+
+    searchInput.addEventListener('blur', () => {
+      setTimeout(() => autocompleteList.classList.remove('visible'), 200);
+    });
+
+    function renderAutocomplete(players) {
+      autocompleteList.innerHTML = players.map(p => `
+        <div class="autocomplete-item" onclick="selectPlayer('${escapeHtml(p.Name)}')">
+          <div>${escapeHtml(p.Name)}</div>
+          <div class="guild">${escapeHtml(p.GuildName || 'No Guild')}</div>
+        </div>
+      `).join('');
+      autocompleteList.classList.add('visible');
+    }
+
+    function selectPlayer(name) {
+      searchInput.value = name;
+      autocompleteList.classList.remove('visible');
+      searchForm.dispatchEvent(new Event('submit'));
+    }
 
     // Search handler
     searchForm.addEventListener('submit', async (e) => {
@@ -569,6 +671,7 @@
       hideError();
       showLoading();
       resultsSection.classList.remove('visible');
+      autocompleteList.classList.remove('visible');
 
       try {
         await searchPlayer(query);
@@ -580,19 +683,18 @@
       }
     });
 
-    // Go home function
+    // Go home
     function goHome() {
       resultsSection.classList.remove('visible');
       resultsSection.innerHTML = '';
       searchInput.value = '';
       hideError();
+      currentPlayer = null;
     }
 
-    // API Functions - Using local proxy
+    // API Functions
     async function fetchAPI(endpoint) {
       const url = `/api${endpoint}${endpoint.includes('?') ? '&' : '?'}server=${currentServer}`;
-      console.log('Fetching:', url);
-      
       const response = await fetch(url);
       if (!response.ok) {
         const errorText = await response.text();
@@ -602,7 +704,6 @@
     }
 
     async function searchPlayer(playerName) {
-      // Search for player
       const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
       
       if (!searchResult.players || searchResult.players.length === 0) {
@@ -610,42 +711,162 @@
         return;
       }
 
-      const player = searchResult.players[0];
+      currentPlayer = searchResult.players[0];
+      currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths`);
+      currentKills = await fetchAPI(`/players/${currentPlayer.Id}/kills`);
+      currentViewMode = 'battles';
       
-      // Get player's recent deaths and kills
-      const deaths = await fetchAPI(`/players/${player.Id}/deaths`);
-      const kills = await fetchAPI(`/players/${player.Id}/kills`);
-      
-      renderPlayerBattles(player, deaths, kills);
+      renderPlayerPage();
     }
 
     async function searchBattle(battleId) {
-      // Get battle info
-      const battle = await fetchAPI(`/battles/${battleId}`);
-      
-      // Get kill events for this battle
-      const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
-      
-      renderBattleDetails(battle, events);
+      hideError();
+      showLoading();
+      resultsSection.classList.remove('visible');
+
+      try {
+        const battle = await fetchAPI(`/battles/${battleId}`);
+        const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
+        renderBattleDetails(battle, events);
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        hideLoading();
+      }
     }
 
-    // Equipment render helper
+    // Get equipment icon
     function getEquipmentIcon(item) {
       if (!item || !item.Type) {
-        return '<div class="equip-slot"><div class="equip-icon empty"></div></div>';
+        return '<div class="equip-icon empty"></div>';
       }
       const itemId = item.Type;
       const quality = item.Quality || 1;
       const url = `https://render.albiononline.com/v1/item/${itemId}.png?quality=${quality}&size=128`;
-      return `<div class="equip-slot"><img class="equip-icon" src="${url}" alt="${itemId}" title="${itemId}" onerror="this.classList.add('empty'); this.src='';"></div>`;
+      return `<img class="equip-icon" src="${url}" alt="${itemId}" onerror="this.classList.add('empty'); this.src='';">`;
     }
 
-    // Render Functions
+    // Render player page
+    function renderPlayerPage() {
+      const allEvents = [...currentDeaths, ...currentKills].sort((a, b) => 
+        new Date(b.TimeStamp) - new Date(a.TimeStamp)
+      );
+
+      // Group by battle
+      const battleMap = new Map();
+      allEvents.forEach(event => {
+        const bid = event.BattleId;
+        if (!battleMap.has(bid)) {
+          battleMap.set(bid, { events: [], time: event.TimeStamp });
+        }
+        battleMap.get(bid).events.push(event);
+      });
+
+      resultsSection.innerHTML = `
+        <div class="player-header">
+          <div class="player-name-title">${escapeHtml(currentPlayer.Name)}</div>
+          <div class="player-guild-name">${escapeHtml(currentPlayer.GuildName || 'No Guild')}</div>
+        </div>
+
+        <div class="view-tabs">
+          <button class="view-tab ${currentViewMode === 'battles' ? 'active' : ''}" onclick="switchView('battles')">
+            バトル別 (${battleMap.size})
+          </button>
+          <button class="view-tab ${currentViewMode === 'events' ? 'active' : ''}" onclick="switchView('events')">
+            個別ログ (${allEvents.length})
+          </button>
+        </div>
+
+        <div id="playerContent"></div>
+      `;
+
+      renderPlayerContent();
+      resultsSection.classList.add('visible');
+    }
+
+    function switchView(mode) {
+      currentViewMode = mode;
+      document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.view-tab:${mode === 'battles' ? 'first' : 'last'}-child`).classList.add('active');
+      renderPlayerContent();
+    }
+
+    function renderPlayerContent() {
+      const container = document.getElementById('playerContent');
+      const allEvents = [...currentDeaths, ...currentKills].sort((a, b) => 
+        new Date(b.TimeStamp) - new Date(a.TimeStamp)
+      );
+
+      if (currentViewMode === 'battles') {
+        // Group by battle
+        const battleMap = new Map();
+        allEvents.forEach(event => {
+          const bid = event.BattleId;
+          if (!battleMap.has(bid)) {
+            battleMap.set(bid, { events: [], time: event.TimeStamp });
+          }
+          battleMap.get(bid).events.push(event);
+        });
+
+        container.innerHTML = Array.from(battleMap.entries()).slice(0, 30).map(([battleId, data]) => {
+          const kills = data.events.filter(e => currentKills.includes(e)).length;
+          const deaths = data.events.filter(e => currentDeaths.includes(e)).length;
+          const fame = data.events.reduce((sum, e) => sum + (e.TotalVictimKillFame || 0), 0);
+          const location = data.events[0]?.Location || '';
+
+          return `
+            <div class="event-card" onclick="searchBattle('${battleId}')">
+              <div class="event-card-header">
+                <span class="event-type">Battle #${battleId}</span>
+                <span class="event-time">${new Date(data.time).toLocaleString('ja-JP')}</span>
+              </div>
+              <div class="event-details">
+                <span>${kills > 0 ? `<span style="color:var(--green)">${kills} Kill</span>` : ''}${kills > 0 && deaths > 0 ? ' / ' : ''}${deaths > 0 ? `<span style="color:var(--red)">${deaths} Death</span>` : ''}</span>
+                <span class="event-fame">${fame.toLocaleString()} Fame</span>
+              </div>
+              ${location ? `<div style="margin-top:6px"><span class="location-badge">📍 ${escapeHtml(location)}</span></div>` : ''}
+            </div>
+          `;
+        }).join('');
+      } else {
+        // Individual events
+        container.innerHTML = allEvents.slice(0, 50).map(event => {
+          const isKill = currentKills.includes(event);
+          const otherPlayer = isKill ? event.Victim : event.Killer;
+          const equipment = otherPlayer?.Equipment || {};
+          const location = event.Location || '';
+
+          return `
+            <div class="event-card" onclick="searchBattle('${event.BattleId}')">
+              <div class="event-card-header">
+                <span class="event-type ${isKill ? 'kill' : 'death'}">${isKill ? 'Kill' : 'Death'}</span>
+                <span class="event-time">${new Date(event.TimeStamp).toLocaleString('ja-JP')}</span>
+              </div>
+              <div class="event-details">
+                <span class="event-players">
+                  ${isKill ? 'Killed' : 'Killed by'}: <strong>${escapeHtml(otherPlayer?.Name || 'Unknown')}</strong>
+                </span>
+                <span class="event-fame">${(event.TotalVictimKillFame || 0).toLocaleString()} Fame</span>
+              </div>
+              ${location ? `<div style="margin-top:6px"><span class="location-badge">📍 ${escapeHtml(location)}</span></div>` : ''}
+              <div class="event-equipment">
+                ${getEquipmentIcon(equipment.MainHand)}
+                ${getEquipmentIcon(equipment.OffHand)}
+                ${getEquipmentIcon(equipment.Head)}
+                ${getEquipmentIcon(equipment.Armor)}
+                ${getEquipmentIcon(equipment.Shoes)}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Render battle details
     function renderBattleDetails(battle, events) {
-      // Process participants data
+      // Process participants
       const participants = {};
       let totalDamage = 0;
-      let totalHealing = 0;
 
       events.forEach(event => {
         // Process killer
@@ -655,22 +876,16 @@
             participants[id] = {
               name: event.Killer.Name,
               guildName: event.Killer.GuildName || '',
-              allianceName: event.Killer.AllianceName || '',
-              kills: 0,
-              deaths: 0,
+              guildId: event.Killer.GuildId || '',
+              allianceId: event.Killer.AllianceId || '',
               damage: 0,
               healing: 0,
               equipment: event.Killer.Equipment || {},
               ip: event.Killer.AverageItemPower || 0
             };
           }
-          participants[id].kills++;
-          if (!participants[id].equipment || Object.keys(participants[id].equipment).length === 0) {
-            participants[id].equipment = event.Killer.Equipment || {};
-          }
-          if (event.Killer.AverageItemPower) {
-            participants[id].ip = Math.max(participants[id].ip, event.Killer.AverageItemPower);
-          }
+          if (event.Killer.Equipment) participants[id].equipment = event.Killer.Equipment;
+          if (event.Killer.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, event.Killer.AverageItemPower);
         }
 
         // Process victim
@@ -680,22 +895,16 @@
             participants[id] = {
               name: event.Victim.Name,
               guildName: event.Victim.GuildName || '',
-              allianceName: event.Victim.AllianceName || '',
-              kills: 0,
-              deaths: 0,
+              guildId: event.Victim.GuildId || '',
+              allianceId: event.Victim.AllianceId || '',
               damage: 0,
               healing: 0,
               equipment: event.Victim.Equipment || {},
               ip: event.Victim.AverageItemPower || 0
             };
           }
-          participants[id].deaths++;
-          if (event.Victim.Equipment) {
-            participants[id].equipment = event.Victim.Equipment;
-          }
-          if (event.Victim.AverageItemPower) {
-            participants[id].ip = Math.max(participants[id].ip, event.Victim.AverageItemPower);
-          }
+          if (event.Victim.Equipment) participants[id].equipment = event.Victim.Equipment;
+          if (event.Victim.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, event.Victim.AverageItemPower);
         }
 
         // Process participants (damage dealers)
@@ -706,9 +915,8 @@
               participants[id] = {
                 name: p.Name,
                 guildName: p.GuildName || '',
-                allianceName: p.AllianceName || '',
-                kills: 0,
-                deaths: 0,
+                guildId: p.GuildId || '',
+                allianceId: p.AllianceId || '',
                 damage: 0,
                 healing: 0,
                 equipment: p.Equipment || {},
@@ -718,12 +926,24 @@
             participants[id].damage += p.DamageDone || 0;
             participants[id].healing += p.SupportHealingDone || 0;
             totalDamage += p.DamageDone || 0;
-            totalHealing += p.SupportHealingDone || 0;
             if (p.Equipment && Object.keys(p.Equipment).length > 0) {
               participants[id].equipment = p.Equipment;
             }
-            if (p.AverageItemPower) {
-              participants[id].ip = Math.max(participants[id].ip, p.AverageItemPower);
+            if (p.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, p.AverageItemPower);
+          });
+        }
+
+        // Process GroupMembers for equipment
+        if (event.GroupMembers) {
+          event.GroupMembers.forEach(gm => {
+            const id = gm.Id;
+            if (participants[id] && gm.Equipment && Object.keys(gm.Equipment).length > 0) {
+              if (!participants[id].equipment || Object.keys(participants[id].equipment).length === 0) {
+                participants[id].equipment = gm.Equipment;
+              }
+            }
+            if (participants[id] && gm.AverageItemPower) {
+              participants[id].ip = Math.max(participants[id].ip, gm.AverageItemPower);
             }
           });
         }
@@ -732,26 +952,48 @@
       // Calculate percentages
       Object.values(participants).forEach(p => {
         p.damagePercent = totalDamage > 0 ? (p.damage / totalDamage * 100).toFixed(1) : 0;
-        p.healingPercent = totalHealing > 0 ? (p.healing / totalHealing * 100).toFixed(1) : 0;
+      });
+
+      // Group by guild/alliance for team coloring
+      const teams = new Map();
+      Object.entries(participants).forEach(([id, p]) => {
+        const teamKey = p.allianceId || p.guildId || id;
+        if (!teams.has(teamKey)) {
+          teams.set(teamKey, { members: [], guildName: p.guildName });
+        }
+        teams.get(teamKey).members.push({ id, ...p });
+      });
+
+      // Assign colors to teams
+      const teamColors = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+      let colorIndex = 0;
+      teams.forEach((team, key) => {
+        team.color = team.members.length > 1 ? teamColors[colorIndex++ % teamColors.length] : '#9ca3af';
       });
 
       // Sort by damage
-      const sortedParticipants = Object.values(participants).sort((a, b) => b.damage - a.damage);
+      const sortedParticipants = Object.entries(participants)
+        .map(([id, p]) => ({ id, ...p }))
+        .sort((a, b) => b.damage - a.damage);
+      
       const maxDamage = sortedParticipants[0]?.damage || 1;
 
-      // Get location if available
-      const location = events[0]?.Location || battle.clusterName || '';
+      // Get team color for player
+      const getTeamColor = (p) => {
+        const teamKey = p.allianceId || p.guildId || p.id;
+        return teams.get(teamKey)?.color || '#9ca3af';
+      };
 
-      // Render
+      const location = events[0]?.Location || '';
       const battleTime = new Date(battle.startTime).toLocaleString('ja-JP');
-      
+
       resultsSection.innerHTML = `
         <div class="battle-header">
-          <h2 class="battle-title">Battle #${battle.id}</h2>
+          <div class="battle-title">Battle #${battle.id}</div>
           <div class="battle-meta">
             <span>${battleTime}</span>
-            <span>${battle.totalPlayers || Object.keys(participants).length} players</span>
-            <span>${battle.totalKills || events.length} kills</span>
+            <span>${sortedParticipants.length} players</span>
+            <span>${events.length} kills</span>
             <span>${(battle.totalFame || 0).toLocaleString()} Fame</span>
             ${location ? `<span class="location-badge">📍 ${escapeHtml(location)}</span>` : ''}
           </div>
@@ -759,136 +1001,68 @@
 
         <div class="team-card">
           <div class="team-header">
-            <span class="team-name">参加者（ダメージ順）</span>
-            <div class="team-stats">
-              <div class="stat">
-                <span class="stat-value">${sortedParticipants.length}</span>
-                <span>人</span>
-              </div>
-              <div class="stat">
-                <span class="stat-value">${totalDamage.toLocaleString()}</span>
-                <span>総ダメージ</span>
-              </div>
-            </div>
+            <span>参加者（ダメージ順）</span>
+            <span style="font-weight:normal;color:var(--text-secondary);font-size:0.8rem">
+              同じ色 = 同じチーム
+            </span>
           </div>
-          <div class="player-list">
-            <div class="player-row header-row">
-              <div>プレイヤー</div>
-              <div style="text-align: center;">ダメージ</div>
-              <div style="text-align: center;">ヒール</div>
-              <div style="text-align: center;">K/D</div>
-              <div style="text-align: center;">IP</div>
-              <div>装備</div>
-            </div>
-            ${sortedParticipants.map(p => `
-              <div class="player-row">
+          ${sortedParticipants.map(p => `
+            <div class="player-card">
+              <div class="player-card-top">
                 <div class="player-info">
-                  <span class="player-name">${escapeHtml(p.name)}</span>
-                  <span class="player-guild">${escapeHtml(p.guildName || 'No Guild')}</span>
+                  <div class="player-name">
+                    <span class="team-color" style="background:${getTeamColor(p)}"></span>
+                    ${escapeHtml(p.name)}
+                  </div>
+                  <div class="player-guild">${escapeHtml(p.guildName || 'No Guild')}</div>
                 </div>
-                <div class="player-stat damage">
-                  ${p.damagePercent}%
-                  <div class="damage-value">${p.damage.toLocaleString()}</div>
-                  <div class="damage-bar">
-                    <div class="damage-bar-fill" style="width: ${(p.damage / maxDamage * 100)}%"></div>
+                <div class="player-ip">${p.ip ? Math.round(p.ip) + ' IP' : ''}</div>
+              </div>
+              <div class="player-card-stats">
+                <div class="stat-item">
+                  <div class="stat-label">ダメージ</div>
+                  <div class="stat-value damage">${p.damagePercent}%</div>
+                  <div class="damage-bar" style="width:80px">
+                    <div class="damage-bar-fill" style="width:${(p.damage / maxDamage * 100)}%"></div>
                   </div>
                 </div>
-                <div class="player-stat healing">
-                  ${p.healingPercent}%
-                  <div class="damage-value">${p.healing.toLocaleString()}</div>
+                <div class="stat-item">
+                  <div class="stat-label">実数</div>
+                  <div class="stat-value">${p.damage.toLocaleString()}</div>
                 </div>
-                <div class="player-stat kills">${p.kills}/${p.deaths}</div>
-                <div class="player-stat ip">${p.ip ? Math.round(p.ip) : '-'}</div>
-                <div class="equipment-icons">
-                  ${getEquipmentIcon(p.equipment?.MainHand)}
-                  ${getEquipmentIcon(p.equipment?.OffHand)}
-                  ${getEquipmentIcon(p.equipment?.Head)}
-                  ${getEquipmentIcon(p.equipment?.Armor)}
-                  ${getEquipmentIcon(p.equipment?.Shoes)}
+                <div class="stat-item">
+                  <div class="stat-label">ヒール</div>
+                  <div class="stat-value healing">${p.healing.toLocaleString()}</div>
                 </div>
               </div>
-            `).join('')}
-          </div>
+              <div class="equipment-row">
+                ${getEquipmentIcon(p.equipment?.MainHand)}
+                ${getEquipmentIcon(p.equipment?.OffHand)}
+                ${getEquipmentIcon(p.equipment?.Head)}
+                ${getEquipmentIcon(p.equipment?.Armor)}
+                ${getEquipmentIcon(p.equipment?.Shoes)}
+              </div>
+            </div>
+          `).join('')}
         </div>
 
         <div class="kill-events">
           <div class="kill-events-header">キルログ</div>
           ${events.slice(0, 30).map(event => `
             <div class="kill-event">
-              <span class="kill-icon">→</span>
-              <div class="kill-details">
-                <div class="kill-players">
-                  <span class="killer-name">${escapeHtml(event.Killer?.Name || 'Unknown')}</span>
-                  <span>killed</span>
-                  <span class="victim-name">${escapeHtml(event.Victim?.Name || 'Unknown')}</span>
-                </div>
-                <div class="kill-time">${new Date(event.TimeStamp).toLocaleString('ja-JP')} · ${(event.TotalVictimKillFame || 0).toLocaleString()} Fame</div>
-              </div>
+              <span class="killer-name">${escapeHtml(event.Killer?.Name || '?')}</span>
+              <span class="kill-arrow">→</span>
+              <span class="victim-name">${escapeHtml(event.Victim?.Name || '?')}</span>
+              <span class="kill-fame">${(event.TotalVictimKillFame || 0).toLocaleString()}</span>
             </div>
           `).join('')}
         </div>
       `;
-      
+
       resultsSection.classList.add('visible');
     }
 
-    function renderPlayerBattles(player, deaths, kills) {
-      const allEvents = [...deaths, ...kills].sort((a, b) => 
-        new Date(b.TimeStamp) - new Date(a.TimeStamp)
-      );
-
-      resultsSection.innerHTML = `
-        <div class="battle-header">
-          <h2 class="battle-title">${escapeHtml(player.Name)}</h2>
-          <div class="battle-meta">
-            <span>${escapeHtml(player.GuildName || 'No Guild')}</span>
-            <span>${kills.length} kills</span>
-            <span>${deaths.length} deaths</span>
-          </div>
-        </div>
-
-        <div class="battles-list">
-          ${allEvents.slice(0, 30).map(event => {
-            const isKill = kills.includes(event);
-            const otherPlayer = isKill ? event.Victim : event.Killer;
-            const location = event.Location || '';
-            
-            return `
-              <div class="battle-item" onclick="searchBattleById('${event.BattleId}')">
-                <div class="battle-item-header">
-                  <span class="battle-item-id">${isKill ? 'Kill' : 'Death'} · Battle #${event.BattleId}</span>
-                  <span class="battle-item-time">${new Date(event.TimeStamp).toLocaleString('ja-JP')}</span>
-                </div>
-                <div class="battle-item-stats">
-                  <span>${isKill ? 'Killed' : 'Killed by'}: ${escapeHtml(otherPlayer?.Name || 'Unknown')}</span>
-                  <span>${(event.TotalVictimKillFame || 0).toLocaleString()} Fame</span>
-                  ${location ? `<span class="location-badge">📍 ${escapeHtml(location)}</span>` : ''}
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-      
-      resultsSection.classList.add('visible');
-    }
-
-    // Helper function to search battle by ID
-    async function searchBattleById(battleId) {
-      hideError();
-      showLoading();
-      resultsSection.classList.remove('visible');
-
-      try {
-        await searchBattle(battleId);
-      } catch (error) {
-        showError(error.message);
-      } finally {
-        hideLoading();
-      }
-    }
-
-    // Utility functions
+    // Utility
     function showLoading() {
       loading.style.display = 'block';
       searchBtn.disabled = true;
