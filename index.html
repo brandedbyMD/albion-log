@@ -16,6 +16,8 @@
       --text: #1a1a1a;
       --text-secondary: #737373;
       --accent: #171717;
+      --accent-btn: #404040;
+      --accent-btn-text: #ffffff;
       --red: #dc2626;
       --green: #16a34a;
       --blue: #2563eb;
@@ -31,6 +33,8 @@
       --text: #fafafa;
       --text-secondary: #a3a3a3;
       --accent: #fafafa;
+      --accent-btn: #3b82f6;
+      --accent-btn-text: #ffffff;
     }
 
     * {
@@ -58,6 +62,7 @@
     header {
       padding: 40px 20px 30px;
       text-align: center;
+      position: relative;
     }
 
     h1 {
@@ -80,9 +85,14 @@
       position: relative;
     }
 
-    .theme-toggle {
+    .header-buttons {
       position: absolute;
       right: 0;
+      display: flex;
+      gap: 8px;
+    }
+
+    .header-btn {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -92,66 +102,86 @@
       transition: all 0.2s ease;
     }
 
-    .theme-toggle:hover {
+    .header-btn:hover {
       background: var(--bg-hover);
       transform: scale(1.05);
     }
 
-    /* Favorites Section */
-    .favorites-section {
+    /* Favorites Panel */
+    .favorites-panel {
+      position: absolute;
+      top: 70px;
+      right: 20px;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
+      padding: 12px;
+      min-width: 250px;
+      max-width: 350px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 1000;
     }
 
-    .favorites-header {
+    .favorites-panel-header {
       font-weight: 600;
-      margin-bottom: 12px;
-      color: var(--text);
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .favorites-list {
+    .favorites-panel-list {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 300px;
+      overflow-y: auto;
     }
 
-    .favorite-item {
+    .favorites-panel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: var(--bg);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .favorites-panel-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .favorites-panel-item .player-info {
       display: flex;
       align-items: center;
       gap: 8px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: all 0.15s ease;
     }
 
-    .favorite-item:hover {
-      background: var(--bg-hover);
-      border-color: var(--accent);
-    }
-
-    .favorite-item .server-tag {
-      font-size: 0.7rem;
+    .favorites-panel-item .server-tag {
+      font-size: 0.65rem;
       background: var(--border);
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: var(--text-secondary);
+    }
+
+    .favorites-panel-item .remove-btn {
+      color: var(--text-secondary);
       padding: 2px 6px;
       border-radius: 4px;
-      color: var(--text-secondary);
     }
 
-    .favorite-item .remove-btn {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      padding: 0 4px;
-      cursor: pointer;
-    }
-
-    .favorite-item .remove-btn:hover {
+    .favorites-panel-item .remove-btn:hover {
       color: var(--red);
+      background: rgba(220, 38, 38, 0.1);
+    }
+
+    .favorites-panel-empty {
+      color: var(--text-secondary);
+      text-align: center;
+      padding: 16px;
+      font-size: 0.9rem;
     }
 
     /* Search Section */
@@ -268,15 +298,19 @@
     }
 
     .search-btn {
-      background: var(--accent);
+      background: var(--accent-btn);
       border: none;
-      color: #fff;
+      color: var(--accent-btn-text);
       padding: 10px 20px;
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
       font-family: inherit;
       font-size: 0.95rem;
+    }
+
+    .search-btn:hover {
+      opacity: 0.9;
     }
 
     .search-btn:disabled {
@@ -374,6 +408,7 @@
       flex: 1;
       background: var(--bg-card);
       border: 1px solid var(--border);
+      color: var(--text);
       padding: 12px;
       border-radius: 8px;
       font-family: inherit;
@@ -383,10 +418,14 @@
       transition: all 0.15s ease;
     }
 
+    .view-tab:hover {
+      background: var(--bg-hover);
+    }
+
     .view-tab.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      border-color: var(--accent-btn);
     }
 
     /* Filter Section */
@@ -1205,94 +1244,29 @@
       padding: 14px 16px;
       border-bottom: 1px solid var(--border);
       font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
-    .timeline-hint {
-      font-weight: normal;
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    .timeline-event {
+    .kill-event {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 16px;
+      gap: 10px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
       font-size: 0.9rem;
-      position: relative;
     }
 
-    .timeline-event:last-child {
+    .kill-event:last-child {
       border-bottom: none;
-    }
-
-    .timeline-event::before {
-      content: '';
-      position: absolute;
-      left: 68px;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      background: var(--border);
-    }
-
-    .timeline-event:first-child::before {
-      top: 50%;
-    }
-
-    .timeline-event:last-child::before {
-      bottom: 50%;
-    }
-
-    .timeline-time {
-      width: 45px;
-      font-family: monospace;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    .timeline-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      z-index: 1;
-      box-shadow: 0 0 0 3px var(--bg-card);
-    }
-
-    .timeline-content {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-      min-width: 0;
-    }
-
-    .team-indicator {
-      width: 4px;
-      height: 16px;
-      border-radius: 2px;
-      flex-shrink: 0;
     }
 
     .kill-arrow {
       color: var(--text-secondary);
-      font-size: 0.8rem;
     }
 
     .killer-name {
       color: var(--green);
       font-weight: 500;
       cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .killer-name:hover {
@@ -1303,9 +1277,6 @@
       color: var(--red);
       font-weight: 500;
       cursor: pointer;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .victim-name:hover {
@@ -1316,7 +1287,6 @@
       margin-left: auto;
       color: var(--text-secondary);
       font-size: 0.8rem;
-      flex-shrink: 0;
     }
 
     /* Responsive */
@@ -1362,9 +1332,18 @@
     <header>
       <div class="header-content">
         <h1 onclick="goHome()">Albion Log</h1>
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="テーマ切り替え">
-          <span class="theme-icon">🌙</span>
-        </button>
+        <div class="header-buttons">
+          <button class="header-btn" id="favoritesToggle" onclick="toggleFavoritesPanel()" title="お気に入り">
+            <span>⭐</span>
+          </button>
+          <button class="header-btn" id="themeToggle" onclick="toggleTheme()" title="テーマ切り替え">
+            <span class="theme-icon">🌙</span>
+          </button>
+        </div>
+      </div>
+      <div class="favorites-panel" id="favoritesPanel" style="display: none;">
+        <div class="favorites-panel-header">⭐ お気に入り</div>
+        <div class="favorites-panel-list" id="favoritesPanelList"></div>
       </div>
     </header>
 
@@ -1381,13 +1360,6 @@
         </form>
         <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
-    </section>
-
-    <section class="favorites-section" id="favoritesSection" style="display: none;">
-      <div class="favorites-header">
-        <span>⭐ お気に入り</span>
-      </div>
-      <div class="favorites-list" id="favoritesList"></div>
     </section>
 
     <div class="loading" id="loading" style="display: none;">
@@ -1489,24 +1461,45 @@
     }
     
     function renderFavorites() {
-      const section = document.getElementById('favoritesSection');
-      const list = document.getElementById('favoritesList');
+      const list = document.getElementById('favoritesPanelList');
+      if (!list) return;
+      
       const favorites = getFavorites();
       
       if (favorites.length === 0) {
-        section.style.display = 'none';
+        list.innerHTML = '<div class="favorites-panel-empty">お気に入りがありません</div>';
         return;
       }
       
-      section.style.display = 'block';
       list.innerHTML = favorites.map(f => `
-        <div class="favorite-item" onclick="loadFavorite('${escapeHtml(f.playerName)}', '${f.server}')">
-          <span>${escapeHtml(f.playerName)}</span>
-          <span class="server-tag">${f.server.toUpperCase()}</span>
+        <div class="favorites-panel-item" onclick="loadFavorite('${escapeHtml(f.playerName)}', '${f.server}')">
+          <div class="player-info">
+            <span>${escapeHtml(f.playerName)}</span>
+            <span class="server-tag">${f.server.toUpperCase()}</span>
+          </div>
           <span class="remove-btn" onclick="removeFromFavorites('${f.playerId}', '${f.server}', event)">✕</span>
         </div>
       `).join('');
     }
+    
+    function toggleFavoritesPanel() {
+      const panel = document.getElementById('favoritesPanel');
+      if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        renderFavorites();
+      } else {
+        panel.style.display = 'none';
+      }
+    }
+    
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+      const panel = document.getElementById('favoritesPanel');
+      const toggle = document.getElementById('favoritesToggle');
+      if (panel && toggle && !panel.contains(e.target) && !toggle.contains(e.target)) {
+        panel.style.display = 'none';
+      }
+    });
     
     async function loadFavorite(playerName, server) {
       currentServer = server;
@@ -2196,7 +2189,7 @@
     }
 
     // Get equipment icon
-    function getEquipmentIcon(item, size = 44) {
+    function getEquipmentIcon(item, size = 56) {
       if (!item || !item.Type) {
         return `<div class="equip-icon empty" style="width:${size}px;height:${size}px"></div>`;
       }
@@ -2610,11 +2603,11 @@
                   ${location ? `<div class="battle-card-location">📍 ${escapeHtml(location)}</div>` : ''}
                 </div>
                 <div class="battle-card-equip">
-                  ${getEquipmentIcon(myEquip?.MainHand, 36)}
-                  ${getEquipmentIcon(myEquip?.OffHand, 36)}
-                  ${getEquipmentIcon(myEquip?.Head, 36)}
-                  ${getEquipmentIcon(myEquip?.Armor, 36)}
-                  ${getEquipmentIcon(myEquip?.Shoes, 36)}
+                  ${getEquipmentIcon(myEquip?.MainHand, 48)}
+                  ${getEquipmentIcon(myEquip?.OffHand, 48)}
+                  ${getEquipmentIcon(myEquip?.Head, 48)}
+                  ${getEquipmentIcon(myEquip?.Armor, 48)}
+                  ${getEquipmentIcon(myEquip?.Shoes, 48)}
                 </div>
                 <div class="battle-card-right">
                   <div class="battle-card-arrow">→</div>
@@ -3088,39 +3081,15 @@
         </div>
 
         <div class="kill-events">
-          <div class="kill-events-header">
-            <span>⏱️ バトルタイムライン</span>
-            <span class="timeline-hint">時間順にキルの流れを表示</span>
-          </div>
-          ${(() => {
-            // Sort events by time
-            const sortedEvents = [...events].sort((a, b) => new Date(a.TimeStamp) - new Date(b.TimeStamp));
-            const startTime = sortedEvents.length > 0 ? new Date(sortedEvents[0].TimeStamp) : null;
-            
-            return sortedEvents.slice(0, 50).map((event, idx) => {
-              const eventTime = new Date(event.TimeStamp);
-              const elapsed = startTime ? Math.floor((eventTime - startTime) / 1000) : 0;
-              const minutes = Math.floor(elapsed / 60);
-              const seconds = elapsed % 60;
-              const timeStr = minutes > 0 ? minutes + ':' + seconds.toString().padStart(2, '0') : '0:' + seconds.toString().padStart(2, '0');
-              
-              const killerColor = getTeamColor({ guildId: event.Killer?.GuildId, allianceId: event.Killer?.AllianceId });
-              const victimColor = getTeamColor({ guildId: event.Victim?.GuildId, allianceId: event.Victim?.AllianceId });
-              
-              return '<div class="timeline-event">' +
-                '<div class="timeline-time">' + timeStr + '</div>' +
-                '<div class="timeline-dot" style="background:' + killerColor + '"></div>' +
-                '<div class="timeline-content">' +
-                  '<span class="team-indicator" style="background:' + killerColor + '"></span>' +
-                  '<span class="killer-name" onclick="searchPlayerByName(\'' + escapeHtml(event.Killer?.Name || '') + '\')">' + escapeHtml(event.Killer?.Name || '?') + '</span>' +
-                  '<span class="kill-arrow">⚔️</span>' +
-                  '<span class="victim-name" onclick="searchPlayerByName(\'' + escapeHtml(event.Victim?.Name || '') + '\')">' + escapeHtml(event.Victim?.Name || '?') + '</span>' +
-                  '<span class="team-indicator" style="background:' + victimColor + '"></span>' +
-                  '<span class="kill-fame">' + (event.TotalVictimKillFame || 0).toLocaleString() + '</span>' +
-                '</div>' +
-              '</div>';
-            }).join('');
-          })()}
+          <div class="kill-events-header">キルログ</div>
+          ${events.slice(0, 30).map(event => `
+            <div class="kill-event">
+              <span class="killer-name" onclick="searchPlayerByName('${escapeHtml(event.Killer?.Name || '')}')">${escapeHtml(event.Killer?.Name || '?')}</span>
+              <span class="kill-arrow">→</span>
+              <span class="victim-name" onclick="searchPlayerByName('${escapeHtml(event.Victim?.Name || '')}')">${escapeHtml(event.Victim?.Name || '?')}</span>
+              <span class="kill-fame">${(event.TotalVictimKillFame || 0).toLocaleString()}</span>
+            </div>
+          `).join('')}
         </div>
       `;
 
