@@ -1207,9 +1207,21 @@
     
     // Search history (localStorage)
     const HISTORY_KEY = 'albion_log_search_history';
-    const ITEM_NAMES_KEY = 'albion_item_names_cache';
+    const ITEM_NAMES_KEY = 'albion_item_names_cache_v2'; // v2: keyed by base type
     
-    // Item names cache (localStorage)
+    // Tier prefixes to remove from item names
+    const TIER_PREFIXES = [
+      "Beginner's ",    // T1
+      "Novice's ",      // T2
+      "Journeyman's ",  // T3
+      "Adept's ",       // T4
+      "Expert's ",      // T5
+      "Master's ",      // T6
+      "Grandmaster's ", // T7
+      "Elder's ",       // T8
+    ];
+    
+    // Item names cache (localStorage) - keyed by base type
     let itemNamesCache = {};
     
     function loadItemNamesCache() {
@@ -1231,13 +1243,26 @@
       }
     }
     
-    // Get item name from API (with cache)
+    // Remove tier prefix from item name
+    function stripTierPrefix(name) {
+      if (!name) return name;
+      for (const prefix of TIER_PREFIXES) {
+        if (name.startsWith(prefix)) {
+          return name.slice(prefix.length);
+        }
+      }
+      return name;
+    }
+    
+    // Get item name from API (with cache) - uses base type as key
     async function getItemName(itemId) {
       if (!itemId) return 'Unknown';
       
-      // Check cache first
-      if (itemNamesCache[itemId]) {
-        return itemNamesCache[itemId];
+      const baseType = getBaseWeaponType(itemId);
+      
+      // Check cache first (by base type)
+      if (itemNamesCache[baseType]) {
+        return itemNamesCache[baseType];
       }
       
       // Try to fetch from API
@@ -1245,8 +1270,17 @@
         const response = await fetch(`/api/items/${encodeURIComponent(itemId)}/data?server=${currentServer}`);
         if (response.ok) {
           const data = await response.json();
-          const name = data.localizedNames?.['EN-US'] || data.localizedNames?.['en-US'] || getWeaponNameFallback(itemId);
-          itemNamesCache[itemId] = name;
+          let name = data.localizedNames?.['EN-US'] || data.localizedNames?.['en-US'] || null;
+          
+          if (name) {
+            // Strip tier prefix (e.g., "Elder's Longbow" -> "Longbow")
+            name = stripTierPrefix(name);
+          } else {
+            name = getWeaponNameFallback(itemId);
+          }
+          
+          // Cache by base type
+          itemNamesCache[baseType] = name;
           saveItemNamesCache();
           return name;
         }
@@ -1256,22 +1290,33 @@
       
       // Fallback
       const fallback = getWeaponNameFallback(itemId);
-      itemNamesCache[itemId] = fallback;
+      itemNamesCache[baseType] = fallback;
       return fallback;
     }
     
     // Fetch multiple item names at once
     async function fetchItemNames(itemIds) {
-      const uncached = itemIds.filter(id => id && !itemNamesCache[id]);
+      // Filter by base type to avoid duplicate fetches
+      const baseTypes = new Set();
+      const toFetch = [];
       
-      if (uncached.length === 0) return;
+      for (const id of itemIds) {
+        if (!id) continue;
+        const baseType = getBaseWeaponType(id);
+        if (!itemNamesCache[baseType] && !baseTypes.has(baseType)) {
+          baseTypes.add(baseType);
+          toFetch.push(id); // Keep one itemId per base type for API call
+        }
+      }
       
-      console.log('Fetching names for', uncached.length, 'items...');
+      if (toFetch.length === 0) return;
+      
+      console.log('Fetching names for', toFetch.length, 'weapon types...');
       
       // Fetch in parallel (max 5 at a time to avoid overwhelming)
       const batchSize = 5;
-      for (let i = 0; i < uncached.length; i += batchSize) {
-        const batch = uncached.slice(i, i + batchSize);
+      for (let i = 0; i < toFetch.length; i += batchSize) {
+        const batch = toFetch.slice(i, i + batchSize);
         await Promise.all(batch.map(async (itemId) => {
           await getItemName(itemId);
         }));
@@ -1836,9 +1881,11 @@
     function getWeaponName(itemId) {
       if (!itemId) return 'Unknown';
       
-      // Check cache first
-      if (itemNamesCache[itemId]) {
-        return itemNamesCache[itemId];
+      const baseType = getBaseWeaponType(itemId);
+      
+      // Check cache first (by base type)
+      if (itemNamesCache[baseType]) {
+        return itemNamesCache[baseType];
       }
       
       // Return fallback if not in cache
@@ -1848,37 +1895,42 @@
     // Fallback weapon name parsing
     function getWeaponNameFallback(itemId) {
       if (!itemId) return 'Unknown';
-      // Better weapon name parsing
-      // T8_2H_BOW_AVALON -> Avalon 2H Bow
-      // T4_MAIN_SWORD -> Main Sword
-      const parts = itemId.split('_');
       
-      // Remove tier prefix (T1-T8)
-      let nameParts = parts.filter(p => !p.match(/^T\d+$/));
+      // Remove tier and enchantment first
+      let baseId = itemId
+        .replace(/^T\d+_/, '')  // Remove tier prefix
+        .replace(/@\d+$/, '');   // Remove enchantment suffix
       
-      // Common replacements for readability
-      const replacements = {
-        '2H': '2H',
-        'MAIN': '',
-        'OFF': 'Off',
-        'HEAD': '',
-        'ARMOR': '',
-        'SHOES': '',
-        'AVALON': 'Avalon',
-        'HELL': 'Hell',
-        'KEEPER': 'Keeper',
-        'MORGANA': 'Morgana',
-        'UNDEAD': 'Undead',
-        'ROYAL': 'Royal'
-      };
+      // Known artifact suffixes - show them in parentheses
+      const artifacts = ['AVALON', 'HELL', 'KEEPER', 'MORGANA', 'UNDEAD', 'ROYAL', 'FEY', 'CRYSTAL'];
+      let artifactSuffix = '';
+      for (const art of artifacts) {
+        if (baseId.includes('_' + art)) {
+          artifactSuffix = ' (' + art.charAt(0) + art.slice(1).toLowerCase() + ')';
+          baseId = baseId.replace('_' + art, '');
+          break;
+        }
+      }
       
-      nameParts = nameParts.map(p => replacements[p] !== undefined ? replacements[p] : p);
-      nameParts = nameParts.filter(p => p); // Remove empty strings
+      // Remove common prefixes
+      baseId = baseId
+        .replace(/^2H_/, '')
+        .replace(/^MAIN_/, '')
+        .replace(/^OFF_/, '')
+        .replace(/^HEAD_/, '')
+        .replace(/^ARMOR_/, '')
+        .replace(/^SHOES_/, '')
+        .replace(/^BAG_/, '')
+        .replace(/^CAPE_/, '')
+        .replace(/^CAPEITEM_/, '');
       
-      // Capitalize first letter of each word
-      const name = nameParts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+      // Convert to readable name
+      const name = baseId
+        .split('_')
+        .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+        .join(' ');
       
-      return name || itemId;
+      return (name + artifactSuffix) || itemId;
     }
     
     // Get weapon image URL
@@ -1993,7 +2045,7 @@
         });
 
         // Improved battle log cards
-        container.innerHTML = Array.from(battleMap.entries()).slice(0, 30).map(([battleId, data]) => {
+        container.innerHTML = Array.from(battleMap.entries()).slice(0, 100).map(([battleId, data]) => {
           const kills = data.events.filter(e => e.eventType === 'kill').length;
           const assists = data.events.filter(e => e.eventType === 'assist').length;
           const deaths = data.events.filter(e => e.eventType === 'death').length;
@@ -2116,7 +2168,7 @@
         // Murder Ledger style individual events
         container.innerHTML = filteredEvents.length === 0 
           ? '<div style="text-align:center;padding:40px;color:var(--text-secondary)">フィルター条件に一致するログがありません</div>'
-          : filteredEvents.slice(0, 50).map(event => {
+          : filteredEvents.slice(0, 200).map(event => {
           const eventType = event.eventType;
           const isKill = eventType === 'kill';
           const isAssist = eventType === 'assist';
