@@ -109,7 +109,7 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       margin-top: 4px;
-      max-height: 200px;
+      max-height: 280px;
       overflow-y: auto;
       z-index: 100;
       display: none;
@@ -120,11 +120,24 @@
       display: block;
     }
 
+    .autocomplete-section {
+      padding: 8px 14px 4px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
     .autocomplete-item {
       padding: 10px 14px;
       cursor: pointer;
       border-bottom: 1px solid var(--border);
       font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .autocomplete-item:last-child {
@@ -138,6 +151,18 @@
     .autocomplete-item .guild {
       color: var(--text-secondary);
       font-size: 0.8rem;
+    }
+
+    .autocomplete-item .delete-history {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .autocomplete-item .delete-history:hover {
+      background: var(--red);
+      color: #fff;
     }
 
     .server-select {
@@ -330,6 +355,16 @@
       align-items: center;
     }
 
+    .player-name-link {
+      cursor: pointer;
+      transition: color 0.15s ease;
+    }
+
+    .player-name-link:hover {
+      color: var(--blue);
+      text-decoration: underline;
+    }
+
     .player-guild {
       font-size: 0.8rem;
       color: var(--text-secondary);
@@ -382,24 +417,37 @@
       border-radius: 2px;
     }
 
-    /* Equipment */
+    /* Equipment - Larger */
     .equipment-row {
       display: flex;
-      gap: 4px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
     .equip-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
       background: var(--bg);
       border: 1px solid var(--border);
       object-fit: contain;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .equip-icon:hover {
+      transform: scale(1.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10;
+      position: relative;
     }
 
     .equip-icon.empty {
-      opacity: 0.2;
+      opacity: 0.15;
+    }
+
+    .equip-icon.empty:hover {
+      transform: none;
+      box-shadow: none;
     }
 
     /* Kill/Death Event Card */
@@ -459,15 +507,41 @@
       color: var(--text-secondary);
     }
 
-    .event-equipment {
+    /* Equipment comparison - side by side */
+    .equipment-compare {
       display: flex;
-      gap: 3px;
-      margin-top: 8px;
+      gap: 16px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
     }
 
-    .event-equipment .equip-icon {
-      width: 28px;
-      height: 28px;
+    .equipment-side {
+      flex: 1;
+    }
+
+    .equipment-side-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .equipment-side-label.me {
+      color: var(--green);
+    }
+
+    .equipment-side-label.enemy {
+      color: var(--red);
+    }
+
+    .equipment-side .equipment-row {
+      justify-content: flex-start;
+    }
+
+    .equipment-side .equip-icon {
+      width: 38px;
+      height: 38px;
     }
 
     /* Error */
@@ -516,11 +590,21 @@
     .killer-name {
       color: var(--green);
       font-weight: 500;
+      cursor: pointer;
+    }
+
+    .killer-name:hover {
+      text-decoration: underline;
     }
 
     .victim-name {
       color: var(--red);
       font-weight: 500;
+      cursor: pointer;
+    }
+
+    .victim-name:hover {
+      text-decoration: underline;
     }
 
     .kill-fame {
@@ -552,8 +636,17 @@
       }
 
       .equip-icon {
+        width: 38px;
+        height: 38px;
+      }
+
+      .equipment-side .equip-icon {
         width: 32px;
         height: 32px;
+      }
+
+      .equipment-compare {
+        gap: 10px;
       }
     }
   </style>
@@ -597,6 +690,33 @@
     let currentKills = [];
     let currentViewMode = 'battles';
     let autocompleteTimeout = null;
+    
+    // Search history (localStorage)
+    const HISTORY_KEY = 'albion_log_search_history';
+    
+    function getSearchHistory() {
+      try {
+        return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      } catch {
+        return [];
+      }
+    }
+    
+    function addToSearchHistory(name) {
+      let history = getSearchHistory();
+      history = history.filter(h => h !== name);
+      history.unshift(name);
+      history = history.slice(0, 10);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+    
+    function removeFromHistory(name, e) {
+      e.stopPropagation();
+      let history = getSearchHistory();
+      history = history.filter(h => h !== name);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      showHistory();
+    }
 
     // DOM Elements
     const searchInput = document.getElementById('searchInput');
@@ -613,6 +733,32 @@
       currentServer = serverSelect.value;
     });
 
+    // Show history on focus
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim().length < 2) {
+        showHistory();
+      }
+    });
+
+    function showHistory() {
+      const history = getSearchHistory();
+      if (history.length === 0) {
+        autocompleteList.classList.remove('visible');
+        return;
+      }
+      
+      autocompleteList.innerHTML = `
+        <div class="autocomplete-section">検索履歴</div>
+        ${history.map(name => `
+          <div class="autocomplete-item" onclick="selectPlayer('${escapeHtml(name)}')">
+            <span>${escapeHtml(name)}</span>
+            <span class="delete-history" onclick="removeFromHistory('${escapeHtml(name)}', event)">✕</span>
+          </div>
+        `).join('')}
+      `;
+      autocompleteList.classList.add('visible');
+    }
+
     // Autocomplete
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim();
@@ -620,7 +766,7 @@
       if (autocompleteTimeout) clearTimeout(autocompleteTimeout);
       
       if (query.length < 2) {
-        autocompleteList.classList.remove('visible');
+        showHistory();
         return;
       }
 
@@ -643,12 +789,17 @@
     });
 
     function renderAutocomplete(players) {
-      autocompleteList.innerHTML = players.map(p => `
-        <div class="autocomplete-item" onclick="selectPlayer('${escapeHtml(p.Name)}')">
-          <div>${escapeHtml(p.Name)}</div>
-          <div class="guild">${escapeHtml(p.GuildName || 'No Guild')}</div>
-        </div>
-      `).join('');
+      autocompleteList.innerHTML = `
+        <div class="autocomplete-section">検索結果</div>
+        ${players.map(p => `
+          <div class="autocomplete-item" onclick="selectPlayer('${escapeHtml(p.Name)}')">
+            <div>
+              <div>${escapeHtml(p.Name)}</div>
+              <div class="guild">${escapeHtml(p.GuildName || 'No Guild')}</div>
+            </div>
+          </div>
+        `).join('')}
+      `;
       autocompleteList.classList.add('visible');
     }
 
@@ -675,6 +826,7 @@
 
       try {
         await searchPlayer(query);
+        addToSearchHistory(query);
       } catch (error) {
         console.error('Search error:', error);
         showError(error.message || 'エラーが発生しました');
@@ -735,15 +887,32 @@
       }
     }
 
+    // Search player by name (for clicking names in battle log)
+    async function searchPlayerByName(playerName) {
+      searchInput.value = playerName;
+      hideError();
+      showLoading();
+      resultsSection.classList.remove('visible');
+
+      try {
+        await searchPlayer(playerName);
+        addToSearchHistory(playerName);
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
     // Get equipment icon
-    function getEquipmentIcon(item) {
+    function getEquipmentIcon(item, size = 44) {
       if (!item || !item.Type) {
-        return '<div class="equip-icon empty"></div>';
+        return `<div class="equip-icon empty" style="width:${size}px;height:${size}px"></div>`;
       }
       const itemId = item.Type;
       const quality = item.Quality || 1;
       const url = `https://render.albiononline.com/v1/item/${itemId}.png?quality=${quality}&size=128`;
-      return `<img class="equip-icon" src="${url}" alt="${itemId}" onerror="this.classList.add('empty'); this.src='';">`;
+      return `<img class="equip-icon" style="width:${size}px;height:${size}px" src="${url}" alt="${itemId}" title="${itemId}" onerror="this.classList.add('empty'); this.src='';">`;
     }
 
     // Render player page
@@ -829,12 +998,24 @@
           `;
         }).join('');
       } else {
-        // Individual events
+        // Individual events with equipment comparison
         container.innerHTML = allEvents.slice(0, 50).map(event => {
           const isKill = currentKills.includes(event);
           const otherPlayer = isKill ? event.Victim : event.Killer;
-          const equipment = otherPlayer?.Equipment || {};
+          const myEquipment = isKill ? event.Killer?.Equipment || {} : event.Victim?.Equipment || {};
+          const enemyEquipment = isKill ? event.Victim?.Equipment || {} : event.Killer?.Equipment || {};
           const location = event.Location || '';
+
+          // Find my equipment from Participants if not available
+          let myEquip = myEquipment;
+          if ((!myEquip || Object.keys(myEquip).length === 0) && event.Participants) {
+            const me = event.Participants.find(p => p.Id === currentPlayer.Id);
+            if (me && me.Equipment) myEquip = me.Equipment;
+          }
+          if ((!myEquip || Object.keys(myEquip).length === 0) && event.GroupMembers) {
+            const me = event.GroupMembers.find(gm => gm.Id === currentPlayer.Id);
+            if (me && me.Equipment) myEquip = me.Equipment;
+          }
 
           return `
             <div class="event-card" onclick="searchBattle('${event.BattleId}')">
@@ -849,12 +1030,27 @@
                 <span class="event-fame">${(event.TotalVictimKillFame || 0).toLocaleString()} Fame</span>
               </div>
               ${location ? `<div style="margin-top:6px"><span class="location-badge">📍 ${escapeHtml(location)}</span></div>` : ''}
-              <div class="event-equipment">
-                ${getEquipmentIcon(equipment.MainHand)}
-                ${getEquipmentIcon(equipment.OffHand)}
-                ${getEquipmentIcon(equipment.Head)}
-                ${getEquipmentIcon(equipment.Armor)}
-                ${getEquipmentIcon(equipment.Shoes)}
+              <div class="equipment-compare">
+                <div class="equipment-side">
+                  <div class="equipment-side-label me">自分</div>
+                  <div class="equipment-row">
+                    ${getEquipmentIcon(myEquip?.MainHand, 38)}
+                    ${getEquipmentIcon(myEquip?.OffHand, 38)}
+                    ${getEquipmentIcon(myEquip?.Head, 38)}
+                    ${getEquipmentIcon(myEquip?.Armor, 38)}
+                    ${getEquipmentIcon(myEquip?.Shoes, 38)}
+                  </div>
+                </div>
+                <div class="equipment-side">
+                  <div class="equipment-side-label enemy">相手</div>
+                  <div class="equipment-row">
+                    ${getEquipmentIcon(enemyEquipment?.MainHand, 38)}
+                    ${getEquipmentIcon(enemyEquipment?.OffHand, 38)}
+                    ${getEquipmentIcon(enemyEquipment?.Head, 38)}
+                    ${getEquipmentIcon(enemyEquipment?.Armor, 38)}
+                    ${getEquipmentIcon(enemyEquipment?.Shoes, 38)}
+                  </div>
+                </div>
               </div>
             </div>
           `;
@@ -884,7 +1080,9 @@
               ip: event.Killer.AverageItemPower || 0
             };
           }
-          if (event.Killer.Equipment) participants[id].equipment = event.Killer.Equipment;
+          if (event.Killer.Equipment && Object.keys(event.Killer.Equipment).length > 0) {
+            participants[id].equipment = event.Killer.Equipment;
+          }
           if (event.Killer.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, event.Killer.AverageItemPower);
         }
 
@@ -903,7 +1101,9 @@
               ip: event.Victim.AverageItemPower || 0
             };
           }
-          if (event.Victim.Equipment) participants[id].equipment = event.Victim.Equipment;
+          if (event.Victim.Equipment && Object.keys(event.Victim.Equipment).length > 0) {
+            participants[id].equipment = event.Victim.Equipment;
+          }
           if (event.Victim.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, event.Victim.AverageItemPower);
         }
 
@@ -937,13 +1137,15 @@
         if (event.GroupMembers) {
           event.GroupMembers.forEach(gm => {
             const id = gm.Id;
-            if (participants[id] && gm.Equipment && Object.keys(gm.Equipment).length > 0) {
-              if (!participants[id].equipment || Object.keys(participants[id].equipment).length === 0) {
-                participants[id].equipment = gm.Equipment;
+            if (participants[id]) {
+              if (gm.Equipment && Object.keys(gm.Equipment).length > 0) {
+                if (!participants[id].equipment || Object.keys(participants[id].equipment).length === 0) {
+                  participants[id].equipment = gm.Equipment;
+                }
               }
-            }
-            if (participants[id] && gm.AverageItemPower) {
-              participants[id].ip = Math.max(participants[id].ip, gm.AverageItemPower);
+              if (gm.AverageItemPower) {
+                participants[id].ip = Math.max(participants[id].ip, gm.AverageItemPower);
+              }
             }
           });
         }
@@ -1012,7 +1214,7 @@
                 <div class="player-info">
                   <div class="player-name">
                     <span class="team-color" style="background:${getTeamColor(p)}"></span>
-                    ${escapeHtml(p.name)}
+                    <span class="player-name-link" onclick="event.stopPropagation(); searchPlayerByName('${escapeHtml(p.name)}')">${escapeHtml(p.name)}</span>
                   </div>
                   <div class="player-guild">${escapeHtml(p.guildName || 'No Guild')}</div>
                 </div>
@@ -1050,9 +1252,9 @@
           <div class="kill-events-header">キルログ</div>
           ${events.slice(0, 30).map(event => `
             <div class="kill-event">
-              <span class="killer-name">${escapeHtml(event.Killer?.Name || '?')}</span>
+              <span class="killer-name" onclick="searchPlayerByName('${escapeHtml(event.Killer?.Name || '')}')">${escapeHtml(event.Killer?.Name || '?')}</span>
               <span class="kill-arrow">→</span>
-              <span class="victim-name">${escapeHtml(event.Victim?.Name || '?')}</span>
+              <span class="victim-name" onclick="searchPlayerByName('${escapeHtml(event.Victim?.Name || '')}')">${escapeHtml(event.Victim?.Name || '?')}</span>
               <span class="kill-fame">${(event.TotalVictimKillFame || 0).toLocaleString()}</span>
             </div>
           `).join('')}
