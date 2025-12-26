@@ -23,6 +23,16 @@
       --purple: #7c3aed;
     }
 
+    [data-theme="dark"] {
+      --bg: #0a0a0a;
+      --bg-card: #171717;
+      --bg-hover: #262626;
+      --border: #2e2e2e;
+      --text: #fafafa;
+      --text-secondary: #a3a3a3;
+      --accent: #fafafa;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -60,6 +70,88 @@
 
     h1:hover {
       opacity: 0.7;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-hover);
+      transform: scale(1.05);
+    }
+
+    /* Favorites Section */
+    .favorites-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .favorites-header {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .favorites-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .favorite-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .favorite-item:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
+
+    .favorite-item .server-tag {
+      font-size: 0.7rem;
+      background: var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--text-secondary);
+    }
+
+    .favorite-item .remove-btn {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+
+    .favorite-item .remove-btn:hover {
+      color: var(--red);
     }
 
     /* Search Section */
@@ -230,6 +322,12 @@
       margin-bottom: 16px;
     }
 
+    .player-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .player-name-title {
       font-size: 1.4rem;
       font-weight: 600;
@@ -239,6 +337,30 @@
     .player-guild-name {
       color: var(--text-secondary);
       font-size: 0.9rem;
+    }
+
+    .favorite-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .favorite-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .favorite-btn.active {
+      background: #fef3c7;
+      border-color: #f59e0b;
+    }
+
+    [data-theme="dark"] .favorite-btn.active {
+      background: #422006;
+      border-color: #f59e0b;
     }
 
     /* View Tabs */
@@ -674,6 +796,16 @@
       align-items: center;
     }
 
+    .battle-card-equip {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .battle-card-equip .equip-icon {
+      border-radius: 4px;
+    }
+
     .battle-card-arrow {
       font-size: 1.2rem;
       color: var(--text-secondary);
@@ -692,6 +824,11 @@
       
       .battle-card-right {
         display: none;
+      }
+      
+      .battle-card-equip .equip-icon {
+        width: 28px !important;
+        height: 28px !important;
       }
     }
 
@@ -1068,29 +1205,94 @@
       padding: 14px 16px;
       border-bottom: 1px solid var(--border);
       font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .kill-event {
+    .timeline-hint {
+      font-weight: normal;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .timeline-event {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
+      gap: 12px;
+      padding: 10px 16px;
       border-bottom: 1px solid var(--border);
       font-size: 0.9rem;
+      position: relative;
     }
 
-    .kill-event:last-child {
+    .timeline-event:last-child {
       border-bottom: none;
+    }
+
+    .timeline-event::before {
+      content: '';
+      position: absolute;
+      left: 68px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .timeline-event:first-child::before {
+      top: 50%;
+    }
+
+    .timeline-event:last-child::before {
+      bottom: 50%;
+    }
+
+    .timeline-time {
+      width: 45px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .timeline-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      z-index: 1;
+      box-shadow: 0 0 0 3px var(--bg-card);
+    }
+
+    .timeline-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .team-indicator {
+      width: 4px;
+      height: 16px;
+      border-radius: 2px;
+      flex-shrink: 0;
     }
 
     .kill-arrow {
       color: var(--text-secondary);
+      font-size: 0.8rem;
     }
 
     .killer-name {
       color: var(--green);
       font-weight: 500;
       cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .killer-name:hover {
@@ -1101,6 +1303,9 @@
       color: var(--red);
       font-weight: 500;
       cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .victim-name:hover {
@@ -1111,6 +1316,7 @@
       margin-left: auto;
       color: var(--text-secondary);
       font-size: 0.8rem;
+      flex-shrink: 0;
     }
 
     /* Responsive */
@@ -1154,7 +1360,12 @@
 <body>
   <div class="container">
     <header>
-      <h1 onclick="goHome()">Albion Log</h1>
+      <div class="header-content">
+        <h1 onclick="goHome()">Albion Log</h1>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="テーマ切り替え">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </div>
     </header>
 
     <section class="search-section">
@@ -1170,6 +1381,13 @@
         </form>
         <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
+    </section>
+
+    <section class="favorites-section" id="favoritesSection" style="display: none;">
+      <div class="favorites-header">
+        <span>⭐ お気に入り</span>
+      </div>
+      <div class="favorites-list" id="favoritesList"></div>
     </section>
 
     <div class="loading" id="loading" style="display: none;">
@@ -1208,6 +1426,127 @@
     // Search history (localStorage)
     const HISTORY_KEY = 'albion_log_search_history';
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
+    const THEME_KEY = 'albion_log_theme';
+    const FAVORITES_KEY = 'albion_log_favorites';
+    
+    // Theme functions
+    function initTheme() {
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+    
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      const newTheme = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem(THEME_KEY, newTheme);
+      updateThemeIcon(newTheme);
+    }
+    
+    function updateThemeIcon(theme) {
+      const icon = document.querySelector('.theme-icon');
+      if (icon) {
+        icon.textContent = theme === 'light' ? '🌙' : '☀️';
+      }
+    }
+    
+    // Favorites functions
+    function getFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+    
+    function saveFavorites(favorites) {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+    }
+    
+    function addToFavorites(playerName, playerId, server) {
+      const favorites = getFavorites();
+      const exists = favorites.some(f => f.playerId === playerId && f.server === server);
+      if (!exists) {
+        favorites.unshift({ playerName, playerId, server });
+        if (favorites.length > 20) favorites.pop(); // Limit to 20
+        saveFavorites(favorites);
+      }
+      renderFavorites();
+    }
+    
+    function removeFromFavorites(playerId, server, e) {
+      if (e) e.stopPropagation();
+      let favorites = getFavorites();
+      favorites = favorites.filter(f => !(f.playerId === playerId && f.server === server));
+      saveFavorites(favorites);
+      renderFavorites();
+    }
+    
+    function isFavorite(playerId, server) {
+      const favorites = getFavorites();
+      return favorites.some(f => f.playerId === playerId && f.server === server);
+    }
+    
+    function renderFavorites() {
+      const section = document.getElementById('favoritesSection');
+      const list = document.getElementById('favoritesList');
+      const favorites = getFavorites();
+      
+      if (favorites.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+      
+      section.style.display = 'block';
+      list.innerHTML = favorites.map(f => `
+        <div class="favorite-item" onclick="loadFavorite('${escapeHtml(f.playerName)}', '${f.server}')">
+          <span>${escapeHtml(f.playerName)}</span>
+          <span class="server-tag">${f.server.toUpperCase()}</span>
+          <span class="remove-btn" onclick="removeFromFavorites('${f.playerId}', '${f.server}', event)">✕</span>
+        </div>
+      `).join('');
+    }
+    
+    async function loadFavorite(playerName, server) {
+      currentServer = server;
+      document.getElementById('serverSelect').value = server;
+      document.getElementById('searchInput').value = playerName;
+      showLoading();
+      hideError();
+      try {
+        await searchPlayer(playerName);
+        addToSearchHistory(playerName);
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+    
+    function toggleFavorite() {
+      if (!currentPlayer) return;
+      
+      const isFav = isFavorite(currentPlayer.Id, currentServer);
+      if (isFav) {
+        removeFromFavorites(currentPlayer.Id, currentServer);
+      } else {
+        addToFavorites(currentPlayer.Name, currentPlayer.Id, currentServer);
+      }
+      
+      // Update button
+      const btn = document.querySelector('.favorite-btn');
+      if (btn) {
+        const nowFav = isFavorite(currentPlayer.Id, currentServer);
+        btn.classList.toggle('active', nowFav);
+        btn.textContent = nowFav ? '⭐' : '☆';
+        btn.title = nowFav ? 'お気に入りから削除' : 'お気に入りに追加';
+      }
+    }
+    
+    // Initialize theme and favorites on load
+    initTheme();
+    renderFavorites();
     
     // Manual weapon name mappings (base type -> display name)
     // For weapons where API doesn't return good names
@@ -1939,11 +2278,19 @@
 
       // Get guild display (remove empty brackets)
       const guildDisplay = currentPlayer.GuildName ? escapeHtml(currentPlayer.GuildName) : 'No Guild';
+      const isFav = isFavorite(currentPlayer.Id, currentServer);
 
       resultsSection.innerHTML = `
         <div class="player-header">
-          <div class="player-name-title">${escapeHtml(currentPlayer.Name)}</div>
-          <div class="player-guild-name">${guildDisplay}</div>
+          <div class="player-info-row">
+            <div>
+              <div class="player-name-title">${escapeHtml(currentPlayer.Name)}</div>
+              <div class="player-guild-name">${guildDisplay}</div>
+            </div>
+            <button class="favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite()" title="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
+              ${isFav ? '⭐' : '☆'}
+            </button>
+          </div>
         </div>
 
         <div class="view-tabs">
@@ -2217,13 +2564,28 @@
           const location = data.events[0]?.Location || '';
           const timeAgo = getTimeAgo(new Date(data.time));
           
-          // Get participants count
-          const participants = new Set();
-          data.events.forEach(e => {
-            if (e.Killer?.Name) participants.add(e.Killer.Name);
-            if (e.Victim?.Name) participants.add(e.Victim.Name);
-            e.Participants?.forEach(p => participants.add(p.Name));
-          });
+          // Get my equipment from the first event where I have equipment
+          let myEquip = {};
+          for (const e of data.events) {
+            if (e.eventType === 'death' && e.Victim?.Equipment) {
+              myEquip = e.Victim.Equipment;
+              break;
+            } else if (e.eventType === 'kill' && e.Killer?.Equipment) {
+              myEquip = e.Killer.Equipment;
+              break;
+            } else if (e.eventType === 'assist') {
+              const me = e.Participants?.find(p => String(p.Id) === playerId);
+              if (me?.Equipment && Object.keys(me.Equipment).length > 0) {
+                myEquip = me.Equipment;
+                break;
+              }
+              const meGm = e.GroupMembers?.find(gm => String(gm.Id) === playerId);
+              if (meGm?.Equipment && Object.keys(meGm.Equipment).length > 0) {
+                myEquip = meGm.Equipment;
+                break;
+              }
+            }
+          }
           
           // Determine result style
           const netKills = kills + assists - deaths;
@@ -2248,10 +2610,15 @@
                   <div class="battle-card-fame">${fame.toLocaleString()} Fame</div>
                   <div class="battle-card-info">
                     <span>${timeAgo}</span>
-                    <span>•</span>
-                    <span>${participants.size}人参加</span>
                   </div>
                   ${location ? `<div class="battle-card-location">📍 ${escapeHtml(location)}</div>` : ''}
+                </div>
+                <div class="battle-card-equip">
+                  ${getEquipmentIcon(myEquip?.MainHand, 36)}
+                  ${getEquipmentIcon(myEquip?.OffHand, 36)}
+                  ${getEquipmentIcon(myEquip?.Head, 36)}
+                  ${getEquipmentIcon(myEquip?.Armor, 36)}
+                  ${getEquipmentIcon(myEquip?.Shoes, 36)}
                 </div>
                 <div class="battle-card-right">
                   <div class="battle-card-arrow">→</div>
@@ -2725,15 +3092,41 @@
         </div>
 
         <div class="kill-events">
-          <div class="kill-events-header">キルログ</div>
-          ${events.slice(0, 30).map(event => `
-            <div class="kill-event">
-              <span class="killer-name" onclick="searchPlayerByName('${escapeHtml(event.Killer?.Name || '')}')">${escapeHtml(event.Killer?.Name || '?')}</span>
-              <span class="kill-arrow">→</span>
-              <span class="victim-name" onclick="searchPlayerByName('${escapeHtml(event.Victim?.Name || '')}')">${escapeHtml(event.Victim?.Name || '?')}</span>
-              <span class="kill-fame">${(event.TotalVictimKillFame || 0).toLocaleString()}</span>
-            </div>
-          `).join('')}
+          <div class="kill-events-header">
+            <span>⏱️ バトルタイムライン</span>
+            <span class="timeline-hint">時間順にキルの流れを表示</span>
+          </div>
+          ${(() => {
+            // Sort events by time
+            const sortedEvents = [...events].sort((a, b) => new Date(a.TimeStamp) - new Date(b.TimeStamp));
+            const startTime = sortedEvents.length > 0 ? new Date(sortedEvents[0].TimeStamp) : null;
+            
+            return sortedEvents.slice(0, 50).map((event, idx) => {
+              const eventTime = new Date(event.TimeStamp);
+              const elapsed = startTime ? Math.floor((eventTime - startTime) / 1000) : 0;
+              const minutes = Math.floor(elapsed / 60);
+              const seconds = elapsed % 60;
+              const timeStr = minutes > 0 ? \`\${minutes}:\${seconds.toString().padStart(2, '0')}\` : \`0:\${seconds.toString().padStart(2, '0')}\`;
+              
+              const killerColor = getTeamColor({ guildId: event.Killer?.GuildId, allianceId: event.Killer?.AllianceId });
+              const victimColor = getTeamColor({ guildId: event.Victim?.GuildId, allianceId: event.Victim?.AllianceId });
+              
+              return \`
+                <div class="timeline-event">
+                  <div class="timeline-time">\${timeStr}</div>
+                  <div class="timeline-dot" style="background:\${killerColor}"></div>
+                  <div class="timeline-content">
+                    <span class="team-indicator" style="background:\${killerColor}"></span>
+                    <span class="killer-name" onclick="searchPlayerByName('\${escapeHtml(event.Killer?.Name || '')}')">\${escapeHtml(event.Killer?.Name || '?')}</span>
+                    <span class="kill-arrow">⚔️</span>
+                    <span class="victim-name" onclick="searchPlayerByName('\${escapeHtml(event.Victim?.Name || '')}')">\${escapeHtml(event.Victim?.Name || '?')}</span>
+                    <span class="team-indicator" style="background:\${victimColor}"></span>
+                    <span class="kill-fame">\${(event.TotalVictimKillFame || 0).toLocaleString()}</span>
+                  </div>
+                </div>
+              \`;
+            }).join('');
+          })()}
         </div>
       `;
 
