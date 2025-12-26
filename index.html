@@ -1762,6 +1762,7 @@
           const id = event.Killer.Id;
           if (!players.has(id)) {
             players.set(id, {
+              id: id,
               Id: id,
               Name: event.Killer.Name,
               GuildName: event.Killer.GuildName,
@@ -1770,7 +1771,9 @@
               AverageItemPower: event.Killer.AverageItemPower,
               Equipment: event.Killer.Equipment,
               Kills: 0,
-              Deaths: 0
+              Deaths: 0,
+              damageDone: 0,
+              healingDone: 0
             });
           }
           players.get(id).Kills++;
@@ -1780,6 +1783,7 @@
           const id = event.Victim.Id;
           if (!players.has(id)) {
             players.set(id, {
+              id: id,
               Id: id,
               Name: event.Victim.Name,
               GuildName: event.Victim.GuildName,
@@ -1788,11 +1792,44 @@
               AverageItemPower: event.Victim.AverageItemPower,
               Equipment: event.Victim.Equipment,
               Kills: 0,
-              Deaths: 0
+              Deaths: 0,
+              damageDone: 0,
+              healingDone: 0
             });
           }
           players.get(id).Deaths++;
         }
+        
+        // Collect damage from Participants
+        if (event.Participants) {
+          event.Participants.forEach(p => {
+            const id = p.Id;
+            if (!players.has(id)) {
+              players.set(id, {
+                id: id,
+                Id: id,
+                Name: p.Name,
+                GuildName: p.GuildName,
+                AllianceName: p.AllianceName,
+                AllianceTag: p.AllianceTag,
+                AverageItemPower: p.AverageItemPower,
+                Equipment: p.Equipment,
+                Kills: 0,
+                Deaths: 0,
+                damageDone: 0,
+                healingDone: 0
+              });
+            }
+            players.get(id).damageDone += p.DamageDone || 0;
+            players.get(id).healingDone += p.SupportHealingDone || 0;
+          });
+        }
+      });
+      
+      // Convert to object keyed by id for consistency with API response
+      const playersObj = {};
+      players.forEach((p, id) => {
+        playersObj[id] = p;
       });
       
       return {
@@ -1802,7 +1839,7 @@
         totalKills: totalKills,
         totalFame: totalFame,
         location: location,
-        players: Array.from(players.values())
+        players: playersObj
       };
     }
 
@@ -2496,6 +2533,20 @@
       const participants = {};
       let totalDamage = 0;
 
+      // First, try to get damage from battle.players (more accurate)
+      const battlePlayerDamage = {};
+      if (battle && battle.players) {
+        Object.values(battle.players).forEach(p => {
+          if (p.id) {
+            battlePlayerDamage[p.id] = {
+              damage: p.damageDone || 0,
+              healing: p.healingDone || 0
+            };
+            totalDamage += p.damageDone || 0;
+          }
+        });
+      }
+
       events.forEach(event => {
         // Process killer
         if (event.Killer) {
@@ -2506,8 +2557,8 @@
               guildName: event.Killer.GuildName || '',
               guildId: event.Killer.GuildId || '',
               allianceId: event.Killer.AllianceId || '',
-              damage: 0,
-              healing: 0,
+              damage: battlePlayerDamage[id]?.damage || 0,
+              healing: battlePlayerDamage[id]?.healing || 0,
               equipment: event.Killer.Equipment || {},
               ip: event.Killer.AverageItemPower || 0
             };
@@ -2527,8 +2578,8 @@
               guildName: event.Victim.GuildName || '',
               guildId: event.Victim.GuildId || '',
               allianceId: event.Victim.AllianceId || '',
-              damage: 0,
-              healing: 0,
+              damage: battlePlayerDamage[id]?.damage || 0,
+              healing: battlePlayerDamage[id]?.healing || 0,
               equipment: event.Victim.Equipment || {},
               ip: event.Victim.AverageItemPower || 0
             };
@@ -2539,7 +2590,7 @@
           if (event.Victim.AverageItemPower) participants[id].ip = Math.max(participants[id].ip, event.Victim.AverageItemPower);
         }
 
-        // Process participants (damage dealers)
+        // Process participants (for equipment and as fallback for damage)
         if (event.Participants) {
           event.Participants.forEach(p => {
             const id = p.Id;
@@ -2549,15 +2600,18 @@
                 guildName: p.GuildName || '',
                 guildId: p.GuildId || '',
                 allianceId: p.AllianceId || '',
-                damage: 0,
-                healing: 0,
+                damage: battlePlayerDamage[id]?.damage || 0,
+                healing: battlePlayerDamage[id]?.healing || 0,
                 equipment: p.Equipment || {},
                 ip: p.AverageItemPower || 0
               };
             }
-            participants[id].damage += p.DamageDone || 0;
-            participants[id].healing += p.SupportHealingDone || 0;
-            totalDamage += p.DamageDone || 0;
+            // If no battle data, accumulate from events
+            if (!battle?.players) {
+              participants[id].damage += p.DamageDone || 0;
+              participants[id].healing += p.SupportHealingDone || 0;
+              totalDamage += p.DamageDone || 0;
+            }
             if (p.Equipment && Object.keys(p.Equipment).length > 0) {
               participants[id].equipment = p.Equipment;
             }
