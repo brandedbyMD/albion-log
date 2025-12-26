@@ -1207,6 +1207,81 @@
     
     // Search history (localStorage)
     const HISTORY_KEY = 'albion_log_search_history';
+    const ITEM_NAMES_KEY = 'albion_item_names_cache';
+    
+    // Item names cache (localStorage)
+    let itemNamesCache = {};
+    
+    function loadItemNamesCache() {
+      try {
+        const cached = localStorage.getItem(ITEM_NAMES_KEY);
+        if (cached) {
+          itemNamesCache = JSON.parse(cached);
+        }
+      } catch (e) {
+        console.log('Could not load item names cache:', e);
+      }
+    }
+    
+    function saveItemNamesCache() {
+      try {
+        localStorage.setItem(ITEM_NAMES_KEY, JSON.stringify(itemNamesCache));
+      } catch (e) {
+        console.log('Could not save item names cache:', e);
+      }
+    }
+    
+    // Get item name from API (with cache)
+    async function getItemName(itemId) {
+      if (!itemId) return 'Unknown';
+      
+      // Check cache first
+      if (itemNamesCache[itemId]) {
+        return itemNamesCache[itemId];
+      }
+      
+      // Try to fetch from API
+      try {
+        const response = await fetch(`/api/items/${encodeURIComponent(itemId)}/data?server=${currentServer}`);
+        if (response.ok) {
+          const data = await response.json();
+          const name = data.localizedNames?.['EN-US'] || data.localizedNames?.['en-US'] || getWeaponNameFallback(itemId);
+          itemNamesCache[itemId] = name;
+          saveItemNamesCache();
+          return name;
+        }
+      } catch (e) {
+        console.log('Could not fetch item name for', itemId, e);
+      }
+      
+      // Fallback
+      const fallback = getWeaponNameFallback(itemId);
+      itemNamesCache[itemId] = fallback;
+      return fallback;
+    }
+    
+    // Fetch multiple item names at once
+    async function fetchItemNames(itemIds) {
+      const uncached = itemIds.filter(id => id && !itemNamesCache[id]);
+      
+      if (uncached.length === 0) return;
+      
+      console.log('Fetching names for', uncached.length, 'items...');
+      
+      // Fetch in parallel (max 5 at a time to avoid overwhelming)
+      const batchSize = 5;
+      for (let i = 0; i < uncached.length; i += batchSize) {
+        const batch = uncached.slice(i, i + batchSize);
+        await Promise.all(batch.map(async (itemId) => {
+          await getItemName(itemId);
+        }));
+      }
+      
+      console.log('Item names cached:', Object.keys(itemNamesCache).length);
+    }
+    
+    // Initialize cache on load
+    loadItemNamesCache();
     
     function getSearchHistory() {
       try {
@@ -1453,7 +1528,7 @@
         pushState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
       }
       
-      renderPlayerPage();
+      await renderPlayerPage();
     }
 
     async function searchBattle(battleId) {
@@ -1595,7 +1670,7 @@
     }
 
     // Render player page
-    function renderPlayerPage() {
+    async function renderPlayerPage() {
       const allEvents = [...currentDeaths, ...currentSoloKills, ...currentAssists].sort((a, b) => 
         new Date(b.TimeStamp) - new Date(a.TimeStamp)
       );
@@ -1640,6 +1715,13 @@
         
         if (myEquip?.MainHand?.Type) myWeapons.add(myEquip.MainHand.Type);
         if (enemyEquip?.MainHand?.Type) opponentWeapons.add(enemyEquip.MainHand.Type);
+      });
+
+      // Fetch item names in background
+      const allWeaponIds = [...myWeapons, ...opponentWeapons];
+      fetchItemNames(allWeaponIds).then(() => {
+        // Update weapon selects after names are fetched
+        updateWeaponSelects(myWeapons, opponentWeapons);
       });
 
       // Get guild display (remove empty brackets)
@@ -1730,7 +1812,21 @@
     }
     
     // Get readable weapon name from item ID
+    // Get weapon name from cache (synchronous - for display)
     function getWeaponName(itemId) {
+      if (!itemId) return 'Unknown';
+      
+      // Check cache first
+      if (itemNamesCache[itemId]) {
+        return itemNamesCache[itemId];
+      }
+      
+      // Return fallback if not in cache
+      return getWeaponNameFallback(itemId);
+    }
+    
+    // Fallback weapon name parsing
+    function getWeaponNameFallback(itemId) {
       if (!itemId) return 'Unknown';
       // Better weapon name parsing
       // T8_2H_BOW_AVALON -> Avalon 2H Bow
@@ -1771,6 +1867,64 @@
       return `https://render.albiononline.com/v1/item/${itemId}.png?size=64`;
     }
     
+    // Update weapon select dropdowns with fetched names
+    function updateWeaponSelects(myWeapons, opponentWeapons) {
+      const myWeaponSelect = document.getElementById('filterMyWeapon');
+      const opponentWeaponSelect = document.getElementById('filterOpponentWeapon');
+      
+      if (myWeaponSelect) {
+        const currentValue = myWeaponSelect.value;
+        myWeaponSelect.innerHTML = '<option value="any">Any</option>' + 
+          Array.from(myWeapons).map(w => 
+            `<option value="${w}" ${currentValue === w ? 'selected' : ''}>${escapeHtml(getWeaponName(w))}</option>`
+          ).join('');
+        
+        // Update icon
+        const wrapper = myWeaponSelect.closest('.filter-weapon-wrapper');
+        if (wrapper) {
+          const existingIcon = wrapper.querySelector('.filter-weapon-icon');
+          if (currentValue !== 'any') {
+            if (existingIcon) {
+              existingIcon.src = getWeaponImageUrl(currentValue);
+            } else {
+              const icon = document.createElement('img');
+              icon.className = 'filter-weapon-icon';
+              icon.src = getWeaponImageUrl(currentValue);
+              wrapper.insertBefore(icon, myWeaponSelect);
+            }
+          } else if (existingIcon) {
+            existingIcon.remove();
+          }
+        }
+      }
+      
+      if (opponentWeaponSelect) {
+        const currentValue = opponentWeaponSelect.value;
+        opponentWeaponSelect.innerHTML = '<option value="any">Any</option>' + 
+          Array.from(opponentWeapons).map(w => 
+            `<option value="${w}" ${currentValue === w ? 'selected' : ''}>${escapeHtml(getWeaponName(w))}</option>`
+          ).join('');
+        
+        // Update icon
+        const wrapper = opponentWeaponSelect.closest('.filter-weapon-wrapper');
+        if (wrapper) {
+          const existingIcon = wrapper.querySelector('.filter-weapon-icon');
+          if (currentValue !== 'any') {
+            if (existingIcon) {
+              existingIcon.src = getWeaponImageUrl(currentValue);
+            } else {
+              const icon = document.createElement('img');
+              icon.className = 'filter-weapon-icon';
+              icon.src = getWeaponImageUrl(currentValue);
+              wrapper.insertBefore(icon, opponentWeaponSelect);
+            }
+          } else if (existingIcon) {
+            existingIcon.remove();
+          }
+        }
+      }
+    }
+
     // Update filter and re-render
     function updateFilter(key, value) {
       filters[key] = value;
