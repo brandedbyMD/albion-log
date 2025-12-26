@@ -1207,7 +1207,121 @@
     
     // Search history (localStorage)
     const HISTORY_KEY = 'albion_log_search_history';
-    const ITEM_NAMES_KEY = 'albion_item_names_cache_v2'; // v2: keyed by base type
+    const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
+    
+    // Manual weapon name mappings (base type -> display name)
+    // For weapons where API doesn't return good names
+    const WEAPON_NAME_OVERRIDES = {
+      // Avalon weapons
+      '2H_BOW_AVALON': 'Mistpiercer',
+      '2H_CROSSBOW_AVALON': 'Siegebow',
+      '2H_ARCANESTAFF_AVALON': 'Occult Staff',
+      '2H_FIRESTAFF_AVALON': 'Blazing Staff',
+      '2H_HOLYSTAFF_AVALON': 'Redemption Staff',
+      '2H_NATURESTAFF_AVALON': 'Rampant Staff',
+      '2H_FROSTSTAFF_AVALON': 'Icicle Staff',
+      '2H_CURSEDSTAFF_AVALON': 'Cursed Skull',
+      'MAIN_SWORD_AVALON': 'Kingmaker',
+      '2H_DUALSWORD_AVALON': 'Dual Swords',
+      '2H_CLAYMORE_AVALON': 'Clarent Blade',
+      'MAIN_AXE_AVALON': 'Carrioncaller',
+      '2H_AXE_AVALON': 'Bear Paws',
+      '2H_HALBERD_AVALON': 'Halberd',
+      'MAIN_MACE_AVALON': 'Incubus Mace',
+      '2H_MACE_AVALON': 'Camlann Mace',
+      '2H_HAMMER_AVALON': 'Grovekeeper',
+      '2H_QUARTERSTAFF_AVALON': 'Staff of Balance',
+      'MAIN_SPEAR_AVALON': 'Daybreaker',
+      '2H_SPEAR_AVALON': 'Trinity Spear',
+      '2H_GLAIVE_AVALON': 'Spirithunter',
+      'MAIN_DAGGER_AVALON': 'Bloodletter',
+      '2H_DAGGERPAIR_AVALON': 'Deathgivers',
+      
+      // Hell/Demon weapons
+      '2H_ARCANESTAFF_HELL': 'Malevolent Locus',
+      '2H_FIRESTAFF_HELL': 'Dawnsong',
+      '2H_HOLYSTAFF_HELL': 'Fallen Staff',
+      '2H_NATURESTAFF_HELL': 'Blight Staff',
+      '2H_FROSTSTAFF_HELL': 'Permafrost Prism',
+      '2H_CURSEDSTAFF_HELL': 'Damnation Staff',
+      'MAIN_SWORD_HELL': 'Demonfang',
+      '2H_DUALSWORD_HELL': 'Hellion Jacket',
+      '2H_CLAYMORE_HELL': 'Carving Sword',
+      'MAIN_AXE_HELL': 'Infernal Scythe',
+      '2H_AXE_HELL': 'Realmbreaker',
+      '2H_HALBERD_HELL': 'Hellfire Hands',
+      'MAIN_MACE_HELL': 'Morning Star',
+      '2H_MACE_HELL': 'Bedrock Mace',
+      '2H_HAMMER_HELL': 'Forge Hammers',
+      '2H_QUARTERSTAFF_HELL': 'Black Monk Stave',
+      'MAIN_SPEAR_HELL': 'Heron Spear',
+      '2H_SPEAR_HELL': 'Spirithunter',
+      '2H_GLAIVE_HELL': 'Glaive',
+      'MAIN_DAGGER_HELL': 'Bridled Fury',
+      '2H_DAGGERPAIR_HELL': 'Black Hands',
+      '2H_BOW_HELL': 'Wailing Bow',
+      '2H_CROSSBOW_HELL': 'Boltcasters',
+      '2H_LONGBOW_HELL': 'Hellion Jacket',
+      
+      // Keeper weapons
+      '2H_NATURESTAFF_KEEPER': 'Wild Staff',
+      
+      // Morgana weapons
+      '2H_CROSSBOWLARGE_MORGANA': 'Siegebow',
+      'MAIN_CURSEDSTAFF_MORGANA': 'Great Cursed Staff',
+      '2H_MACE_MORGANA': 'Mace of Malice',
+      '2H_QUARTERSTAFF_MORGANA': 'Soulscythe',
+      
+      // Undead weapons
+      '2H_CURSEDSTAFF_UNDEAD': 'Lifecurse Staff',
+      '2H_HOLYSTAFF_UNDEAD': 'Hallowfall',
+      'MAIN_DAGGER_UNDEAD': 'Demonfang',
+      
+      // Royal weapons
+      'MAIN_SWORD_ROYAL': 'Clarent Blade',
+      '2H_BOW_ROYAL': 'Bow of Badon',
+      '2H_CROSSBOW_ROYAL': 'Energy Shaper',
+      
+      // Crystal weapons
+      '2H_ARCANESTAFF_CRYSTAL': 'Evensong',
+      
+      // Fey weapons
+      '2H_NATURESTAFF_FEY': 'Druidic Staff',
+      
+      // Common base weapons (when API fails)
+      '2H_LONGBOW': 'Longbow',
+      '2H_BOW': 'Warbow',
+      '2H_CROSSBOW': 'Heavy Crossbow',
+      'MAIN_1HCROSSBOW': 'Light Crossbow',
+      '2H_CROSSBOWLARGE': 'Siege Ballista',
+      'MAIN_SWORD': 'Broadsword',
+      '2H_DUALSWORD': 'Dual Swords',
+      '2H_CLAYMORE': 'Claymore',
+      'MAIN_AXE': 'Battleaxe',
+      '2H_AXE': 'Greataxe',
+      '2H_HALBERD': 'Halberd',
+      'MAIN_MACE': 'Mace',
+      '2H_MACE': 'Heavy Mace',
+      '2H_HAMMER': 'Polehammer',
+      '2H_QUARTERSTAFF': 'Quarterstaff',
+      'MAIN_SPEAR': 'Spear',
+      '2H_SPEAR': 'Pike',
+      '2H_GLAIVE': 'Glaive',
+      'MAIN_DAGGER': 'Dagger',
+      '2H_DAGGERPAIR': 'Dagger Pair',
+      'MAIN_ARCANESTAFF': 'Arcane Staff',
+      '2H_ARCANESTAFF': 'Great Arcane Staff',
+      'MAIN_FIRESTAFF': 'Fire Staff',
+      '2H_FIRESTAFF': 'Great Fire Staff',
+      'MAIN_HOLYSTAFF': 'Holy Staff',
+      '2H_HOLYSTAFF': 'Great Holy Staff',
+      'MAIN_NATURESTAFF': 'Nature Staff',
+      '2H_NATURESTAFF': 'Great Nature Staff',
+      'MAIN_FROSTSTAFF': 'Frost Staff',
+      '2H_FROSTSTAFF': 'Great Frost Staff',
+      'MAIN_CURSEDSTAFF': 'Cursed Staff',
+      '2H_CURSEDSTAFF': 'Great Cursed Staff',
+    };
     
     // Tier prefixes to remove from item names
     const TIER_PREFIXES = [
@@ -1260,7 +1374,13 @@
       
       const baseType = getBaseWeaponType(itemId);
       
-      // Check cache first (by base type)
+      // Check manual overrides first (highest priority)
+      if (WEAPON_NAME_OVERRIDES[baseType]) {
+        itemNamesCache[baseType] = WEAPON_NAME_OVERRIDES[baseType];
+        return WEAPON_NAME_OVERRIDES[baseType];
+      }
+      
+      // Check cache (by base type)
       if (itemNamesCache[baseType]) {
         return itemNamesCache[baseType];
       }
@@ -1883,7 +2003,12 @@
       
       const baseType = getBaseWeaponType(itemId);
       
-      // Check cache first (by base type)
+      // Check manual overrides first (highest priority)
+      if (WEAPON_NAME_OVERRIDES[baseType]) {
+        return WEAPON_NAME_OVERRIDES[baseType];
+      }
+      
+      // Check cache (by base type)
       if (itemNamesCache[baseType]) {
         return itemNamesCache[baseType];
       }
