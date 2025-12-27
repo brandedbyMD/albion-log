@@ -1976,62 +1976,120 @@
       currentPlayer = searchResult.players[0];
       const playerId = String(currentPlayer.Id);
       
-      // Get deaths and kills (where player is killer)
+      // Get deaths and kills (where player is killer) from official API
       currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths`);
       const soloKills = await fetchAPI(`/players/${currentPlayer.Id}/kills`);
       
-      // Collect unique battle IDs from kills and deaths
-      const battleIds = new Set();
-      soloKills.forEach(e => e.BattleId && battleIds.add(e.BattleId));
-      currentDeaths.forEach(e => e.BattleId && battleIds.add(e.BattleId));
+      // Try Murder Ledger API for complete event history (including assists)
+      let murderLedgerEvents = [];
+      try {
+        const mlServer = currentServer === 'asia' ? 'murderledger-asia' : 
+                         currentServer === 'europe' ? 'murderledger-europe' : 'murderledger';
+        const mlUrl = `https://${mlServer}.albiononline2d.com/api/players/${currentPlayer.Id}/events?limit=100`;
+        console.log('Fetching Murder Ledger events from:', mlUrl);
+        const mlResponse = await fetch(mlUrl);
+        if (mlResponse.ok) {
+          murderLedgerEvents = await mlResponse.json();
+          console.log('Murder Ledger events:', murderLedgerEvents.length);
+        }
+      } catch (e) {
+        console.log('Murder Ledger API failed, using official API only:', e);
+      }
       
-      // Fetch events from each battle to find assists
+      // Extract assists from Murder Ledger (events where involvement != "kill" and != "death")
       let assists = [];
       const soloKillEventIds = new Set(soloKills.map(e => e.EventId));
       const deathEventIds = new Set(currentDeaths.map(e => e.EventId));
       
-      console.log('Fetching assists from', battleIds.size, 'battles...');
-      
-      // Limit to first 10 battles to avoid too many requests
-      const battleIdArray = Array.from(battleIds).slice(0, 10);
-      
-      for (const battleId of battleIdArray) {
-        try {
-          const battleEvents = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
-          
-          // Find events where player is in Participants but NOT the killer and NOT a death
-          battleEvents.forEach(event => {
-            // Skip if already in soloKills or deaths
-            if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
-              return;
-            }
+      if (murderLedgerEvents.length > 0) {
+        // Use Murder Ledger data
+        assists = murderLedgerEvents.filter(e => {
+          // Murder Ledger uses "involvement" field: "kill", "death", "assist"
+          const isAssist = e.involvement === 'assist' || 
+                          (e.killer?.id !== playerId && e.victim?.id !== playerId);
+          return isAssist && !soloKillEventIds.has(e.event_id) && !deathEventIds.has(e.event_id);
+        }).map(e => ({
+          EventId: e.event_id,
+          BattleId: e.battle_id,
+          TimeStamp: e.time,
+          Location: e.location || '',
+          TotalVictimKillFame: e.total_kill_fame || 0,
+          Killer: e.killer ? {
+            Id: e.killer.id,
+            Name: e.killer.name,
+            GuildId: e.killer.guild_id,
+            GuildName: e.killer.guild_name,
+            AllianceId: e.killer.alliance_id,
+            AllianceName: e.killer.alliance_name,
+            AllianceTag: e.killer.alliance_tag,
+            AverageItemPower: e.killer.average_item_power,
+            Equipment: e.killer.equipment || {}
+          } : null,
+          Victim: e.victim ? {
+            Id: e.victim.id,
+            Name: e.victim.name,
+            GuildId: e.victim.guild_id,
+            GuildName: e.victim.guild_name,
+            AllianceId: e.victim.alliance_id,
+            AllianceName: e.victim.alliance_name,
+            AllianceTag: e.victim.alliance_tag,
+            AverageItemPower: e.victim.average_item_power,
+            Equipment: e.victim.equipment || {},
+            Inventory: e.victim.inventory || []
+          } : null,
+          Participants: e.participants || [],
+          GroupMembers: e.group_members || [],
+          eventType: 'assist'
+        }));
+        console.log('Assists from Murder Ledger:', assists.length);
+      } else {
+        // Fallback: Use official API (limited)
+        console.log('Using official API for assists (limited)');
+        
+        // Collect unique battle IDs from kills and deaths
+        const battleIds = new Set();
+        soloKills.forEach(e => e.BattleId && battleIds.add(e.BattleId));
+        currentDeaths.forEach(e => e.BattleId && battleIds.add(e.BattleId));
+        
+        // Limit to first 20 battles
+        const battleIdArray = Array.from(battleIds).slice(0, 20);
+        
+        for (const battleId of battleIdArray) {
+          try {
+            const battleEvents = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
             
-            const killerId = String(event.Killer?.Id || '');
-            const victimId = String(event.Victim?.Id || '');
-            const isKiller = killerId === playerId;
-            const isVictim = victimId === playerId;
-            const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
-            
-            if (inParticipants && !isKiller && !isVictim) {
-              assists.push(event);
-            }
-          });
-        } catch (e) {
-          console.log('Could not fetch battle', battleId, e);
+            battleEvents.forEach(event => {
+              if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
+                return;
+              }
+              
+              const killerId = String(event.Killer?.Id || '');
+              const victimId = String(event.Victim?.Id || '');
+              const isKiller = killerId === playerId;
+              const isVictim = victimId === playerId;
+              const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
+              
+              if (inParticipants && !isKiller && !isVictim) {
+                assists.push({ ...event, eventType: 'assist' });
+              }
+            });
+          } catch (e) {
+            console.log('Could not fetch battle', battleId, e);
+          }
         }
+        
+        // Remove duplicates
+        const assistEventIds = new Set();
+        assists = assists.filter(e => {
+          if (assistEventIds.has(e.EventId)) return false;
+          assistEventIds.add(e.EventId);
+          return true;
+        });
       }
-      
-      // Remove duplicates
-      const assistEventIds = new Set();
-      assists = assists.filter(e => {
-        if (assistEventIds.has(e.EventId)) return false;
-        assistEventIds.add(e.EventId);
-        return true;
-      });
       
       // Process kills
       currentSoloKills = soloKills.map(e => ({ ...e, eventType: 'kill' }));
-      currentAssists = assists.map(e => ({ ...e, eventType: 'assist' }));
+      currentAssists = assists.map(e => e.eventType ? e : { ...e, eventType: 'assist' });
       currentKills = [...soloKills, ...assists];
       
       console.log('Player ID:', playerId);
@@ -2297,17 +2355,28 @@
       const guildDisplay = currentPlayer.GuildName ? escapeHtml(currentPlayer.GuildName) : 'No Guild';
       const isFav = isFavorite(currentPlayer.Id, currentServer);
       
-      // Avatar URLs
-      const avatarUrl = `https://render.albiononline.com/v1/player/${currentPlayer.Id}/avatar?size=128`;
-      const avatarRingUrl = currentPlayer.AvatarRing ? `https://render.albiononline.com/v1/item/${currentPlayer.AvatarRing}.png?size=128` : '';
+      // Avatar URLs - use Avatar field for image, not player ID
+      // Avatar field looks like: "AVATAR_01", "AVATAR_FAMERANK_03", etc.
+      // AvatarRing field looks like: "RING1", "AVATARRING_FOUNDER_LEGENDARY", etc.
+      console.log('Player data:', currentPlayer);
+      console.log('Avatar:', currentPlayer.Avatar, 'AvatarRing:', currentPlayer.AvatarRing);
+      
+      const avatarId = currentPlayer.Avatar || '';
+      const avatarRingId = currentPlayer.AvatarRing || '';
+      
+      // Try render API format for avatars
+      const avatarUrl = avatarId ? `https://render.albiononline.com/v1/item/${avatarId}.png?size=128` : '';
+      const avatarRingUrl = avatarRingId ? `https://render.albiononline.com/v1/item/${avatarRingId}.png?size=128` : '';
 
       resultsSection.innerHTML = `
         <div class="player-header">
           <div class="player-info-row">
+            ${avatarUrl ? `
             <div class="player-avatar-wrapper">
-              <img class="player-avatar" src="${avatarUrl}" alt="avatar" onerror="this.style.display='none'">
+              <img class="player-avatar" src="${avatarUrl}" alt="avatar" onerror="this.parentElement.style.display='none'">
               ${avatarRingUrl ? `<img class="player-avatar-ring" src="${avatarRingUrl}" alt="ring" onerror="this.style.display='none'">` : ''}
             </div>
+            ` : ''}
             <div class="player-details">
               <div class="player-name-title">${escapeHtml(currentPlayer.Name)}</div>
               <div class="player-guild-name">${guildDisplay}</div>
@@ -2767,6 +2836,13 @@
           const myIp = meData?.AverageItemPower || 0;
           const enemyIp = enemyData?.AverageItemPower || 0;
           const location = event.Location || '';
+          
+          // Debug: log first event to see available fields
+          if (filteredEvents.indexOf(event) === 0) {
+            console.log('First event data:', event);
+            console.log('Location field:', event.Location);
+            console.log('All keys:', Object.keys(event));
+          }
           const fame = event.TotalVictimKillFame || 0;
           const timeAgo = getTimeAgo(new Date(event.TimeStamp));
           
