@@ -1990,8 +1990,11 @@
       let murderLedgerSuccess = false;
       try {
         console.log('Fetching from Murder Ledger API...');
-        const mlUrl = `/api/murderledger/players/${currentPlayer.Id}/events?take=100&server=${currentServer}`;
+        // Murder Ledger uses player NAME, not ID!
+        const mlUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?server=${currentServer}`;
+        console.log('Murder Ledger URL:', mlUrl);
         const mlResponse = await fetch(mlUrl);
+        console.log('Murder Ledger status:', mlResponse.status);
         
         if (mlResponse.ok) {
           const mlData = await mlResponse.json();
