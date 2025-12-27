@@ -2004,29 +2004,29 @@
             murderLedgerSuccess = true;
             console.log('Murder Ledger events found:', mlData.events.length);
             
-            // Debug: show first event structure
-            console.log('First ML event:', mlData.events[0]);
-            console.log('First ML event tags:', mlData.events[0].tags);
+            const playerName = currentPlayer.Name.toLowerCase();
             
             // Process Murder Ledger events
             mlData.events.forEach((e, index) => {
-              // Murder Ledger uses 'id' not 'event_id'
               const eventId = e.id;
               
-              // Check tags for involvement (e.g., ['assist'], ['kill'], ['death'])
-              const tags = e.tags || [];
-              const isAssist = tags.includes('assist');
-              const isKill = tags.includes('kill');
-              const isDeath = tags.includes('death');
+              // Determine involvement by comparing names
+              const killerName = (e.killer?.name || '').toLowerCase();
+              const victimName = (e.victim?.name || '').toLowerCase();
+              
+              const isKill = killerName === playerName;
+              const isDeath = victimName === playerName;
+              const isAssist = !isKill && !isDeath;
               
               // Debug first few events
               if (index < 5) {
                 console.log(`ML Event ${index}:`, {
                   id: e.id,
-                  tags: tags,
-                  isAssist: isAssist,
                   killer: e.killer?.name,
-                  victim: e.victim?.name
+                  victim: e.victim?.name,
+                  isKill,
+                  isDeath,
+                  isAssist
                 });
               }
               
