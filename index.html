@@ -1460,7 +1460,7 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache_v2'; // v2: improved price selection
+    const PRICES_KEY = 'albion_prices_cache_v3'; // v3: with quality support
     
     // Price cache (expires after 30 minutes)
     let pricesCache = {};
@@ -1492,67 +1492,91 @@
     }
     
     // Fetch item prices from Albion Data Project
-    async function fetchPrices(itemIds) {
+    async function fetchPrices(itemIds, qualities = {}) {
       if (!itemIds || itemIds.length === 0) return {};
+      
+      // Create cache keys that include quality
+      const getCacheKey = (itemId, quality) => `${itemId}_q${quality || 1}`;
       
       // Filter out items we already have cached
       const now = Date.now();
-      const uncachedIds = itemIds.filter(id => {
-        const cached = pricesCache[id];
+      const uncachedItems = itemIds.filter(id => {
+        const quality = qualities[id] || 1;
+        const cacheKey = getCacheKey(id, quality);
+        const cached = pricesCache[cacheKey];
         return !cached || (now - cached.timestamp > PRICE_CACHE_TTL);
       });
       
-      if (uncachedIds.length === 0) {
+      console.log('fetchPrices: total items:', itemIds.length, 'uncached:', uncachedItems.length);
+      
+      if (uncachedItems.length === 0) {
         // All prices are cached
         const result = {};
         itemIds.forEach(id => {
-          if (pricesCache[id]) result[id] = pricesCache[id].price;
+          const quality = qualities[id] || 1;
+          const cacheKey = getCacheKey(id, quality);
+          if (pricesCache[cacheKey]) result[id] = pricesCache[cacheKey].price;
         });
         return result;
       }
       
       try {
-        // Fetch prices from Albion Data Project (multiple cities for best price)
-        const url = `/api/prices/${uncachedIds.join(',')}?locations=Bridgewatch,Martlock,Fort%20Sterling,Lymhurst,Thetford,Caerleon`;
-        const response = await fetch(url);
+        // Group items by quality for efficient API calls
+        const itemsByQuality = {};
+        uncachedItems.forEach(id => {
+          const quality = qualities[id] || 1;
+          if (!itemsByQuality[quality]) itemsByQuality[quality] = [];
+          itemsByQuality[quality].push(id);
+        });
         
-        if (response.ok) {
-          const data = await response.json();
+        // Fetch prices for each quality group
+        for (const [quality, items] of Object.entries(itemsByQuality)) {
+          const url = `/api/prices/${items.join(',')}?locations=Bridgewatch,Martlock,Fort%20Sterling,Lymhurst,Thetford,Caerleon&qualities=${quality}`;
+          console.log('Fetching prices (quality=' + quality + '):', items.length, 'items');
           
-          // Group by item_id and find best price
-          const pricesByItem = {};
-          data.forEach(item => {
-            const itemId = item.item_id;
-            const sellPrice = item.sell_price_min || 0;
-            const buyPrice = item.buy_price_max || 0;
+          const response = await fetch(url);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Price API returned', data.length, 'entries for quality', quality);
             
-            // Use sell price if available, otherwise buy price
-            // But only if it's reasonable (not 0)
-            let price = 0;
-            if (sellPrice > 0) {
-              price = sellPrice;
-            } else if (buyPrice > 0) {
-              price = buyPrice;
-            }
-            
-            if (price > 0) {
-              // Keep the lowest price across all cities
-              if (!pricesByItem[itemId] || price < pricesByItem[itemId]) {
-                pricesByItem[itemId] = price;
+            // Group by item_id and find best price
+            const pricesByItem = {};
+            data.forEach(item => {
+              const itemId = item.item_id;
+              const sellPrice = item.sell_price_min || 0;
+              const buyPrice = item.buy_price_max || 0;
+              
+              // Use sell price if available, otherwise buy price
+              let price = 0;
+              if (sellPrice > 0) {
+                price = sellPrice;
+              } else if (buyPrice > 0) {
+                price = buyPrice;
               }
-            }
-          });
-          
-          // Cache the best prices
-          Object.entries(pricesByItem).forEach(([itemId, price]) => {
-            pricesCache[itemId] = {
-              price: price,
-              timestamp: now
-            };
-          });
-          
-          savePricesCache();
+              
+              if (price > 0) {
+                // Keep the lowest price across all cities
+                if (!pricesByItem[itemId] || price < pricesByItem[itemId]) {
+                  pricesByItem[itemId] = price;
+                }
+              }
+            });
+            
+            // Cache the best prices with quality
+            Object.entries(pricesByItem).forEach(([itemId, price]) => {
+              const cacheKey = getCacheKey(itemId, quality);
+              pricesCache[cacheKey] = {
+                price: price,
+                timestamp: now
+              };
+            });
+          } else {
+            console.log('Price API error:', response.status);
+          }
         }
+        
+        savePricesCache();
       } catch (e) {
         console.log('Failed to fetch prices:', e);
       }
@@ -1560,9 +1584,48 @@
       // Return all prices (cached + newly fetched)
       const result = {};
       itemIds.forEach(id => {
-        if (pricesCache[id]) result[id] = pricesCache[id].price;
+        const quality = qualities[id] || 1;
+        const cacheKey = getCacheKey(id, quality);
+        if (pricesCache[cacheKey]) result[id] = pricesCache[cacheKey].price;
       });
+      console.log('Returning prices for', Object.keys(result).length, 'items');
       return result;
+    }
+    
+    // Get item IDs and qualities from equipment
+    function getEquipmentItems(equipment) {
+      if (!equipment) return { itemIds: [], qualities: {} };
+      
+      const itemIds = [];
+      const qualities = {};
+      const slots = ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Food', 'Potion'];
+      
+      slots.forEach(slot => {
+        const item = equipment[slot];
+        if (item && item.Type) {
+          itemIds.push(item.Type);
+          qualities[item.Type] = item.Quality || 1;
+        }
+      });
+      
+      return { itemIds, qualities };
+    }
+    
+    // Get item IDs and qualities from inventory
+    function getInventoryItems(inventory) {
+      if (!inventory) return { itemIds: [], qualities: {} };
+      
+      const itemIds = [];
+      const qualities = {};
+      
+      inventory.forEach(item => {
+        if (item && item.Type) {
+          itemIds.push(item.Type);
+          qualities[item.Type] = item.Quality || 1;
+        }
+      });
+      
+      return { itemIds, qualities };
     }
     
     // Calculate total value of equipment
@@ -3319,14 +3382,17 @@
       
       if (equipValues.length === 0 && invValues.length === 0) return;
       
-      // Collect all item IDs
-      const allItemIds = new Set();
+      // Collect all item IDs with qualities
+      const allItemIds = [];
+      const allQualities = {};
       
       equipValues.forEach(el => {
         try {
           const equip = JSON.parse(el.dataset.equip || '{}');
-          ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Food', 'Potion'].forEach(slot => {
-            if (equip[slot]?.Type) allItemIds.add(equip[slot].Type);
+          const { itemIds, qualities } = getEquipmentItems(equip);
+          itemIds.forEach(id => {
+            if (!allItemIds.includes(id)) allItemIds.push(id);
+            allQualities[id] = qualities[id];
           });
         } catch (e) {}
       });
@@ -3334,20 +3400,22 @@
       invValues.forEach(el => {
         try {
           const inventory = JSON.parse(el.dataset.inventory || '[]');
-          inventory.forEach(item => {
-            if (item?.Type) allItemIds.add(item.Type);
+          const { itemIds, qualities } = getInventoryItems(inventory);
+          itemIds.forEach(id => {
+            if (!allItemIds.includes(id)) allItemIds.push(id);
+            allQualities[id] = qualities[id];
           });
         } catch (e) {}
       });
       
-      if (allItemIds.size === 0) {
+      if (allItemIds.length === 0) {
         equipValues.forEach(el => { el.innerHTML = ''; });
         invValues.forEach(el => { el.innerHTML = ''; });
         return;
       }
       
-      // Fetch prices
-      const prices = await fetchPrices(Array.from(allItemIds));
+      // Fetch prices with qualities
+      const prices = await fetchPrices(allItemIds, allQualities);
       
       // Update equipment values
       equipValues.forEach(el => {
