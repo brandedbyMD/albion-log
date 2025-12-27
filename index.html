@@ -1983,9 +1983,8 @@
       // Try Murder Ledger API for complete event history (including assists)
       let murderLedgerEvents = [];
       try {
-        const mlServer = currentServer === 'asia' ? 'murderledger-asia' : 
-                         currentServer === 'europe' ? 'murderledger-europe' : 'murderledger';
-        const mlUrl = `https://${mlServer}.albiononline2d.com/api/players/${currentPlayer.Id}/events?limit=100`;
+        // Use our proxy to avoid CORS
+        const mlUrl = `/api/murderledger/players/${currentPlayer.Id}/events?limit=100&server=${currentServer}`;
         console.log('Fetching Murder Ledger events from:', mlUrl);
         const mlResponse = await fetch(mlUrl);
         if (mlResponse.ok) {
@@ -2354,29 +2353,10 @@
       // Get guild display (remove empty brackets)
       const guildDisplay = currentPlayer.GuildName ? escapeHtml(currentPlayer.GuildName) : 'No Guild';
       const isFav = isFavorite(currentPlayer.Id, currentServer);
-      
-      // Avatar URLs - use Avatar field for image, not player ID
-      // Avatar field looks like: "AVATAR_01", "AVATAR_FAMERANK_03", etc.
-      // AvatarRing field looks like: "RING1", "AVATARRING_FOUNDER_LEGENDARY", etc.
-      console.log('Player data:', currentPlayer);
-      console.log('Avatar:', currentPlayer.Avatar, 'AvatarRing:', currentPlayer.AvatarRing);
-      
-      const avatarId = currentPlayer.Avatar || '';
-      const avatarRingId = currentPlayer.AvatarRing || '';
-      
-      // Try render API format for avatars
-      const avatarUrl = avatarId ? `https://render.albiononline.com/v1/item/${avatarId}.png?size=128` : '';
-      const avatarRingUrl = avatarRingId ? `https://render.albiononline.com/v1/item/${avatarRingId}.png?size=128` : '';
 
       resultsSection.innerHTML = `
         <div class="player-header">
           <div class="player-info-row">
-            ${avatarUrl ? `
-            <div class="player-avatar-wrapper">
-              <img class="player-avatar" src="${avatarUrl}" alt="avatar" onerror="this.parentElement.style.display='none'">
-              ${avatarRingUrl ? `<img class="player-avatar-ring" src="${avatarRingUrl}" alt="ring" onerror="this.style.display='none'">` : ''}
-            </div>
-            ` : ''}
             <div class="player-details">
               <div class="player-name-title">${escapeHtml(currentPlayer.Name)}</div>
               <div class="player-guild-name">${guildDisplay}</div>
@@ -2655,7 +2635,7 @@
           const assists = data.events.filter(e => e.eventType === 'assist').length;
           const deaths = data.events.filter(e => e.eventType === 'death').length;
           const fame = data.events.reduce((sum, e) => sum + (e.TotalVictimKillFame || 0), 0);
-          const location = data.events[0]?.Location || '';
+          const location = data.events[0]?.Location || data.events[0]?.KillArea || '';
           const timeAgo = getTimeAgo(new Date(data.time));
           
           // Get my equipment from the first event where I have equipment
@@ -2835,14 +2815,8 @@
           
           const myIp = meData?.AverageItemPower || 0;
           const enemyIp = enemyData?.AverageItemPower || 0;
-          const location = event.Location || '';
-          
-          // Debug: log first event to see available fields
-          if (filteredEvents.indexOf(event) === 0) {
-            console.log('First event data:', event);
-            console.log('Location field:', event.Location);
-            console.log('All keys:', Object.keys(event));
-          }
+          // Use KillArea if Location is null
+          const location = event.Location || event.KillArea || '';
           const fame = event.TotalVictimKillFame || 0;
           const timeAgo = getTimeAgo(new Date(event.TimeStamp));
           
@@ -3127,7 +3101,7 @@
         return teams.get(teamKey)?.color || '#9ca3af';
       };
 
-      const location = events[0]?.Location || '';
+      const location = events[0]?.Location || events[0]?.KillArea || '';
       const battleTime = new Date(battle.startTime).toLocaleString('ja-JP');
 
       resultsSection.innerHTML = `
