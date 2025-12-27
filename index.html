@@ -2004,26 +2004,38 @@
             murderLedgerSuccess = true;
             console.log('Murder Ledger events found:', mlData.events.length);
             
+            // Debug: show first event structure
+            console.log('First ML event:', mlData.events[0]);
+            console.log('First ML event keys:', Object.keys(mlData.events[0]));
+            
             // Process Murder Ledger events
-            mlData.events.forEach(e => {
+            mlData.events.forEach((e, index) => {
               const eventId = e.event_id || e.EventId;
               
-              // Skip if already have this event
+              // Debug first few events
+              if (index < 3) {
+                console.log(`ML Event ${index}:`, {
+                  event_id: e.event_id,
+                  EventId: e.EventId,
+                  involvement: e.involvement,
+                  killer_id: e.killer?.id,
+                  victim_id: e.victim?.id,
+                  playerId: playerId
+                });
+              }
+              
+              // Skip if already have this event from official API
               if (soloKillEventIds.has(eventId) || deathEventIds.has(eventId)) {
+                if (index < 3) console.log(`  -> Skipped (already have)`);
                 return;
               }
               
-              // Check involvement type
+              // Check involvement type from Murder Ledger
               const involvement = e.involvement || '';
-              const killerId = String(e.killer?.id || e.Killer?.Id || '');
-              const victimId = String(e.victim?.id || e.Victim?.Id || '');
               
-              const isKiller = killerId === playerId;
-              const isVictim = victimId === playerId;
-              const isAssist = involvement === 'assist' || (!isKiller && !isVictim);
-              
-              if (isAssist) {
-                // Convert Murder Ledger format to our format
+              // Only add if it's an assist
+              if (involvement === 'assist') {
+                console.log(`  -> Adding assist event ${eventId}`);
                 assists.push({
                   EventId: eventId,
                   BattleId: e.battle_id || e.BattleId,
