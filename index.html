@@ -1986,126 +1986,142 @@
       const soloKillEventIds = new Set(soloKills.map(e => e.EventId));
       const deathEventIds = new Set(currentDeaths.map(e => e.EventId));
       
-      // Collect battle IDs from kills and deaths
-      const battleIds = new Set();
-      soloKills.forEach(e => e.BattleId && battleIds.add(e.BattleId));
-      currentDeaths.forEach(e => e.BattleId && battleIds.add(e.BattleId));
-      
-      // ALSO: If player has a guild, get guild's recent battles
-      if (currentPlayer.GuildId) {
-        try {
-          console.log('Fetching guild battles for more assists...');
-          const guildBattles = await fetchAPI(`/guilds/${currentPlayer.GuildId}/top?range=week&limit=20`);
-          console.log('Guild battles found:', guildBattles?.length || 0);
-          
-          // Add guild battle IDs
-          if (Array.isArray(guildBattles)) {
-            guildBattles.forEach(battle => {
-              if (battle.id) battleIds.add(battle.id);
-            });
-          }
-        } catch (e) {
-          console.log('Could not fetch guild battles:', e);
-        }
-      }
-      
-      // ALSO: Get recent battles from the server and check if player participated
+      // Try Murder Ledger API first (has complete event history!)
+      let murderLedgerSuccess = false;
       try {
-        console.log('Fetching recent server battles...');
-        const recentBattles = await fetchAPI(`/battles?limit=51&offset=0&sort=recent`);
-        console.log('Recent battles found:', recentBattles?.length || 0);
+        console.log('Fetching from Murder Ledger API...');
+        const mlUrl = `/api/murderledger/players/${currentPlayer.Id}/events?take=100&server=${currentServer}`;
+        const mlResponse = await fetch(mlUrl);
         
-        if (Array.isArray(recentBattles)) {
-          // Check each battle to see if player participated
-          for (const battle of recentBattles.slice(0, 30)) {
-            // Check if player is in the battle's players list
-            if (battle.players && battle.players[playerId]) {
-              console.log('Found player in battle:', battle.id);
-              battleIds.add(battle.id);
-            }
+        if (mlResponse.ok) {
+          const mlData = await mlResponse.json();
+          console.log('Murder Ledger response:', mlData);
+          
+          if (mlData && mlData.events && mlData.events.length > 0) {
+            murderLedgerSuccess = true;
+            console.log('Murder Ledger events found:', mlData.events.length);
+            
+            // Process Murder Ledger events
+            mlData.events.forEach(e => {
+              const eventId = e.event_id || e.EventId;
+              
+              // Skip if already have this event
+              if (soloKillEventIds.has(eventId) || deathEventIds.has(eventId)) {
+                return;
+              }
+              
+              // Check involvement type
+              const involvement = e.involvement || '';
+              const killerId = String(e.killer?.id || e.Killer?.Id || '');
+              const victimId = String(e.victim?.id || e.Victim?.Id || '');
+              
+              const isKiller = killerId === playerId;
+              const isVictim = victimId === playerId;
+              const isAssist = involvement === 'assist' || (!isKiller && !isVictim);
+              
+              if (isAssist) {
+                // Convert Murder Ledger format to our format
+                assists.push({
+                  EventId: eventId,
+                  BattleId: e.battle_id || e.BattleId,
+                  TimeStamp: e.time || e.TimeStamp,
+                  Location: e.location || e.Location || '',
+                  KillArea: e.kill_area || e.KillArea || '',
+                  TotalVictimKillFame: e.total_kill_fame || e.TotalVictimKillFame || 0,
+                  Killer: e.killer ? {
+                    Id: e.killer.id,
+                    Name: e.killer.name,
+                    GuildName: e.killer.guild_name,
+                    AllianceName: e.killer.alliance_name,
+                    AllianceTag: e.killer.alliance_tag,
+                    AverageItemPower: e.killer.item_power || e.killer.average_item_power,
+                    Equipment: e.killer.equipment || {}
+                  } : e.Killer,
+                  Victim: e.victim ? {
+                    Id: e.victim.id,
+                    Name: e.victim.name,
+                    GuildName: e.victim.guild_name,
+                    AllianceName: e.victim.alliance_name,
+                    AllianceTag: e.victim.alliance_tag,
+                    AverageItemPower: e.victim.item_power || e.victim.average_item_power,
+                    Equipment: e.victim.equipment || {},
+                    Inventory: e.victim.inventory || []
+                  } : e.Victim,
+                  Participants: e.participants || e.Participants || [],
+                  GroupMembers: e.group_members || e.GroupMembers || [],
+                  eventType: 'assist'
+                });
+              }
+            });
+            
+            console.log('Assists from Murder Ledger:', assists.length);
+          } else {
+            console.log('Murder Ledger has no events for this player yet');
           }
         }
       } catch (e) {
-        console.log('Could not fetch recent battles:', e);
+        console.log('Murder Ledger API failed:', e);
       }
       
-      // ALSO: Try recent events endpoint to find more assists (multiple pages)
-      try {
-        console.log('Scanning recent events for assists...');
-        let allRecentEvents = [];
+      // Fallback to official API if Murder Ledger didn't work
+      if (!murderLedgerSuccess) {
+        console.log('Using official API for assists (fallback)...');
         
-        // Fetch multiple pages of recent events (limit is max 51)
-        for (let offset = 0; offset < 500; offset += 51) {
+        // Collect battle IDs from kills and deaths
+        const battleIds = new Set();
+        soloKills.forEach(e => e.BattleId && battleIds.add(e.BattleId));
+        currentDeaths.forEach(e => e.BattleId && battleIds.add(e.BattleId));
+        
+        // Also get guild battles if available
+        if (currentPlayer.GuildId) {
           try {
-            const recentEvents = await fetchAPI(`/events?limit=51&offset=${offset}`);
-            if (Array.isArray(recentEvents) && recentEvents.length > 0) {
-              allRecentEvents = allRecentEvents.concat(recentEvents);
-            } else {
-              break; // No more events
+            const guildBattles = await fetchAPI(`/guilds/${currentPlayer.GuildId}/top?range=week&limit=20`);
+            if (Array.isArray(guildBattles)) {
+              guildBattles.forEach(battle => {
+                if (battle.id) battleIds.add(battle.id);
+              });
             }
           } catch (e) {
-            break; // Stop on error
+            console.log('Could not fetch guild battles:', e);
           }
         }
         
-        console.log('Recent events fetched:', allRecentEvents.length);
+        console.log('Total battle IDs to check:', battleIds.size);
         
-        allRecentEvents.forEach(event => {
-          // Skip if already in soloKills or deaths
-          if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
-            return;
-          }
-          
-          // Check if player is in Participants (but not killer or victim)
-          const killerId = String(event.Killer?.Id || '');
-          const victimId = String(event.Victim?.Id || '');
-          const isKiller = killerId === playerId;
-          const isVictim = victimId === playerId;
-          const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
-          
-          if (inParticipants && !isKiller && !isVictim) {
-            assists.push({ ...event, eventType: 'assist' });
-            console.log('Found assist from recent events:', event.EventId);
-          }
-        });
-      } catch (e) {
-        console.log('Could not fetch recent events:', e);
-      }
-      
-      console.log('Total battle IDs to check:', battleIds.size);
-      
-      // Fetch events from each battle to find more assists
-      const battleIdArray = Array.from(battleIds).slice(0, 50); // Check up to 50 battles
-      
-      for (const battleId of battleIdArray) {
-        try {
-          const battleEvents = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
-          
-          battleEvents.forEach(event => {
-            if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
-              return;
-            }
+        // Fetch events from each battle
+        const battleIdArray = Array.from(battleIds).slice(0, 50);
+        
+        for (const battleId of battleIdArray) {
+          try {
+            const battleEvents = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
             
-            const killerId = String(event.Killer?.Id || '');
-            const victimId = String(event.Victim?.Id || '');
-            const isKiller = killerId === playerId;
-            const isVictim = victimId === playerId;
-            const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
-            
-            if (inParticipants && !isKiller && !isVictim) {
-              assists.push({ ...event, eventType: 'assist' });
-            }
-          });
-        } catch (e) {
-          // Silently skip failed battle fetches
+            battleEvents.forEach(event => {
+              if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
+                return;
+              }
+              
+              const killerId = String(event.Killer?.Id || '');
+              const victimId = String(event.Victim?.Id || '');
+              const isKiller = killerId === playerId;
+              const isVictim = victimId === playerId;
+              const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
+              
+              if (inParticipants && !isKiller && !isVictim) {
+                assists.push({ ...event, eventType: 'assist' });
+              }
+            });
+          } catch (e) {
+            // Silently skip failed battle fetches
+          }
         }
       }
       
       // Remove duplicates
       const assistEventIds = new Set();
       assists = assists.filter(e => {
-        if (assistEventIds.has(e.EventId)) return false;
-        assistEventIds.add(e.EventId);
+        const eventId = e.EventId || e.event_id;
+        if (assistEventIds.has(eventId)) return false;
+        assistEventIds.add(eventId);
         return true;
       });
       
