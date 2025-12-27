@@ -1987,8 +1987,21 @@
         const mlUrl = `/api/murderledger/players/${currentPlayer.Id}/events?limit=100&server=${currentServer}`;
         console.log('Fetching Murder Ledger events from:', mlUrl);
         const mlResponse = await fetch(mlUrl);
+        console.log('Murder Ledger response status:', mlResponse.status);
         if (mlResponse.ok) {
-          murderLedgerEvents = await mlResponse.json();
+          const mlData = await mlResponse.json();
+          console.log('Murder Ledger raw response:', mlData);
+          console.log('Murder Ledger response type:', typeof mlData);
+          console.log('Murder Ledger is array:', Array.isArray(mlData));
+          
+          // Handle different response formats
+          if (Array.isArray(mlData)) {
+            murderLedgerEvents = mlData;
+          } else if (mlData && mlData.events) {
+            murderLedgerEvents = mlData.events;
+          } else if (mlData && mlData.data) {
+            murderLedgerEvents = mlData.data;
+          }
           console.log('Murder Ledger events:', murderLedgerEvents.length);
         }
       } catch (e) {
@@ -2635,7 +2648,8 @@
           const assists = data.events.filter(e => e.eventType === 'assist').length;
           const deaths = data.events.filter(e => e.eventType === 'death').length;
           const fame = data.events.reduce((sum, e) => sum + (e.TotalVictimKillFame || 0), 0);
-          const location = data.events[0]?.Location || data.events[0]?.KillArea || '';
+          const rawLocation = data.events[0]?.Location || data.events[0]?.KillArea || '';
+          const location = getLocationName(rawLocation) || rawLocation;
           const timeAgo = getTimeAgo(new Date(data.time));
           
           // Get my equipment from the first event where I have equipment
@@ -2816,7 +2830,8 @@
           const myIp = meData?.AverageItemPower || 0;
           const enemyIp = enemyData?.AverageItemPower || 0;
           // Use KillArea if Location is null
-          const location = event.Location || event.KillArea || '';
+          const rawLocation = event.Location || event.KillArea || '';
+          const location = getLocationName(rawLocation) || rawLocation;
           const fame = event.TotalVictimKillFame || 0;
           const timeAgo = getTimeAgo(new Date(event.TimeStamp));
           
@@ -2932,6 +2947,43 @@
           `;
         }).join('');
       }
+    }
+
+    // Convert KillArea to readable location name
+    function getLocationName(killArea) {
+      if (!killArea) return '';
+      
+      const areaMap = {
+        'MISTS_TWO_FACTIONS': 'ミスト',
+        'MISTS_THREE_FACTIONS': 'ミスト',
+        'MISTS_SINGLE_FACTION': 'ミスト',
+        'CLUSTER_BLACK': 'ブラックゾーン',
+        'CLUSTER_RED': 'レッドゾーン',
+        'CLUSTER_YELLOW': 'イエローゾーン',
+        'CLUSTER_BLUE': 'ブルーゾーン',
+        'HELLGATE': 'ヘルゲート',
+        'HELLGATE_2V2': 'ヘルゲート (2v2)',
+        'HELLGATE_5V5': 'ヘルゲート (5v5)',
+        'CORRUPTED_DUNGEON': 'CD',
+        'CORRUPTED_DUNGEON_LETHAL': 'CD (Lethal)',
+        'CORRUPTED_DUNGEON_STALKER': 'CD (Stalker)',
+        'CORRUPTED_DUNGEON_SLAYER': 'CD (Slayer)',
+        'ARENA': 'アリーナ',
+        'CRYSTAL_LEAGUE': 'クリスタルリーグ',
+        'ROADS_OF_AVALON': 'アバロン',
+        'OPEN_WORLD': 'オープンワールド',
+      };
+      
+      // Check exact match first
+      if (areaMap[killArea]) return areaMap[killArea];
+      
+      // Check partial matches
+      for (const [key, value] of Object.entries(areaMap)) {
+        if (killArea.includes(key)) return value;
+      }
+      
+      // Return original if no match (remove underscores for readability)
+      return killArea.replace(/_/g, ' ');
     }
 
     // Get time ago string
@@ -3101,7 +3153,8 @@
         return teams.get(teamKey)?.color || '#9ca3af';
       };
 
-      const location = events[0]?.Location || events[0]?.KillArea || '';
+      const rawLocation = events[0]?.Location || events[0]?.KillArea || '';
+      const location = getLocationName(rawLocation) || rawLocation;
       const battleTime = new Date(battle.startTime).toLocaleString('ja-JP');
 
       resultsSection.innerHTML = `
