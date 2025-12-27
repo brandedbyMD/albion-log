@@ -2009,6 +2009,26 @@
         }
       }
       
+      // ALSO: Get recent battles from the server and check if player participated
+      try {
+        console.log('Fetching recent server battles...');
+        const recentBattles = await fetchAPI(`/battles?limit=51&offset=0&sort=recent`);
+        console.log('Recent battles found:', recentBattles?.length || 0);
+        
+        if (Array.isArray(recentBattles)) {
+          // Check each battle to see if player participated
+          for (const battle of recentBattles.slice(0, 30)) {
+            // Check if player is in the battle's players list
+            if (battle.players && battle.players[playerId]) {
+              console.log('Found player in battle:', battle.id);
+              battleIds.add(battle.id);
+            }
+          }
+        }
+      } catch (e) {
+        console.log('Could not fetch recent battles:', e);
+      }
+      
       // ALSO: Try recent events endpoint to find more assists (multiple pages)
       try {
         console.log('Scanning recent events for assists...');
