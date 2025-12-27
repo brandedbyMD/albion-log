@@ -1460,7 +1460,7 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache';
+    const PRICES_KEY = 'albion_prices_cache_v2'; // v2: improved price selection
     
     // Price cache (expires after 30 minutes)
     let pricesCache = {};
@@ -1512,22 +1512,43 @@
       }
       
       try {
-        // Fetch prices from Albion Data Project (Bridgewatch is usually best for prices)
-        const url = `/api/prices/${uncachedIds.join(',')}?locations=Bridgewatch,Martlock,Fort%20Sterling,Lymhurst,Thetford`;
+        // Fetch prices from Albion Data Project (multiple cities for best price)
+        const url = `/api/prices/${uncachedIds.join(',')}?locations=Bridgewatch,Martlock,Fort%20Sterling,Lymhurst,Thetford,Caerleon`;
         const response = await fetch(url);
         
         if (response.ok) {
           const data = await response.json();
           
-          // Process and cache prices
+          // Group by item_id and find best price
+          const pricesByItem = {};
           data.forEach(item => {
-            const price = item.sell_price_min || item.buy_price_max || 0;
-            if (price > 0) {
-              pricesCache[item.item_id] = {
-                price: price,
-                timestamp: now
-              };
+            const itemId = item.item_id;
+            const sellPrice = item.sell_price_min || 0;
+            const buyPrice = item.buy_price_max || 0;
+            
+            // Use sell price if available, otherwise buy price
+            // But only if it's reasonable (not 0)
+            let price = 0;
+            if (sellPrice > 0) {
+              price = sellPrice;
+            } else if (buyPrice > 0) {
+              price = buyPrice;
             }
+            
+            if (price > 0) {
+              // Keep the lowest price across all cities
+              if (!pricesByItem[itemId] || price < pricesByItem[itemId]) {
+                pricesByItem[itemId] = price;
+              }
+            }
+          });
+          
+          // Cache the best prices
+          Object.entries(pricesByItem).forEach(([itemId, price]) => {
+            pricesCache[itemId] = {
+              price: price,
+              timestamp: now
+            };
           });
           
           savePricesCache();
@@ -2114,6 +2135,8 @@
       searchInput.value = '';
       hideError();
       currentPlayer = null;
+      // Clear URL hash
+      history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
     }
 
     // API Functions
@@ -2127,16 +2150,71 @@
       return response.json();
     }
 
-    async function searchPlayer(playerName, skipHistory = false) {
-      const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
+    async function searchPlayer(playerIdOrName, playerNameHint = null, skipHistory = false) {
+      // If playerNameHint is provided, playerIdOrName is the ID
+      // Otherwise, playerIdOrName is the name and we need to search
+      let playerId, playerName;
       
-      if (!searchResult.players || searchResult.players.length === 0) {
-        showError('プレイヤーが見つかりませんでした');
-        return;
-      }
+      if (playerNameHint) {
+        // Called with (playerId, playerName, skipHistory)
+        playerId = playerIdOrName;
+        playerName = playerNameHint;
+        
+        // Get player info directly using the ID
+        try {
+          // First try to get kills to verify player exists and get their info
+          const kills = await fetchAPI(`/players/${playerId}/kills?limit=1`);
+          const deaths = await fetchAPI(`/players/${playerId}/deaths?limit=1`);
+          
+          // Extract player info from kills or deaths
+          if (kills.length > 0 && kills[0].Killer) {
+            currentPlayer = {
+              Id: playerId,
+              Name: kills[0].Killer.Name,
+              GuildName: kills[0].Killer.GuildName,
+              AllianceName: kills[0].Killer.AllianceName
+            };
+          } else if (deaths.length > 0 && deaths[0].Victim) {
+            currentPlayer = {
+              Id: playerId,
+              Name: deaths[0].Victim.Name,
+              GuildName: deaths[0].Victim.GuildName,
+              AllianceName: deaths[0].Victim.AllianceName
+            };
+          } else {
+            // Fallback to search API
+            const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
+            if (!searchResult.players || searchResult.players.length === 0) {
+              showError('プレイヤーが見つかりませんでした');
+              return;
+            }
+            currentPlayer = searchResult.players.find(p => p.Id === playerId) || searchResult.players[0];
+          }
+        } catch (e) {
+          console.log('Direct player lookup failed, falling back to search:', e);
+          const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
+          if (!searchResult.players || searchResult.players.length === 0) {
+            showError('プレイヤーが見つかりませんでした');
+            return;
+          }
+          currentPlayer = searchResult.players[0];
+        }
+      } else {
+        // Called with (playerName, skipHistory) - original behavior
+        playerName = playerIdOrName;
+        skipHistory = playerNameHint || false; // playerNameHint is actually skipHistory in this case
+        
+        const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
+        
+        if (!searchResult.players || searchResult.players.length === 0) {
+          showError('プレイヤーが見つかりませんでした');
+          return;
+        }
 
-      currentPlayer = searchResult.players[0];
-      const playerId = String(currentPlayer.Id);
+        currentPlayer = searchResult.players[0];
+      }
+      
+      playerId = String(currentPlayer.Id);
       
       // Get deaths and kills (where player is killer) from official API
       // Add limit parameter to get more events
@@ -2722,7 +2800,7 @@
           </div>
         </div>
 
-        <div class="info-notice" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; padding: 8px 12px; background: var(--bg); border-radius: 6px;">
+        <div class="info-notice" style="font-size: 0.8rem; color: #b58900; margin-bottom: 12px; padding: 8px 12px; background: rgba(255,193,7,0.15); border-radius: 6px;">
           ⚠️ 一部のイベントでは装備情報が表示されない場合があります
         </div>
 
@@ -3657,6 +3735,8 @@
       resultsSection.classList.remove('visible');
       searchInput.value = '';
       hideError();
+      // Clear URL hash
+      history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
     }
     
     // Handle browser back/forward
@@ -3700,11 +3780,16 @@
     // Initialize: check if there's a hash to restore
     async function initFromHash() {
       const hash = window.location.hash;
+      console.log('initFromHash called, hash:', hash);
+      
       if (hash && hash.length > 1) {
         try {
           const [type, dataStr] = hash.substring(1).split('/');
+          console.log('Parsed type:', type, 'dataStr length:', dataStr?.length);
+          
           if (type && dataStr) {
             const data = JSON.parse(decodeURIComponent(dataStr));
+            console.log('Parsed data:', data);
             
             if (type === 'player' && (data.playerId || data.playerName)) {
               // Restore player page
@@ -3718,17 +3803,20 @@
               }
               
               // Use playerId if available (more reliable)
-              if (data.playerId) {
+              if (data.playerId && data.playerName) {
                 showLoading();
+                hideError();
                 try {
+                  console.log('Calling searchPlayer with:', data.playerId, data.playerName);
                   await searchPlayer(data.playerId, data.playerName, true);
+                  console.log('searchPlayer completed successfully');
                 } catch (e) {
-                  console.log('Failed to load player:', e);
-                  showError('プレイヤーデータの読み込みに失敗しました');
+                  console.error('Failed to load player:', e);
+                  showError('プレイヤーデータの読み込みに失敗しました: ' + e.message);
                 } finally {
                   hideLoading();
                 }
-              } else {
+              } else if (data.playerName) {
                 await searchAndSelectPlayer(data.playerName);
               }
               return;
@@ -3741,7 +3829,7 @@
             }
           }
         } catch (e) {
-          console.log('Failed to restore from hash:', e);
+          console.error('Failed to restore from hash:', e);
         }
       }
       // Default: start at home
