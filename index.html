@@ -2009,32 +2009,45 @@
         }
       }
       
-      // ALSO: Try recent events endpoint to find more assists
+      // ALSO: Try recent events endpoint to find more assists (multiple pages)
       try {
         console.log('Scanning recent events for assists...');
-        const recentEvents = await fetchAPI(`/events?limit=500&offset=0`);
-        console.log('Recent events fetched:', recentEvents?.length || 0);
+        let allRecentEvents = [];
         
-        if (Array.isArray(recentEvents)) {
-          recentEvents.forEach(event => {
-            // Skip if already in soloKills or deaths
-            if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
-              return;
+        // Fetch multiple pages of recent events (limit is max 51)
+        for (let offset = 0; offset < 500; offset += 51) {
+          try {
+            const recentEvents = await fetchAPI(`/events?limit=51&offset=${offset}`);
+            if (Array.isArray(recentEvents) && recentEvents.length > 0) {
+              allRecentEvents = allRecentEvents.concat(recentEvents);
+            } else {
+              break; // No more events
             }
-            
-            // Check if player is in Participants (but not killer or victim)
-            const killerId = String(event.Killer?.Id || '');
-            const victimId = String(event.Victim?.Id || '');
-            const isKiller = killerId === playerId;
-            const isVictim = victimId === playerId;
-            const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
-            
-            if (inParticipants && !isKiller && !isVictim) {
-              assists.push({ ...event, eventType: 'assist' });
-              console.log('Found assist from recent events:', event.EventId);
-            }
-          });
+          } catch (e) {
+            break; // Stop on error
+          }
         }
+        
+        console.log('Recent events fetched:', allRecentEvents.length);
+        
+        allRecentEvents.forEach(event => {
+          // Skip if already in soloKills or deaths
+          if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
+            return;
+          }
+          
+          // Check if player is in Participants (but not killer or victim)
+          const killerId = String(event.Killer?.Id || '');
+          const victimId = String(event.Victim?.Id || '');
+          const isKiller = killerId === playerId;
+          const isVictim = victimId === playerId;
+          const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
+          
+          if (inParticipants && !isKiller && !isVictim) {
+            assists.push({ ...event, eventType: 'assist' });
+            console.log('Found assist from recent events:', event.EventId);
+          }
+        });
       } catch (e) {
         console.log('Could not fetch recent events:', e);
       }
