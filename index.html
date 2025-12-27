@@ -1242,6 +1242,144 @@
       color: var(--red);
     }
 
+    /* Lost Value Display */
+    .lost-value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(220, 38, 38, 0.1);
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .lost-value .label {
+      color: var(--text-secondary);
+    }
+
+    .lost-value .amount {
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    .lost-value .breakdown {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Gained Value Display (for kills) */
+    .gained-value {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      background: rgba(22, 163, 74, 0.1);
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .gained-value .label {
+      color: var(--text-secondary);
+    }
+
+    .gained-value .amount {
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    /* Share Button */
+    .share-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    .share-btn:hover {
+      opacity: 0.85;
+    }
+
+    .share-section {
+      display: flex;
+      justify-content: center;
+      padding: 12px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Share Modal */
+    .share-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+
+    .share-modal-content {
+      background: var(--bg-card);
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .share-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .share-modal-header h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .share-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+    }
+
+    .share-modal-body {
+      padding: 20px;
+    }
+
+    .share-preview {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .share-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
     /* Error */
     .error-message {
       background: #fef2f2;
@@ -1422,6 +1560,136 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
+    const PRICES_KEY = 'albion_prices_cache';
+    
+    // Price cache (expires after 30 minutes)
+    let pricesCache = {};
+    const PRICE_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+    
+    // Load prices cache from localStorage
+    function loadPricesCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(PRICES_KEY)) || {};
+        const now = Date.now();
+        // Filter out expired entries
+        Object.keys(cached).forEach(key => {
+          if (now - cached[key].timestamp > PRICE_CACHE_TTL) {
+            delete cached[key];
+          }
+        });
+        pricesCache = cached;
+      } catch {
+        pricesCache = {};
+      }
+    }
+    
+    function savePricesCache() {
+      try {
+        localStorage.setItem(PRICES_KEY, JSON.stringify(pricesCache));
+      } catch (e) {
+        console.log('Failed to save prices cache:', e);
+      }
+    }
+    
+    // Fetch item prices from Albion Data Project
+    async function fetchPrices(itemIds) {
+      if (!itemIds || itemIds.length === 0) return {};
+      
+      // Filter out items we already have cached
+      const now = Date.now();
+      const uncachedIds = itemIds.filter(id => {
+        const cached = pricesCache[id];
+        return !cached || (now - cached.timestamp > PRICE_CACHE_TTL);
+      });
+      
+      if (uncachedIds.length === 0) {
+        // All prices are cached
+        const result = {};
+        itemIds.forEach(id => {
+          if (pricesCache[id]) result[id] = pricesCache[id].price;
+        });
+        return result;
+      }
+      
+      try {
+        // Fetch prices from Albion Data Project (Bridgewatch is usually best for prices)
+        const url = `/api/prices/${uncachedIds.join(',')}?locations=Bridgewatch,Martlock,Fort%20Sterling,Lymhurst,Thetford`;
+        const response = await fetch(url);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Process and cache prices
+          data.forEach(item => {
+            const price = item.sell_price_min || item.buy_price_max || 0;
+            if (price > 0) {
+              pricesCache[item.item_id] = {
+                price: price,
+                timestamp: now
+              };
+            }
+          });
+          
+          savePricesCache();
+        }
+      } catch (e) {
+        console.log('Failed to fetch prices:', e);
+      }
+      
+      // Return all prices (cached + newly fetched)
+      const result = {};
+      itemIds.forEach(id => {
+        if (pricesCache[id]) result[id] = pricesCache[id].price;
+      });
+      return result;
+    }
+    
+    // Calculate total value of equipment
+    function calculateEquipmentValue(equipment, prices) {
+      if (!equipment || !prices) return 0;
+      
+      let total = 0;
+      const slots = ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Food', 'Potion'];
+      
+      slots.forEach(slot => {
+        const item = equipment[slot];
+        if (item && item.Type) {
+          const price = prices[item.Type] || 0;
+          total += price;
+        }
+      });
+      
+      return total;
+    }
+    
+    // Calculate total value of inventory
+    function calculateInventoryValue(inventory, prices) {
+      if (!inventory || !prices) return 0;
+      
+      let total = 0;
+      inventory.forEach(item => {
+        if (item && item.Type) {
+          const price = prices[item.Type] || 0;
+          const count = item.Count || 1;
+          total += price * count;
+        }
+      });
+      
+      return total;
+    }
+    
+    // Format silver amount
+    function formatSilver(amount) {
+      if (amount >= 1000000) {
+        return (amount / 1000000).toFixed(1) + 'M';
+      } else if (amount >= 1000) {
+        return (amount / 1000).toFixed(0) + 'K';
+      }
+      return amount.toLocaleString();
+    }
+    
+    // Initialize prices cache on load
+    loadPricesCache();
     
     // Theme functions
     function initTheme() {
@@ -2555,7 +2823,7 @@
         </div>
 
         <div class="info-notice" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; padding: 8px 12px; background: var(--bg); border-radius: 6px;">
-          ⚠️ 古いイベントは装備情報が取得できない場合があります
+          ⚠️ 一部のイベントでは装備情報が表示されない場合があります
         </div>
 
         <div id="playerContent"></div>
@@ -3048,10 +3316,193 @@
                 </div>
               </div>
               ${inventoryHtml}
+              <div class="value-display" id="value-${eventId}" data-event-type="${eventType}" 
+                   data-my-equip='${JSON.stringify(myEquip || {}).replace(/'/g, "&#39;")}'
+                   data-enemy-equip='${JSON.stringify(enemyEquip || {}).replace(/'/g, "&#39;")}'
+                   data-inventory='${JSON.stringify(victimInventory || []).replace(/'/g, "&#39;")}'>
+                <div style="padding: 10px; text-align: center; color: var(--text-secondary); font-size: 0.8rem;">
+                  💰 価格を読み込み中...
+                </div>
+              </div>
+              <div class="share-section">
+                <button class="share-btn" onclick="event.stopPropagation(); shareEvent('${eventId}', '${eventType}', '${escapeHtml(currentPlayer.Name)}', '${escapeHtml(enemyData?.Name || 'Unknown')}', ${fame})">
+                  📤 シェア
+                </button>
+              </div>
             </div>
           `;
         }).join('');
+        
+        // Update prices after rendering
+        updateEventPrices();
       }
+    }
+    
+    // Update event prices asynchronously
+    async function updateEventPrices() {
+      const valueDisplays = document.querySelectorAll('.value-display');
+      if (valueDisplays.length === 0) return;
+      
+      // Collect all item IDs
+      const allItemIds = new Set();
+      
+      valueDisplays.forEach(el => {
+        try {
+          const myEquip = JSON.parse(el.dataset.myEquip || '{}');
+          const enemyEquip = JSON.parse(el.dataset.enemyEquip || '{}');
+          const inventory = JSON.parse(el.dataset.inventory || '[]');
+          
+          // Add equipment item IDs
+          ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Food', 'Potion'].forEach(slot => {
+            if (myEquip[slot]?.Type) allItemIds.add(myEquip[slot].Type);
+            if (enemyEquip[slot]?.Type) allItemIds.add(enemyEquip[slot].Type);
+          });
+          
+          // Add inventory item IDs
+          inventory.forEach(item => {
+            if (item?.Type) allItemIds.add(item.Type);
+          });
+        } catch (e) {
+          console.log('Failed to parse equipment data:', e);
+        }
+      });
+      
+      if (allItemIds.size === 0) {
+        // No items to price
+        valueDisplays.forEach(el => {
+          el.innerHTML = '';
+        });
+        return;
+      }
+      
+      // Fetch prices
+      const prices = await fetchPrices(Array.from(allItemIds));
+      
+      // Update each display
+      valueDisplays.forEach(el => {
+        try {
+          const eventType = el.dataset.eventType;
+          const myEquip = JSON.parse(el.dataset.myEquip || '{}');
+          const enemyEquip = JSON.parse(el.dataset.enemyEquip || '{}');
+          const inventory = JSON.parse(el.dataset.inventory || '[]');
+          
+          const myEquipValue = calculateEquipmentValue(myEquip, prices);
+          const enemyEquipValue = calculateEquipmentValue(enemyEquip, prices);
+          const inventoryValue = calculateInventoryValue(inventory, prices);
+          
+          if (eventType === 'death') {
+            // Player died - show lost value
+            const totalLost = myEquipValue + inventoryValue;
+            if (totalLost > 0) {
+              el.innerHTML = `
+                <div class="lost-value">
+                  <span class="label">💀 ロスト:</span>
+                  <span class="amount">-${formatSilver(totalLost)}</span>
+                  <span class="breakdown">(装備: ${formatSilver(myEquipValue)} + 所持品: ${formatSilver(inventoryValue)})</span>
+                </div>
+              `;
+            } else {
+              el.innerHTML = `
+                <div class="lost-value">
+                  <span class="label">💀 ロスト:</span>
+                  <span class="amount" style="color: var(--text-secondary);">価格情報なし</span>
+                </div>
+              `;
+            }
+          } else if (eventType === 'kill' || eventType === 'assist') {
+            // Player killed/assisted - show potential loot value
+            const totalGained = enemyEquipValue + inventoryValue;
+            if (totalGained > 0) {
+              el.innerHTML = `
+                <div class="gained-value">
+                  <span class="label">💰 ドロップ価値:</span>
+                  <span class="amount">+${formatSilver(totalGained)}</span>
+                  <span class="breakdown">(装備: ${formatSilver(enemyEquipValue)} + 所持品: ${formatSilver(inventoryValue)})</span>
+                </div>
+              `;
+            } else {
+              el.innerHTML = `
+                <div class="gained-value">
+                  <span class="label">💰 ドロップ価値:</span>
+                  <span class="amount" style="color: var(--text-secondary);">価格情報なし</span>
+                </div>
+              `;
+            }
+          } else {
+            el.innerHTML = '';
+          }
+        } catch (e) {
+          console.log('Failed to update price display:', e);
+          el.innerHTML = '';
+        }
+      });
+    }
+    
+    // Share event as image
+    async function shareEvent(eventId, eventType, playerName, enemyName, fame) {
+      const eventCard = document.getElementById('value-' + eventId)?.closest('.ml-event-card');
+      if (!eventCard) {
+        alert('イベントカードが見つかりませんでした');
+        return;
+      }
+      
+      // Create share modal
+      const modal = document.createElement('div');
+      modal.className = 'share-modal';
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      
+      const typeText = eventType === 'kill' ? 'Kill' : eventType === 'assist' ? 'Assist' : 'Death';
+      const typeEmoji = eventType === 'kill' ? '⚔️' : eventType === 'assist' ? '🤝' : '💀';
+      
+      modal.innerHTML = `
+        <div class="share-modal-content">
+          <div class="share-modal-header">
+            <h3>シェア</h3>
+            <button class="share-modal-close" onclick="this.closest('.share-modal').remove()">×</button>
+          </div>
+          <div class="share-modal-body">
+            <div class="share-preview" style="text-align: center; padding: 20px;">
+              <div style="font-size: 2rem; margin-bottom: 8px;">${typeEmoji}</div>
+              <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 4px;">${typeText}</div>
+              <div style="margin-bottom: 8px;">
+                <span style="font-weight: 500;">${escapeHtml(playerName)}</span>
+                <span style="color: var(--text-secondary);"> vs </span>
+                <span style="font-weight: 500;">${escapeHtml(enemyName)}</span>
+              </div>
+              <div style="font-size: 1.1rem; color: var(--orange); font-weight: 600;">${fame.toLocaleString()} Fame</div>
+            </div>
+            <div style="margin-bottom: 16px;">
+              <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-secondary);">シェア用テキスト:</label>
+              <textarea id="shareText" readonly style="width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; resize: none;">${typeEmoji} ${typeText}!
+${playerName} vs ${enemyName}
+${fame.toLocaleString()} Fame
+
+#AlbionOnline #アルビオンオンライン
+${window.location.href}</textarea>
+            </div>
+            <div class="share-actions">
+              <button class="share-btn" onclick="copyShareText()">📋 コピー</button>
+              <button class="share-btn" onclick="shareToTwitter('${encodeURIComponent(`${typeEmoji} ${typeText}! ${playerName} vs ${enemyName} - ${fame.toLocaleString()} Fame #AlbionOnline`)}')">🐦 Twitter</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    }
+    
+    // Copy share text to clipboard
+    function copyShareText() {
+      const textarea = document.getElementById('shareText');
+      textarea.select();
+      document.execCommand('copy');
+      alert('コピーしました！');
+    }
+    
+    // Share to Twitter
+    function shareToTwitter(text) {
+      const url = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`;
+      window.open(url, '_blank', 'width=550,height=420');
     }
 
     // Convert KillArea to readable location name
@@ -3456,19 +3907,30 @@
           if (type && dataStr) {
             const data = JSON.parse(decodeURIComponent(dataStr));
             
-            if (type === 'player' && data.playerName) {
+            if (type === 'player' && (data.playerId || data.playerName)) {
               // Restore player page
               currentServer = data.server || currentServer;
               document.getElementById('serverSelect').value = currentServer;
-              document.getElementById('searchInput').value = data.playerName;
+              document.getElementById('searchInput').value = data.playerName || '';
               
-              // Search and display player
-              await searchAndSelectPlayer(data.playerName);
-              
-              // Restore viewMode if specified
+              // Restore viewMode before searching
               if (data.viewMode) {
                 currentViewMode = data.viewMode;
-                await renderPlayerPage();
+              }
+              
+              // Use playerId if available (more reliable)
+              if (data.playerId) {
+                showLoading();
+                try {
+                  await searchPlayer(data.playerId, data.playerName, true);
+                } catch (e) {
+                  console.log('Failed to load player:', e);
+                  showError('プレイヤーデータの読み込みに失敗しました');
+                } finally {
+                  hideLoading();
+                }
+              } else {
+                await searchAndSelectPlayer(data.playerName);
               }
               return;
             } else if (type === 'battle' && data.battleId) {
@@ -3496,10 +3958,12 @@
           // Find exact match or first result
           const player = results.players.find(p => p.Name.toLowerCase() === playerName.toLowerCase()) || results.players[0];
           await searchPlayer(player.Id, player.Name, true);
+        } else {
+          showError('プレイヤーが見つかりませんでした');
         }
       } catch (e) {
         console.log('Failed to search player:', e);
-        goToHome();
+        showError('プレイヤーの検索に失敗しました');
       } finally {
         hideLoading();
       }

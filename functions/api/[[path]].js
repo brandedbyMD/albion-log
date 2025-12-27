@@ -13,6 +13,9 @@ const MURDERLEDGER_SERVERS = {
   'asia': 'https://murderledger-asia.albiononline2d.com'
 };
 
+// Albion Data Project (market prices) - same for all regions
+const ALBION_DATA_PROJECT_URL = 'https://www.albion-online-data.com';
+
 export async function onRequest(context) {
   const { request, params } = context;
   
@@ -28,8 +31,15 @@ export async function onRequest(context) {
   
   let targetUrl;
   
+  // Check if this is an Albion Data Project request (market prices)
+  if (path.startsWith('prices/')) {
+    const itemIds = path.replace('prices/', '');
+    const queryString = url.searchParams.toString();
+    targetUrl = `${ALBION_DATA_PROJECT_URL}/api/v2/stats/prices/${itemIds}.json${queryString ? '?' + queryString : ''}`;
+    console.log('Proxying to Albion Data Project:', targetUrl);
+  }
   // Check if this is a Murder Ledger request
-  if (path.startsWith('murderledger/')) {
+  else if (path.startsWith('murderledger/')) {
     const mlPath = path.replace('murderledger/', '');
     const baseUrl = MURDERLEDGER_SERVERS[server] || MURDERLEDGER_SERVERS['americas'];
     const queryString = url.searchParams.toString();
@@ -51,6 +61,7 @@ export async function onRequest(context) {
       headers: {
         'User-Agent': 'AlbionBattleLog/1.0',
         'Accept': 'application/json',
+        'Accept-Encoding': 'gzip',
       },
     });
     
