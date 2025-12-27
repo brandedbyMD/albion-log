@@ -1994,10 +1994,37 @@
         const playerName = currentPlayer.Name.toLowerCase();
         let allMlEvents = [];
         
-        // Fetch multiple pages to get more events (including assists)
+        // Try /ledger endpoint first (might include assists)
+        try {
+          const ledgerUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/ledger?server=${currentServer}`;
+          console.log('Trying ledger endpoint:', ledgerUrl);
+          const ledgerResponse = await fetch(ledgerUrl);
+          console.log('Ledger response status:', ledgerResponse.status);
+          if (ledgerResponse.ok) {
+            const ledgerData = await ledgerResponse.json();
+            console.log('Ledger data:', ledgerData);
+          }
+        } catch (e) {
+          console.log('Ledger endpoint failed:', e);
+        }
+        
+        // Also try /info endpoint
+        try {
+          const infoUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/info?server=${currentServer}`;
+          console.log('Trying info endpoint:', infoUrl);
+          const infoResponse = await fetch(infoUrl);
+          console.log('Info response status:', infoResponse.status);
+          if (infoResponse.ok) {
+            const infoData = await infoResponse.json();
+            console.log('Info data:', infoData);
+          }
+        } catch (e) {
+          console.log('Info endpoint failed:', e);
+        }
+        
+        // Fetch events with pagination
         for (let skip = 0; skip < 200; skip += 50) {
           const mlUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`;
-          console.log('Murder Ledger URL:', mlUrl);
           const mlResponse = await fetch(mlUrl);
           
           if (mlResponse.ok) {
@@ -2007,10 +2034,9 @@
             if (mlData.events && mlData.events.length > 0) {
               allMlEvents = allMlEvents.concat(mlData.events);
             } else {
-              break; // No more events
+              break;
             }
           } else {
-            console.log('Murder Ledger request failed:', mlResponse.status);
             break;
           }
         }
@@ -2020,11 +2046,11 @@
         if (allMlEvents.length > 0) {
           murderLedgerSuccess = true;
           
-          // Process Murder Ledger events
+          // Debug: count kills/deaths/assists
+          let killCount = 0, deathCount = 0, assistCount = 0;
+          
           allMlEvents.forEach((e, index) => {
             const eventId = e.id;
-            
-            // Determine involvement by comparing names
             const killerName = (e.killer?.name || '').toLowerCase();
             const victimName = (e.victim?.name || '').toLowerCase();
             
@@ -2032,14 +2058,15 @@
             const isDeath = victimName === playerName;
             const isAssist = !isKill && !isDeath;
             
-            // Skip if already have this event from official API
+            if (isKill) killCount++;
+            else if (isDeath) deathCount++;
+            else assistCount++;
+            
             if (soloKillEventIds.has(eventId) || deathEventIds.has(eventId)) {
               return;
             }
             
-            // Only add if it's an assist
             if (isAssist) {
-              console.log(`Found assist: ${e.killer?.name} killed ${e.victim?.name} (event ${eventId})`);
               assists.push({
                 EventId: eventId,
                 BattleId: e.battle_id,
@@ -2071,9 +2098,8 @@
             }
           });
           
+          console.log('Murder Ledger breakdown - Kills:', killCount, 'Deaths:', deathCount, 'Assists:', assistCount);
           console.log('Assists from Murder Ledger:', assists.length);
-        } else {
-          console.log('Murder Ledger has no events for this player');
         }
       } catch (e) {
         console.log('Murder Ledger API failed:', e);
