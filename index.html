@@ -1242,142 +1242,42 @@
       color: var(--red);
     }
 
-    /* Lost Value Display */
-    .lost-value {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px;
-      background: rgba(220, 38, 38, 0.1);
-      border-top: 1px solid var(--border);
-      font-size: 0.9rem;
-    }
-
-    .lost-value .label {
-      color: var(--text-secondary);
-    }
-
-    .lost-value .amount {
-      font-weight: 700;
-      color: var(--red);
-    }
-
-    .lost-value .breakdown {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    /* Gained Value Display (for kills) */
-    .gained-value {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px;
-      background: rgba(22, 163, 74, 0.1);
-      border-top: 1px solid var(--border);
-      font-size: 0.9rem;
-    }
-
-    .gained-value .label {
-      color: var(--text-secondary);
-    }
-
-    .gained-value .amount {
-      font-weight: 700;
-      color: var(--green);
-    }
-
-    /* Share Button */
-    .share-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      background: var(--accent-btn);
-      color: var(--accent-btn-text);
-      border: none;
-      border-radius: 6px;
+    /* Equipment Value Display */
+    .equip-value {
+      margin-top: 8px;
       font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity 0.15s ease;
-    }
-
-    .share-btn:hover {
-      opacity: 0.85;
-    }
-
-    .share-section {
-      display: flex;
-      justify-content: center;
-      padding: 12px;
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-    }
-
-    /* Share Modal */
-    .share-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      padding: 20px;
-    }
-
-    .share-modal-content {
-      background: var(--bg-card);
-      border-radius: 12px;
-      max-width: 600px;
-      width: 100%;
-      max-height: 90vh;
-      overflow: auto;
-    }
-
-    .share-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .share-modal-header h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .share-modal-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
       color: var(--text-secondary);
-      padding: 4px 8px;
     }
 
-    .share-modal-body {
-      padding: 20px;
+    .equip-value.right {
+      text-align: right;
     }
 
-    .share-preview {
-      background: var(--bg);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 16px;
+    .equip-value-amount {
+      font-weight: 600;
+      color: var(--orange);
     }
 
-    .share-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
+    .equip-value-loading {
+      opacity: 0.5;
+    }
+
+    /* Inventory Value Display */
+    .inventory-value {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .inventory-value-amount {
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    .inventory-value-loading {
+      opacity: 0.5;
     }
 
     /* Error */
@@ -3252,6 +3152,9 @@
                   : '<div class="ml-inventory-empty-side"></div>') +
                 '</div>' +
               '</div>' +
+              '<div class="inventory-value" id="inv-value-' + eventId + '" data-inventory=\'' + JSON.stringify(victimInventory || []).replace(/'/g, "&#39;") + '\'>' +
+                '<span class="inventory-value-loading">💰 所持品価格: ...</span>' +
+              '</div>' +
             '</div>'
           : '';
           
@@ -3280,6 +3183,9 @@
                       ${getMLEquipIcon(myEquip?.Food)}
                       ${getMLEquipIcon(myEquip?.Potion)}
                     </div>
+                  </div>
+                  <div class="equip-value" id="my-value-${eventId}" data-equip='${JSON.stringify(myEquip || {}).replace(/'/g, "&#39;")}'>
+                    <span class="equip-value-loading">💰 ...</span>
                   </div>
                 </div>
                 
@@ -3313,22 +3219,12 @@
                       ${getMLEquipIcon(enemyEquip?.Potion)}
                     </div>
                   </div>
+                  <div class="equip-value right" id="enemy-value-${eventId}" data-equip='${JSON.stringify(enemyEquip || {}).replace(/'/g, "&#39;")}'>
+                    <span class="equip-value-loading">💰 ...</span>
+                  </div>
                 </div>
               </div>
               ${inventoryHtml}
-              <div class="value-display" id="value-${eventId}" data-event-type="${eventType}" 
-                   data-my-equip='${JSON.stringify(myEquip || {}).replace(/'/g, "&#39;")}'
-                   data-enemy-equip='${JSON.stringify(enemyEquip || {}).replace(/'/g, "&#39;")}'
-                   data-inventory='${JSON.stringify(victimInventory || []).replace(/'/g, "&#39;")}'>
-                <div style="padding: 10px; text-align: center; color: var(--text-secondary); font-size: 0.8rem;">
-                  💰 価格を読み込み中...
-                </div>
-              </div>
-              <div class="share-section">
-                <button class="share-btn" onclick="event.stopPropagation(); shareEvent('${eventId}', '${eventType}', '${escapeHtml(currentPlayer.Name)}', '${escapeHtml(enemyData?.Name || 'Unknown')}', ${fame})">
-                  📤 シェア
-                </button>
-              </div>
             </div>
           `;
         }).join('');
@@ -3340,169 +3236,72 @@
     
     // Update event prices asynchronously
     async function updateEventPrices() {
-      const valueDisplays = document.querySelectorAll('.value-display');
-      if (valueDisplays.length === 0) return;
+      const equipValues = document.querySelectorAll('.equip-value');
+      const invValues = document.querySelectorAll('.inventory-value');
+      
+      if (equipValues.length === 0 && invValues.length === 0) return;
       
       // Collect all item IDs
       const allItemIds = new Set();
       
-      valueDisplays.forEach(el => {
+      equipValues.forEach(el => {
         try {
-          const myEquip = JSON.parse(el.dataset.myEquip || '{}');
-          const enemyEquip = JSON.parse(el.dataset.enemyEquip || '{}');
-          const inventory = JSON.parse(el.dataset.inventory || '[]');
-          
-          // Add equipment item IDs
+          const equip = JSON.parse(el.dataset.equip || '{}');
           ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Food', 'Potion'].forEach(slot => {
-            if (myEquip[slot]?.Type) allItemIds.add(myEquip[slot].Type);
-            if (enemyEquip[slot]?.Type) allItemIds.add(enemyEquip[slot].Type);
+            if (equip[slot]?.Type) allItemIds.add(equip[slot].Type);
           });
-          
-          // Add inventory item IDs
+        } catch (e) {}
+      });
+      
+      invValues.forEach(el => {
+        try {
+          const inventory = JSON.parse(el.dataset.inventory || '[]');
           inventory.forEach(item => {
             if (item?.Type) allItemIds.add(item.Type);
           });
-        } catch (e) {
-          console.log('Failed to parse equipment data:', e);
-        }
+        } catch (e) {}
       });
       
       if (allItemIds.size === 0) {
-        // No items to price
-        valueDisplays.forEach(el => {
-          el.innerHTML = '';
-        });
+        equipValues.forEach(el => { el.innerHTML = ''; });
+        invValues.forEach(el => { el.innerHTML = ''; });
         return;
       }
       
       // Fetch prices
       const prices = await fetchPrices(Array.from(allItemIds));
       
-      // Update each display
-      valueDisplays.forEach(el => {
+      // Update equipment values
+      equipValues.forEach(el => {
         try {
-          const eventType = el.dataset.eventType;
-          const myEquip = JSON.parse(el.dataset.myEquip || '{}');
-          const enemyEquip = JSON.parse(el.dataset.enemyEquip || '{}');
-          const inventory = JSON.parse(el.dataset.inventory || '[]');
+          const equip = JSON.parse(el.dataset.equip || '{}');
+          const value = calculateEquipmentValue(equip, prices);
           
-          const myEquipValue = calculateEquipmentValue(myEquip, prices);
-          const enemyEquipValue = calculateEquipmentValue(enemyEquip, prices);
-          const inventoryValue = calculateInventoryValue(inventory, prices);
-          
-          if (eventType === 'death') {
-            // Player died - show lost value
-            const totalLost = myEquipValue + inventoryValue;
-            if (totalLost > 0) {
-              el.innerHTML = `
-                <div class="lost-value">
-                  <span class="label">💀 ロスト:</span>
-                  <span class="amount">-${formatSilver(totalLost)}</span>
-                  <span class="breakdown">(装備: ${formatSilver(myEquipValue)} + 所持品: ${formatSilver(inventoryValue)})</span>
-                </div>
-              `;
-            } else {
-              el.innerHTML = `
-                <div class="lost-value">
-                  <span class="label">💀 ロスト:</span>
-                  <span class="amount" style="color: var(--text-secondary);">価格情報なし</span>
-                </div>
-              `;
-            }
-          } else if (eventType === 'kill' || eventType === 'assist') {
-            // Player killed/assisted - show potential loot value
-            const totalGained = enemyEquipValue + inventoryValue;
-            if (totalGained > 0) {
-              el.innerHTML = `
-                <div class="gained-value">
-                  <span class="label">💰 ドロップ価値:</span>
-                  <span class="amount">+${formatSilver(totalGained)}</span>
-                  <span class="breakdown">(装備: ${formatSilver(enemyEquipValue)} + 所持品: ${formatSilver(inventoryValue)})</span>
-                </div>
-              `;
-            } else {
-              el.innerHTML = `
-                <div class="gained-value">
-                  <span class="label">💰 ドロップ価値:</span>
-                  <span class="amount" style="color: var(--text-secondary);">価格情報なし</span>
-                </div>
-              `;
-            }
+          if (value > 0) {
+            el.innerHTML = `<span class="equip-value-amount">💰 ${formatSilver(value)}</span>`;
           } else {
-            el.innerHTML = '';
+            el.innerHTML = `<span class="equip-value-amount" style="opacity: 0.5;">💰 ---</span>`;
           }
         } catch (e) {
-          console.log('Failed to update price display:', e);
           el.innerHTML = '';
         }
       });
-    }
-    
-    // Share event as image
-    async function shareEvent(eventId, eventType, playerName, enemyName, fame) {
-      const eventCard = document.getElementById('value-' + eventId)?.closest('.ml-event-card');
-      if (!eventCard) {
-        alert('イベントカードが見つかりませんでした');
-        return;
-      }
       
-      // Create share modal
-      const modal = document.createElement('div');
-      modal.className = 'share-modal';
-      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
-      
-      const typeText = eventType === 'kill' ? 'Kill' : eventType === 'assist' ? 'Assist' : 'Death';
-      const typeEmoji = eventType === 'kill' ? '⚔️' : eventType === 'assist' ? '🤝' : '💀';
-      
-      modal.innerHTML = `
-        <div class="share-modal-content">
-          <div class="share-modal-header">
-            <h3>シェア</h3>
-            <button class="share-modal-close" onclick="this.closest('.share-modal').remove()">×</button>
-          </div>
-          <div class="share-modal-body">
-            <div class="share-preview" style="text-align: center; padding: 20px;">
-              <div style="font-size: 2rem; margin-bottom: 8px;">${typeEmoji}</div>
-              <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 4px;">${typeText}</div>
-              <div style="margin-bottom: 8px;">
-                <span style="font-weight: 500;">${escapeHtml(playerName)}</span>
-                <span style="color: var(--text-secondary);"> vs </span>
-                <span style="font-weight: 500;">${escapeHtml(enemyName)}</span>
-              </div>
-              <div style="font-size: 1.1rem; color: var(--orange); font-weight: 600;">${fame.toLocaleString()} Fame</div>
-            </div>
-            <div style="margin-bottom: 16px;">
-              <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-secondary);">シェア用テキスト:</label>
-              <textarea id="shareText" readonly style="width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; resize: none;">${typeEmoji} ${typeText}!
-${playerName} vs ${enemyName}
-${fame.toLocaleString()} Fame
-
-#AlbionOnline #アルビオンオンライン
-${window.location.href}</textarea>
-            </div>
-            <div class="share-actions">
-              <button class="share-btn" onclick="copyShareText()">📋 コピー</button>
-              <button class="share-btn" onclick="shareToTwitter('${encodeURIComponent(`${typeEmoji} ${typeText}! ${playerName} vs ${enemyName} - ${fame.toLocaleString()} Fame #AlbionOnline`)}')">🐦 Twitter</button>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-    }
-    
-    // Copy share text to clipboard
-    function copyShareText() {
-      const textarea = document.getElementById('shareText');
-      textarea.select();
-      document.execCommand('copy');
-      alert('コピーしました！');
-    }
-    
-    // Share to Twitter
-    function shareToTwitter(text) {
-      const url = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`;
-      window.open(url, '_blank', 'width=550,height=420');
+      // Update inventory values
+      invValues.forEach(el => {
+        try {
+          const inventory = JSON.parse(el.dataset.inventory || '[]');
+          const value = calculateInventoryValue(inventory, prices);
+          
+          if (value > 0) {
+            el.innerHTML = `<span class="inventory-value-amount">💰 所持品価格: ${formatSilver(value)}</span>`;
+          } else {
+            el.innerHTML = `<span class="inventory-value-amount" style="opacity: 0.5;">💰 所持品価格: ---</span>`;
+          }
+        } catch (e) {
+          el.innerHTML = '';
+        }
+      });
     }
 
     // Convert KillArea to readable location name
