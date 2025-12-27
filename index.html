@@ -2006,64 +2006,65 @@
             
             // Debug: show first event structure
             console.log('First ML event:', mlData.events[0]);
-            console.log('First ML event keys:', Object.keys(mlData.events[0]));
+            console.log('First ML event tags:', mlData.events[0].tags);
             
             // Process Murder Ledger events
             mlData.events.forEach((e, index) => {
-              const eventId = e.event_id || e.EventId;
+              // Murder Ledger uses 'id' not 'event_id'
+              const eventId = e.id;
+              
+              // Check tags for involvement (e.g., ['assist'], ['kill'], ['death'])
+              const tags = e.tags || [];
+              const isAssist = tags.includes('assist');
+              const isKill = tags.includes('kill');
+              const isDeath = tags.includes('death');
               
               // Debug first few events
-              if (index < 3) {
+              if (index < 5) {
                 console.log(`ML Event ${index}:`, {
-                  event_id: e.event_id,
-                  EventId: e.EventId,
-                  involvement: e.involvement,
-                  killer_id: e.killer?.id,
-                  victim_id: e.victim?.id,
-                  playerId: playerId
+                  id: e.id,
+                  tags: tags,
+                  isAssist: isAssist,
+                  killer: e.killer?.name,
+                  victim: e.victim?.name
                 });
               }
               
               // Skip if already have this event from official API
               if (soloKillEventIds.has(eventId) || deathEventIds.has(eventId)) {
-                if (index < 3) console.log(`  -> Skipped (already have)`);
+                if (index < 5) console.log(`  -> Skipped (already have from official API)`);
                 return;
               }
               
-              // Check involvement type from Murder Ledger
-              const involvement = e.involvement || '';
-              
               // Only add if it's an assist
-              if (involvement === 'assist') {
+              if (isAssist) {
                 console.log(`  -> Adding assist event ${eventId}`);
                 assists.push({
                   EventId: eventId,
-                  BattleId: e.battle_id || e.BattleId,
-                  TimeStamp: e.time || e.TimeStamp,
-                  Location: e.location || e.Location || '',
-                  KillArea: e.kill_area || e.KillArea || '',
-                  TotalVictimKillFame: e.total_kill_fame || e.TotalVictimKillFame || 0,
+                  BattleId: e.battle_id,
+                  TimeStamp: new Date(e.time * 1000).toISOString(),
+                  TotalVictimKillFame: e.total_kill_fame || 0,
                   Killer: e.killer ? {
                     Id: e.killer.id,
                     Name: e.killer.name,
                     GuildName: e.killer.guild_name,
                     AllianceName: e.killer.alliance_name,
                     AllianceTag: e.killer.alliance_tag,
-                    AverageItemPower: e.killer.item_power || e.killer.average_item_power,
+                    AverageItemPower: e.killer.item_power,
                     Equipment: e.killer.equipment || {}
-                  } : e.Killer,
+                  } : null,
                   Victim: e.victim ? {
                     Id: e.victim.id,
                     Name: e.victim.name,
                     GuildName: e.victim.guild_name,
                     AllianceName: e.victim.alliance_name,
                     AllianceTag: e.victim.alliance_tag,
-                    AverageItemPower: e.victim.item_power || e.victim.average_item_power,
+                    AverageItemPower: e.victim.item_power,
                     Equipment: e.victim.equipment || {},
-                    Inventory: e.victim.inventory || []
-                  } : e.Victim,
-                  Participants: e.participants || e.Participants || [],
-                  GroupMembers: e.group_members || e.GroupMembers || [],
+                    Inventory: []
+                  } : null,
+                  Participants: [],
+                  GroupMembers: [],
                   eventType: 'assist'
                 });
               }
