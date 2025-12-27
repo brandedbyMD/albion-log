@@ -1994,34 +1994,6 @@
         const playerName = currentPlayer.Name.toLowerCase();
         let allMlEvents = [];
         
-        // Try /ledger endpoint first (might include assists)
-        try {
-          const ledgerUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/ledger?server=${currentServer}`;
-          console.log('Trying ledger endpoint:', ledgerUrl);
-          const ledgerResponse = await fetch(ledgerUrl);
-          console.log('Ledger response status:', ledgerResponse.status);
-          if (ledgerResponse.ok) {
-            const ledgerData = await ledgerResponse.json();
-            console.log('Ledger data:', ledgerData);
-          }
-        } catch (e) {
-          console.log('Ledger endpoint failed:', e);
-        }
-        
-        // Also try /info endpoint
-        try {
-          const infoUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/info?server=${currentServer}`;
-          console.log('Trying info endpoint:', infoUrl);
-          const infoResponse = await fetch(infoUrl);
-          console.log('Info response status:', infoResponse.status);
-          if (infoResponse.ok) {
-            const infoData = await infoResponse.json();
-            console.log('Info data:', infoData);
-          }
-        } catch (e) {
-          console.log('Info endpoint failed:', e);
-        }
-        
         // Fetch events with pagination
         for (let skip = 0; skip < 200; skip += 50) {
           const mlUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`;
@@ -2032,6 +2004,18 @@
             console.log(`Murder Ledger page (skip=${skip}):`, mlData.events?.length || 0, 'events');
             
             if (mlData.events && mlData.events.length > 0) {
+              // Debug first 5 events
+              if (skip === 0) {
+                mlData.events.slice(0, 5).forEach((e, i) => {
+                  console.log(`Event ${i}:`, {
+                    id: e.id,
+                    killer: e.killer?.name,
+                    victim: e.victim?.name,
+                    participant_count: e.participant_count,
+                    party_size: e.party_size
+                  });
+                });
+              }
               allMlEvents = allMlEvents.concat(mlData.events);
             } else {
               break;
@@ -2046,59 +2030,65 @@
         if (allMlEvents.length > 0) {
           murderLedgerSuccess = true;
           
-          // Debug: count kills/deaths/assists
-          let killCount = 0, deathCount = 0, assistCount = 0;
+          // Debug: count by type
+          let soloKillCount = 0, assistKillCount = 0, deathCount = 0;
           
           allMlEvents.forEach((e, index) => {
             const eventId = e.id;
             const killerName = (e.killer?.name || '').toLowerCase();
             const victimName = (e.victim?.name || '').toLowerCase();
+            const participantCount = e.participant_count || 1;
             
-            const isKill = killerName === playerName;
-            const isDeath = victimName === playerName;
-            const isAssist = !isKill && !isDeath;
+            const isKiller = killerName === playerName;
+            const isVictim = victimName === playerName;
             
-            if (isKill) killCount++;
-            else if (isDeath) deathCount++;
-            else assistCount++;
+            // Murder Ledger logic:
+            // - If player is killer AND participant_count === 1 → Solo Kill
+            // - If player is killer AND participant_count > 1 → Assist (group kill)
+            // - If player is victim → Death
             
-            if (soloKillEventIds.has(eventId) || deathEventIds.has(eventId)) {
-              return;
-            }
-            
-            if (isAssist) {
-              assists.push({
-                EventId: eventId,
-                BattleId: e.battle_id,
-                TimeStamp: new Date(e.time * 1000).toISOString(),
-                TotalVictimKillFame: e.total_kill_fame || 0,
-                Killer: e.killer ? {
-                  Id: e.killer.id,
-                  Name: e.killer.name,
-                  GuildName: e.killer.guild_name,
-                  AllianceName: e.killer.alliance_name,
-                  AllianceTag: e.killer.alliance_tag,
-                  AverageItemPower: e.killer.item_power,
-                  Equipment: e.killer.equipment || {}
-                } : null,
-                Victim: e.victim ? {
-                  Id: e.victim.id,
-                  Name: e.victim.name,
-                  GuildName: e.victim.guild_name,
-                  AllianceName: e.victim.alliance_name,
-                  AllianceTag: e.victim.alliance_tag,
-                  AverageItemPower: e.victim.item_power,
-                  Equipment: e.victim.equipment || {},
-                  Inventory: []
-                } : null,
-                Participants: [],
-                GroupMembers: [],
-                eventType: 'assist'
-              });
+            if (isKiller && participantCount === 1) {
+              soloKillCount++;
+            } else if (isKiller && participantCount > 1) {
+              assistKillCount++;
+              
+              // Skip if already have this event
+              if (!soloKillEventIds.has(eventId) && !deathEventIds.has(eventId)) {
+                assists.push({
+                  EventId: eventId,
+                  BattleId: e.battle_id,
+                  TimeStamp: new Date(e.time * 1000).toISOString(),
+                  TotalVictimKillFame: e.total_kill_fame || 0,
+                  Killer: e.killer ? {
+                    Id: e.killer.id,
+                    Name: e.killer.name,
+                    GuildName: e.killer.guild_name,
+                    AllianceName: e.killer.alliance_name,
+                    AllianceTag: e.killer.alliance_tag,
+                    AverageItemPower: e.killer.item_power,
+                    Equipment: e.killer.equipment || {}
+                  } : null,
+                  Victim: e.victim ? {
+                    Id: e.victim.id,
+                    Name: e.victim.name,
+                    GuildName: e.victim.guild_name,
+                    AllianceName: e.victim.alliance_name,
+                    AllianceTag: e.victim.alliance_tag,
+                    AverageItemPower: e.victim.item_power,
+                    Equipment: e.victim.equipment || {},
+                    Inventory: []
+                  } : null,
+                  Participants: [],
+                  GroupMembers: [],
+                  eventType: 'assist'
+                });
+              }
+            } else if (isVictim) {
+              deathCount++;
             }
           });
           
-          console.log('Murder Ledger breakdown - Kills:', killCount, 'Deaths:', deathCount, 'Assists:', assistCount);
+          console.log('Murder Ledger breakdown - Solo Kills:', soloKillCount, 'Group Kills (Assists):', assistKillCount, 'Deaths:', deathCount);
           console.log('Assists from Murder Ledger:', assists.length);
         }
       } catch (e) {
