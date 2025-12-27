@@ -33,7 +33,7 @@
       --text: #fafafa;
       --text-secondary: #a3a3a3;
       --accent: #fafafa;
-      --accent-btn: #3b82f6;
+      --accent-btn: #525252;
       --accent-btn-text: #ffffff;
     }
 
@@ -717,8 +717,8 @@
     }
 
     .equip-icon {
-      width: 44px;
-      height: 44px;
+      width: 52px;
+      height: 52px;
       border-radius: 8px;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -851,11 +851,6 @@
       gap: 8px;
       color: var(--text-secondary);
       font-size: 0.85rem;
-    }
-
-    .battle-card-location {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
     }
 
     .battle-card-right {
@@ -1045,8 +1040,8 @@
     }
 
     .ml-equip-icon {
-      width: 64px;
-      height: 64px;
+      width: 72px;
+      height: 72px;
       border-radius: 6px;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -2099,6 +2094,8 @@
           
           // Fetch in parallel batches of 5 to speed up
           const batchSize = 5;
+          let successCount = 0, failCount = 0;
+          
           for (let i = 0; i < assistsNeedingDetails.length; i += batchSize) {
             const batch = assistsNeedingDetails.slice(i, i + batchSize);
             const promises = batch.map(async (assist) => {
@@ -2107,30 +2104,36 @@
                 const eventResponse = await fetch(eventUrl);
                 if (eventResponse.ok) {
                   const eventData = await eventResponse.json();
-                  // Update with full details
-                  if (eventData.Killer) {
+                  successCount++;
+                  
+                  // Update with full details, but keep existing data if API returns empty
+                  if (eventData.Killer && eventData.Killer.Equipment && Object.keys(eventData.Killer.Equipment).length > 0) {
                     assist.Killer = eventData.Killer;
                   }
-                  if (eventData.Victim) {
+                  if (eventData.Victim && eventData.Victim.Equipment && Object.keys(eventData.Victim.Equipment).length > 0) {
                     assist.Victim = eventData.Victim;
                   }
-                  if (eventData.Participants) {
+                  if (eventData.Participants && eventData.Participants.length > 0) {
                     assist.Participants = eventData.Participants;
                   }
-                  if (eventData.GroupMembers) {
+                  if (eventData.GroupMembers && eventData.GroupMembers.length > 0) {
                     assist.GroupMembers = eventData.GroupMembers;
                   }
-                  assist.Location = eventData.Location;
-                  assist.KillArea = eventData.KillArea;
+                  assist.Location = eventData.Location || assist.Location;
+                  assist.KillArea = eventData.KillArea || assist.KillArea;
+                } else {
+                  failCount++;
+                  console.log('Event API returned', eventResponse.status, 'for', assist.EventId);
                 }
               } catch (e) {
-                console.log('Failed to fetch event details:', assist.EventId);
+                failCount++;
+                console.log('Failed to fetch event details:', assist.EventId, e.message);
               }
               delete assist.needsDetails;
             });
             await Promise.all(promises);
           }
-          console.log('Finished fetching assist details');
+          console.log('Finished fetching assist details. Success:', successCount, 'Failed:', failCount);
         }
       } catch (e) {
         console.log('Murder Ledger API failed:', e);
@@ -2800,14 +2803,13 @@
                   <div class="battle-card-info">
                     <span>${timeAgo}</span>
                   </div>
-                  ${location ? `<div class="battle-card-location">📍 ${escapeHtml(location)}</div>` : ''}
                 </div>
                 <div class="battle-card-equip">
-                  ${getEquipmentIcon(myEquip?.MainHand, 48)}
-                  ${getEquipmentIcon(myEquip?.OffHand, 48)}
-                  ${getEquipmentIcon(myEquip?.Head, 48)}
-                  ${getEquipmentIcon(myEquip?.Armor, 48)}
-                  ${getEquipmentIcon(myEquip?.Shoes, 48)}
+                  ${getEquipmentIcon(myEquip?.MainHand, 56)}
+                  ${getEquipmentIcon(myEquip?.OffHand, 56)}
+                  ${getEquipmentIcon(myEquip?.Head, 56)}
+                  ${getEquipmentIcon(myEquip?.Armor, 56)}
+                  ${getEquipmentIcon(myEquip?.Shoes, 56)}
                 </div>
                 <div class="battle-card-right">
                   <div class="battle-card-arrow">→</div>
@@ -3015,7 +3017,6 @@
                   <div class="ml-event-type ${eventType}">${eventType === 'kill' ? 'Kill' : eventType === 'assist' ? 'Assist' : 'Death'}</div>
                   <div class="ml-event-time">${timeAgo}</div>
                   <div class="ml-event-fame">${fame.toLocaleString()} Fame</div>
-                  ${location ? `<div class="ml-event-location">📍 ${escapeHtml(location)}</div>` : ''}
                 </div>
                 
                 <!-- Right: Enemy -->
