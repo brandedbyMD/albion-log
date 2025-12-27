@@ -1981,21 +1981,68 @@
       currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths?limit=50`);
       const soloKills = await fetchAPI(`/players/${currentPlayer.Id}/kills?limit=50`);
       
-      // Get assists from battles where player participated
-      // Note: Official API only shows assists from battles where player also got kills or deaths
+      // Get assists from multiple sources
       let assists = [];
       const soloKillEventIds = new Set(soloKills.map(e => e.EventId));
       const deathEventIds = new Set(currentDeaths.map(e => e.EventId));
       
-      // Collect unique battle IDs from kills and deaths
+      // Collect battle IDs from kills and deaths
       const battleIds = new Set();
       soloKills.forEach(e => e.BattleId && battleIds.add(e.BattleId));
       currentDeaths.forEach(e => e.BattleId && battleIds.add(e.BattleId));
       
-      console.log('Fetching assists from', battleIds.size, 'battles...');
+      // ALSO: If player has a guild, get guild's recent battles
+      if (currentPlayer.GuildId) {
+        try {
+          console.log('Fetching guild battles for more assists...');
+          const guildBattles = await fetchAPI(`/guilds/${currentPlayer.GuildId}/top?range=week&limit=20`);
+          console.log('Guild battles found:', guildBattles?.length || 0);
+          
+          // Add guild battle IDs
+          if (Array.isArray(guildBattles)) {
+            guildBattles.forEach(battle => {
+              if (battle.id) battleIds.add(battle.id);
+            });
+          }
+        } catch (e) {
+          console.log('Could not fetch guild battles:', e);
+        }
+      }
       
-      // Limit to first 30 battles
-      const battleIdArray = Array.from(battleIds).slice(0, 30);
+      // ALSO: Try recent events endpoint to find more assists
+      try {
+        console.log('Scanning recent events for assists...');
+        const recentEvents = await fetchAPI(`/events?limit=500&offset=0`);
+        console.log('Recent events fetched:', recentEvents?.length || 0);
+        
+        if (Array.isArray(recentEvents)) {
+          recentEvents.forEach(event => {
+            // Skip if already in soloKills or deaths
+            if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
+              return;
+            }
+            
+            // Check if player is in Participants (but not killer or victim)
+            const killerId = String(event.Killer?.Id || '');
+            const victimId = String(event.Victim?.Id || '');
+            const isKiller = killerId === playerId;
+            const isVictim = victimId === playerId;
+            const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
+            
+            if (inParticipants && !isKiller && !isVictim) {
+              assists.push({ ...event, eventType: 'assist' });
+              console.log('Found assist from recent events:', event.EventId);
+            }
+          });
+        }
+      } catch (e) {
+        console.log('Could not fetch recent events:', e);
+      }
+      
+      console.log('Total battle IDs to check:', battleIds.size);
+      
+      // Fetch events from each battle to find more assists
+      const battleIdArray = Array.from(battleIds).slice(0, 50); // Check up to 50 battles
       
       for (const battleId of battleIdArray) {
         try {
@@ -2017,7 +2064,7 @@
             }
           });
         } catch (e) {
-          console.log('Could not fetch battle', battleId, e);
+          // Silently skip failed battle fetches
         }
       }
       
@@ -2028,6 +2075,8 @@
         assistEventIds.add(e.EventId);
         return true;
       });
+      
+      console.log('Total assists found:', assists.length);
       
       // Process kills
       currentSoloKills = soloKills.map(e => ({ ...e, eventType: 'kill' }));
