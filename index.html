@@ -2097,34 +2097,38 @@
           const assistsNeedingDetails = assists.filter(a => a.needsDetails);
           console.log('Fetching details for', assistsNeedingDetails.length, 'assist events...');
           
-          // Batch fetch (max 10 at a time to avoid rate limits)
-          for (let i = 0; i < Math.min(assistsNeedingDetails.length, 20); i++) {
-            const assist = assistsNeedingDetails[i];
-            try {
-              const eventUrl = `/api/events/${assist.EventId}?server=${currentServer}`;
-              const eventResponse = await fetch(eventUrl);
-              if (eventResponse.ok) {
-                const eventData = await eventResponse.json();
-                // Update with full details
-                if (eventData.Killer) {
-                  assist.Killer = eventData.Killer;
+          // Fetch in parallel batches of 5 to speed up
+          const batchSize = 5;
+          for (let i = 0; i < assistsNeedingDetails.length; i += batchSize) {
+            const batch = assistsNeedingDetails.slice(i, i + batchSize);
+            const promises = batch.map(async (assist) => {
+              try {
+                const eventUrl = `/api/events/${assist.EventId}?server=${currentServer}`;
+                const eventResponse = await fetch(eventUrl);
+                if (eventResponse.ok) {
+                  const eventData = await eventResponse.json();
+                  // Update with full details
+                  if (eventData.Killer) {
+                    assist.Killer = eventData.Killer;
+                  }
+                  if (eventData.Victim) {
+                    assist.Victim = eventData.Victim;
+                  }
+                  if (eventData.Participants) {
+                    assist.Participants = eventData.Participants;
+                  }
+                  if (eventData.GroupMembers) {
+                    assist.GroupMembers = eventData.GroupMembers;
+                  }
+                  assist.Location = eventData.Location;
+                  assist.KillArea = eventData.KillArea;
                 }
-                if (eventData.Victim) {
-                  assist.Victim = eventData.Victim;
-                }
-                if (eventData.Participants) {
-                  assist.Participants = eventData.Participants;
-                }
-                if (eventData.GroupMembers) {
-                  assist.GroupMembers = eventData.GroupMembers;
-                }
-                assist.Location = eventData.Location;
-                assist.KillArea = eventData.KillArea;
+              } catch (e) {
+                console.log('Failed to fetch event details:', assist.EventId);
               }
-            } catch (e) {
-              console.log('Failed to fetch event details:', assist.EventId);
-            }
-            delete assist.needsDetails;
+              delete assist.needsDetails;
+            });
+            await Promise.all(promises);
           }
           console.log('Finished fetching assist details');
         }
