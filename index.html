@@ -1540,6 +1540,11 @@
             const data = await response.json();
             console.log('Price API returned', data.length, 'entries for quality', quality);
             
+            // Debug: show first 3 entries with prices
+            data.slice(0, 3).forEach(item => {
+              console.log('Price data:', item.item_id, '| sell_min:', item.sell_price_min, '| sell_max:', item.sell_price_max, '| buy_max:', item.buy_price_max, '| city:', item.city);
+            });
+            
             // Group by item_id and find best price
             const pricesByItem = {};
             data.forEach(item => {
