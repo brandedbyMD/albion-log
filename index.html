@@ -1977,32 +1977,35 @@
       const playerId = String(currentPlayer.Id);
       
       // Get deaths and kills (where player is killer) from official API
-      currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths`);
-      const soloKills = await fetchAPI(`/players/${currentPlayer.Id}/kills`);
+      // Add limit parameter to get more events
+      currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths?limit=50`);
+      const soloKills = await fetchAPI(`/players/${currentPlayer.Id}/kills?limit=50`);
       
       // Try Murder Ledger API for complete event history (including assists)
       let murderLedgerEvents = [];
       try {
         // Use our proxy to avoid CORS
-        const mlUrl = `/api/murderledger/players/${currentPlayer.Id}/events?limit=100&server=${currentServer}`;
+        // Murder Ledger uses 'take' instead of 'limit'
+        const mlUrl = `/api/murderledger/players/${currentPlayer.Id}/events?take=100&server=${currentServer}`;
         console.log('Fetching Murder Ledger events from:', mlUrl);
         const mlResponse = await fetch(mlUrl);
         console.log('Murder Ledger response status:', mlResponse.status);
         if (mlResponse.ok) {
           const mlData = await mlResponse.json();
           console.log('Murder Ledger raw response:', mlData);
-          console.log('Murder Ledger response type:', typeof mlData);
-          console.log('Murder Ledger is array:', Array.isArray(mlData));
           
-          // Handle different response formats
-          if (Array.isArray(mlData)) {
-            murderLedgerEvents = mlData;
-          } else if (mlData && mlData.events) {
+          // Murder Ledger returns {events: [...], skip, take, sync_delay}
+          if (mlData && mlData.events && Array.isArray(mlData.events)) {
             murderLedgerEvents = mlData.events;
-          } else if (mlData && mlData.data) {
-            murderLedgerEvents = mlData.data;
+          } else if (Array.isArray(mlData)) {
+            murderLedgerEvents = mlData;
           }
           console.log('Murder Ledger events:', murderLedgerEvents.length);
+          
+          // If empty, the player might not be tracked yet
+          if (murderLedgerEvents.length === 0) {
+            console.log('Murder Ledger has no events for this player (not tracked yet or new player)');
+          }
         }
       } catch (e) {
         console.log('Murder Ledger API failed, using official API only:', e);
