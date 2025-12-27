@@ -720,8 +720,6 @@
       width: 52px;
       height: 52px;
       border-radius: 8px;
-      background: var(--bg);
-      border: 1px solid var(--border);
       object-fit: contain;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
@@ -734,7 +732,8 @@
     }
 
     .equip-icon.empty {
-      opacity: 0.15;
+      opacity: 0.1;
+      background: var(--border);
     }
 
     .equip-icon.empty:hover {
@@ -1043,8 +1042,6 @@
       width: 72px;
       height: 72px;
       border-radius: 6px;
-      background: var(--bg);
-      border: 1px solid var(--border);
       object-fit: contain;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
@@ -1057,7 +1054,9 @@
     }
 
     .ml-equip-icon.empty {
-      opacity: 0.15;
+      opacity: 0.1;
+      background: var(--border);
+      border-radius: 6px;
     }
 
     .ml-equip-icon.empty:hover {
@@ -2555,6 +2554,10 @@
           </div>
         </div>
 
+        <div class="info-notice" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px; padding: 8px 12px; background: var(--bg); border-radius: 6px;">
+          ⚠️ 古いイベントは装備情報が取得できない場合があります
+        </div>
+
         <div id="playerContent"></div>
       `;
 
@@ -3267,7 +3270,6 @@
             <span>${sortedParticipants.length} players</span>
             <span>${events.length} kills</span>
             <span>${(battle.totalFame || 0).toLocaleString()} Fame</span>
-            ${location ? `<span class="location-badge">📍 ${escapeHtml(location)}</span>` : ''}
           </div>
         </div>
 
@@ -3368,9 +3370,13 @@
     let historyStack = [];
     
     function pushState(type, data) {
-      // Include current view mode and scroll position for player pages
+      // Include current view mode and server for player pages
       if (type === 'player') {
         data.viewMode = currentViewMode;
+        data.server = currentServer;
+      }
+      if (type === 'battle') {
+        data.server = currentServer;
       }
       const state = { type, data, timestamp: Date.now() };
       historyStack.push(state);
@@ -3382,6 +3388,10 @@
       if (type === 'player') {
         data.viewMode = currentViewMode;
         data.scrollY = window.scrollY;
+        data.server = currentServer;
+      }
+      if (type === 'battle') {
+        data.server = currentServer;
       }
       const state = { type, data, timestamp: Date.now() };
       history.replaceState(state, '', `#${type}/${encodeURIComponent(JSON.stringify(data))}`);
@@ -3437,12 +3447,70 @@
       }
     });
     
-    // Initialize with initial state
-    history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
+    // Initialize: check if there's a hash to restore
+    async function initFromHash() {
+      const hash = window.location.hash;
+      if (hash && hash.length > 1) {
+        try {
+          const [type, dataStr] = hash.substring(1).split('/');
+          if (type && dataStr) {
+            const data = JSON.parse(decodeURIComponent(dataStr));
+            
+            if (type === 'player' && data.playerName) {
+              // Restore player page
+              currentServer = data.server || currentServer;
+              document.getElementById('serverSelect').value = currentServer;
+              document.getElementById('searchInput').value = data.playerName;
+              
+              // Search and display player
+              await searchAndSelectPlayer(data.playerName);
+              
+              // Restore viewMode if specified
+              if (data.viewMode) {
+                currentViewMode = data.viewMode;
+                await renderPlayerPage();
+              }
+              return;
+            } else if (type === 'battle' && data.battleId) {
+              // Restore battle page
+              currentServer = data.server || currentServer;
+              document.getElementById('serverSelect').value = currentServer;
+              await searchBattle(data.battleId);
+              return;
+            }
+          }
+        } catch (e) {
+          console.log('Failed to restore from hash:', e);
+        }
+      }
+      // Default: start at home
+      history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
+    }
+    
+    // Helper: search and select player by name
+    async function searchAndSelectPlayer(playerName) {
+      showLoading();
+      try {
+        const results = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
+        if (results.players && results.players.length > 0) {
+          // Find exact match or first result
+          const player = results.players.find(p => p.Name.toLowerCase() === playerName.toLowerCase()) || results.players[0];
+          await searchPlayer(player.Id, player.Name, true);
+        }
+      } catch (e) {
+        console.log('Failed to search player:', e);
+        goToHome();
+      } finally {
+        hideLoading();
+      }
+    }
     
     // Initialize theme and favorites
     initTheme();
     renderFavorites();
+    
+    // Restore from hash on page load
+    initFromHash();
   </script>
 </body>
 </html>
