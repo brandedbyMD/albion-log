@@ -1460,7 +1460,7 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache_v5'; // v5: use sell_max
+    const PRICES_KEY = 'albion_prices_cache_v6'; // v6: use highest sell_max across all cities
     
     // Price cache (expires after 30 minutes)
     let pricesCache = {};
@@ -1564,8 +1564,8 @@
               }
               
               if (price > 0) {
-                // Keep the lowest price across all cities
-                if (!pricesByItem[itemId] || price < pricesByItem[itemId]) {
+                // Keep the HIGHEST price across all cities
+                if (!pricesByItem[itemId] || price > pricesByItem[itemId]) {
                   pricesByItem[itemId] = price;
                 }
               }
