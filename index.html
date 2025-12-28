@@ -1460,7 +1460,7 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache_v3'; // v3: with quality support
+    const PRICES_KEY = 'albion_prices_cache_v4'; // v4: average of sell_min and sell_max
     
     // Price cache (expires after 30 minutes)
     let pricesCache = {};
@@ -1549,15 +1549,21 @@
             const pricesByItem = {};
             data.forEach(item => {
               const itemId = item.item_id;
-              const sellPrice = item.sell_price_min || 0;
-              const buyPrice = item.buy_price_max || 0;
+              const sellMin = item.sell_price_min || 0;
+              const sellMax = item.sell_price_max || 0;
+              const buyMax = item.buy_price_max || 0;
               
-              // Use sell price if available, otherwise buy price
+              // Calculate price: use average of sell_min and sell_max if both available
               let price = 0;
-              if (sellPrice > 0) {
-                price = sellPrice;
-              } else if (buyPrice > 0) {
-                price = buyPrice;
+              if (sellMin > 0 && sellMax > 0) {
+                // Use average of min and max sell price
+                price = Math.round((sellMin + sellMax) / 2);
+              } else if (sellMin > 0) {
+                price = sellMin;
+              } else if (sellMax > 0) {
+                price = sellMax;
+              } else if (buyMax > 0) {
+                price = buyMax;
               }
               
               if (price > 0) {
