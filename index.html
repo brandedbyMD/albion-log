@@ -1460,7 +1460,7 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache_v9'; // v9: average of sell_min across cities
+    const PRICES_KEY = 'albion_prices_cache_v10'; // v10: lowest sell_min across cities
     
     // Price cache (expires after 30 minutes)
     let pricesCache = {};
@@ -1545,9 +1545,8 @@
               console.log('Price data:', item.item_id, '| sell_min:', item.sell_price_min, '| sell_max:', item.sell_price_max, '| buy_max:', item.buy_price_max, '| city:', item.city);
             });
             
-            // Group by item_id and calculate average price
+            // Group by item_id and find lowest sell_min across cities
             const pricesByItem = {};
-            const priceCountByItem = {};
             
             data.forEach(item => {
               const itemId = item.item_id;
@@ -1555,18 +1554,11 @@
               
               // Only use sell_min - ignore cities with no sell orders
               if (sellMin > 0) {
-                if (!pricesByItem[itemId]) {
-                  pricesByItem[itemId] = 0;
-                  priceCountByItem[itemId] = 0;
+                // Keep the LOWEST sell_min across all cities (actual market price)
+                if (!pricesByItem[itemId] || sellMin < pricesByItem[itemId]) {
+                  pricesByItem[itemId] = sellMin;
                 }
-                pricesByItem[itemId] += sellMin;
-                priceCountByItem[itemId]++;
               }
-            });
-            
-            // Calculate averages
-            Object.keys(pricesByItem).forEach(itemId => {
-              pricesByItem[itemId] = Math.round(pricesByItem[itemId] / priceCountByItem[itemId]);
             });
             
             // Cache the best prices with quality
