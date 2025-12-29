@@ -13,12 +13,8 @@ const MURDERLEDGER_SERVERS = {
   'asia': 'https://murderledger-asia.albiononline2d.com'
 };
 
-// Albion Data Project (market prices) - server specific!
-const ALBION_DATA_PROJECT_SERVERS = {
-  'americas': 'https://west.albion-online-data.com',
-  'europe': 'https://europe.albion-online-data.com',
-  'asia': 'https://east.albion-online-data.com'
-};
+// Albion Data Project (market prices) - use West server (most data available)
+const ALBION_DATA_PROJECT_URL = 'https://west.albion-online-data.com';
 
 export async function onRequest(context) {
   const { request, params } = context;
@@ -39,8 +35,7 @@ export async function onRequest(context) {
   if (path.startsWith('prices/')) {
     const itemIds = path.replace('prices/', '');
     const queryString = url.searchParams.toString();
-    const dataProjectUrl = ALBION_DATA_PROJECT_SERVERS[server] || ALBION_DATA_PROJECT_SERVERS['americas'];
-    targetUrl = `${dataProjectUrl}/api/v2/stats/prices/${itemIds}.json${queryString ? '?' + queryString : ''}`;
+    targetUrl = `${ALBION_DATA_PROJECT_URL}/api/v2/stats/prices/${itemIds}.json${queryString ? '?' + queryString : ''}`;
     console.log('Proxying to Albion Data Project:', targetUrl);
   }
   // Check if this is a Murder Ledger request

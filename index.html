@@ -1460,7 +1460,7 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache_v14'; // v14: debug full fields
+    const PRICES_KEY = 'albion_prices_cache_v15'; // v15: West server data (most complete)
     
     // Price cache (expires after 30 minutes)
     let pricesCache = {};
@@ -1540,9 +1540,9 @@
             const data = await response.json();
             console.log('Price API returned', data.length, 'entries for quality', quality);
             
-            // Debug: show ALL fields from first 3 entries
+            // Debug: show first 3 entries with prices
             data.slice(0, 3).forEach(item => {
-              console.log('Full price data:', JSON.stringify(item));
+              console.log('Price data:', item.item_id, '| sell_min:', item.sell_price_min, '| sell_max:', item.sell_price_max, '| buy_max:', item.buy_price_max, '| city:', item.city);
             });
             
             // Group by item_id and find lowest sell_min across cities
