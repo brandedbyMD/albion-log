@@ -1460,7 +1460,7 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache_v6'; // v6: use highest sell_max across all cities
+    const PRICES_KEY = 'albion_prices_cache_v7'; // v7: highest sell_min across cities
     
     // Price cache (expires after 30 minutes)
     let pricesCache = {};
@@ -1553,18 +1553,19 @@
               const sellMax = item.sell_price_max || 0;
               const buyMax = item.buy_price_max || 0;
               
-              // Use sell_max (highest sell order) as it's closest to actual market price
+              // Use sell_min (lowest sell order per city) - most realistic price
               let price = 0;
-              if (sellMax > 0) {
-                price = sellMax;
-              } else if (sellMin > 0) {
+              if (sellMin > 0) {
                 price = sellMin;
+              } else if (sellMax > 0) {
+                price = sellMax;
               } else if (buyMax > 0) {
                 price = buyMax;
               }
               
               if (price > 0) {
-                // Keep the HIGHEST price across all cities
+                // Keep the HIGHEST sell_min across all cities
+                // This avoids abnormally cheap prices from low-traffic cities
                 if (!pricesByItem[itemId] || price > pricesByItem[itemId]) {
                   pricesByItem[itemId] = price;
                 }
