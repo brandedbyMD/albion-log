@@ -1242,44 +1242,6 @@
       color: var(--red);
     }
 
-    /* Equipment Value Display */
-    .equip-value {
-      margin-top: 8px;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-    }
-
-    .equip-value.right {
-      text-align: right;
-    }
-
-    .equip-value-amount {
-      font-weight: 600;
-      color: var(--orange);
-    }
-
-    .equip-value-loading {
-      opacity: 0.5;
-    }
-
-    /* Inventory Value Display */
-    .inventory-value {
-      margin-top: 16px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      font-size: 0.9rem;
-    }
-
-    .inventory-value-amount {
-      font-weight: 600;
-      color: var(--orange);
-    }
-
-    .inventory-value-loading {
-      opacity: 0.5;
-    }
-
     /* Error */
     .error-message {
       background: #fef2f2;
@@ -1396,6 +1358,9 @@
           <button class="header-btn" id="favoritesToggle" onclick="toggleFavoritesPanel()" title="お気に入り">
             <span>⭐</span>
           </button>
+          <button class="header-btn" id="languageToggle" onclick="toggleLanguage()" title="言語切り替え / Language">
+            <span class="language-icon">🇯🇵</span>
+          </button>
           <button class="header-btn" id="themeToggle" onclick="toggleTheme()" title="テーマ切り替え">
             <span class="theme-icon">🌙</span>
           </button>
@@ -1442,6 +1407,8 @@
     let currentAssists = [];
     let currentViewMode = 'events'; // Default to individual logs
     let autocompleteTimeout = null;
+    let cachedMyWeapons = new Map();
+    let cachedOpponentWeapons = new Map();
     
     // Filter state
     let filters = {
@@ -1460,218 +1427,36 @@
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
-    const PRICES_KEY = 'albion_prices_cache_v15'; // v15: West server data (most complete)
+    const LANGUAGE_KEY = 'albion_log_language';
     
-    // Price cache (expires after 30 minutes)
-    let pricesCache = {};
-    const PRICE_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+    // Language functions
+    let currentLanguage = 'ja'; // Default to Japanese
     
-    // Load prices cache from localStorage
-    function loadPricesCache() {
-      try {
-        const cached = JSON.parse(localStorage.getItem(PRICES_KEY)) || {};
-        const now = Date.now();
-        // Filter out expired entries
-        Object.keys(cached).forEach(key => {
-          if (now - cached[key].timestamp > PRICE_CACHE_TTL) {
-            delete cached[key];
-          }
-        });
-        pricesCache = cached;
-      } catch {
-        pricesCache = {};
+    function initLanguage() {
+      currentLanguage = localStorage.getItem(LANGUAGE_KEY) || 'ja';
+      updateLanguageIcon();
+    }
+    
+    function toggleLanguage() {
+      currentLanguage = currentLanguage === 'ja' ? 'en' : 'ja';
+      localStorage.setItem(LANGUAGE_KEY, currentLanguage);
+      updateLanguageIcon();
+      // Re-render to update weapon names
+      if (currentPlayer) {
+        renderCurrentView();
+        // Update filter dropdowns with new language
+        if (cachedMyWeapons.size > 0 || cachedOpponentWeapons.size > 0) {
+          updateWeaponSelects(cachedMyWeapons, cachedOpponentWeapons);
+        }
       }
     }
     
-    function savePricesCache() {
-      try {
-        localStorage.setItem(PRICES_KEY, JSON.stringify(pricesCache));
-      } catch (e) {
-        console.log('Failed to save prices cache:', e);
+    function updateLanguageIcon() {
+      const icon = document.querySelector('.language-icon');
+      if (icon) {
+        icon.textContent = currentLanguage === 'ja' ? '🇯🇵' : '🇬🇧';
       }
     }
-    
-    // Fetch item prices from Albion Data Project
-    async function fetchPrices(itemIds, qualities = {}) {
-      if (!itemIds || itemIds.length === 0) return {};
-      
-      // Create cache keys that include quality
-      const getCacheKey = (itemId, quality) => `${itemId}_q${quality || 1}`;
-      
-      // Filter out items we already have cached
-      const now = Date.now();
-      const uncachedItems = itemIds.filter(id => {
-        const quality = qualities[id] || 1;
-        const cacheKey = getCacheKey(id, quality);
-        const cached = pricesCache[cacheKey];
-        return !cached || (now - cached.timestamp > PRICE_CACHE_TTL);
-      });
-      
-      console.log('fetchPrices: total items:', itemIds.length, 'uncached:', uncachedItems.length);
-      
-      if (uncachedItems.length === 0) {
-        // All prices are cached
-        const result = {};
-        itemIds.forEach(id => {
-          const quality = qualities[id] || 1;
-          const cacheKey = getCacheKey(id, quality);
-          if (pricesCache[cacheKey]) result[id] = pricesCache[cacheKey].price;
-        });
-        return result;
-      }
-      
-      try {
-        // Group items by quality for efficient API calls
-        const itemsByQuality = {};
-        uncachedItems.forEach(id => {
-          const quality = qualities[id] || 1;
-          if (!itemsByQuality[quality]) itemsByQuality[quality] = [];
-          itemsByQuality[quality].push(id);
-        });
-        
-        // Fetch prices for each quality group
-        for (const [quality, items] of Object.entries(itemsByQuality)) {
-          const url = `/api/prices/${items.join(',')}?locations=Bridgewatch,Martlock,Fort%20Sterling,Lymhurst,Thetford,Caerleon&qualities=${quality}`;
-          console.log('Fetching prices (quality=' + quality + '):', items.length, 'items');
-          
-          const response = await fetch(url);
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Price API returned', data.length, 'entries for quality', quality);
-            
-            // Debug: show first 3 entries with prices
-            data.slice(0, 3).forEach(item => {
-              console.log('Price data:', item.item_id, '| sell_min:', item.sell_price_min, '| sell_max:', item.sell_price_max, '| buy_max:', item.buy_price_max, '| city:', item.city);
-            });
-            
-            // Group by item_id and find lowest sell_min across cities
-            const pricesByItem = {};
-            
-            data.forEach(item => {
-              const itemId = item.item_id;
-              const sellMin = item.sell_price_min || 0;
-              
-              // Only use sell_min - ignore cities with no sell orders
-              if (sellMin > 0) {
-                // Keep the LOWEST sell_min across all cities (actual market price)
-                if (!pricesByItem[itemId] || sellMin < pricesByItem[itemId]) {
-                  pricesByItem[itemId] = sellMin;
-                }
-              }
-            });
-            
-            // Cache the best prices with quality
-            Object.entries(pricesByItem).forEach(([itemId, price]) => {
-              const cacheKey = getCacheKey(itemId, quality);
-              pricesCache[cacheKey] = {
-                price: price,
-                timestamp: now
-              };
-            });
-          } else {
-            console.log('Price API error:', response.status);
-          }
-        }
-        
-        savePricesCache();
-      } catch (e) {
-        console.log('Failed to fetch prices:', e);
-      }
-      
-      // Return all prices (cached + newly fetched)
-      const result = {};
-      itemIds.forEach(id => {
-        const quality = qualities[id] || 1;
-        const cacheKey = getCacheKey(id, quality);
-        if (pricesCache[cacheKey]) result[id] = pricesCache[cacheKey].price;
-      });
-      console.log('Returning prices for', Object.keys(result).length, 'items');
-      return result;
-    }
-    
-    // Get item IDs and qualities from equipment
-    function getEquipmentItems(equipment) {
-      if (!equipment) return { itemIds: [], qualities: {} };
-      
-      const itemIds = [];
-      const qualities = {};
-      const slots = ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Food', 'Potion'];
-      
-      slots.forEach(slot => {
-        const item = equipment[slot];
-        if (item && item.Type) {
-          itemIds.push(item.Type);
-          qualities[item.Type] = item.Quality || 1;
-        }
-      });
-      
-      return { itemIds, qualities };
-    }
-    
-    // Get item IDs and qualities from inventory
-    function getInventoryItems(inventory) {
-      if (!inventory) return { itemIds: [], qualities: {} };
-      
-      const itemIds = [];
-      const qualities = {};
-      
-      inventory.forEach(item => {
-        if (item && item.Type) {
-          itemIds.push(item.Type);
-          qualities[item.Type] = item.Quality || 1;
-        }
-      });
-      
-      return { itemIds, qualities };
-    }
-    
-    // Calculate total value of equipment
-    function calculateEquipmentValue(equipment, prices) {
-      if (!equipment || !prices) return 0;
-      
-      let total = 0;
-      const slots = ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Food', 'Potion'];
-      
-      slots.forEach(slot => {
-        const item = equipment[slot];
-        if (item && item.Type) {
-          const price = prices[item.Type] || 0;
-          total += price;
-        }
-      });
-      
-      return total;
-    }
-    
-    // Calculate total value of inventory
-    function calculateInventoryValue(inventory, prices) {
-      if (!inventory || !prices) return 0;
-      
-      let total = 0;
-      inventory.forEach(item => {
-        if (item && item.Type) {
-          const price = prices[item.Type] || 0;
-          const count = item.Count || 1;
-          total += price * count;
-        }
-      });
-      
-      return total;
-    }
-    
-    // Format silver amount
-    function formatSilver(amount) {
-      if (amount >= 1000000) {
-        return (amount / 1000000).toFixed(1) + 'M';
-      } else if (amount >= 1000) {
-        return (amount / 1000).toFixed(0) + 'K';
-      }
-      return amount.toLocaleString();
-    }
-    
-    // Initialize prices cache on load
-    loadPricesCache();
     
     // Theme functions
     function initTheme() {
@@ -1921,6 +1706,185 @@
       '2H_FROSTSTAFF': 'Great Frost Staff',
       'MAIN_CURSEDSTAFF': 'Cursed Staff',
       '2H_CURSEDSTAFF': 'Great Cursed Staff',
+    };
+    
+    // Japanese weapon translations (from ao-bin-dumps official data)
+    const WEAPON_TRANSLATIONS_JA = {
+      // 弓 (Bow)
+      '2H_BOW': '弓',
+      '2H_WARBOW': 'ウォーボウ',
+      '2H_LONGBOW': 'ロングボウ',
+      '2H_LONGBOW_UNDEAD': '囁きの弓',
+      '2H_BOW_HELL': '嘆きの弓',
+      '2H_BOW_KEEPER': 'バドンの弓',
+      '2H_BOW_AVALON': 'ミストピアサー',
+      '2H_BOW_CRYSTAL': 'スカイストライダーの弓',
+      // クロスボウ (Crossbow)
+      '2H_CROSSBOW': 'クロスボウ',
+      '2H_CROSSBOWLARGE': 'ヘビークロスボウ',
+      'MAIN_1HCROSSBOW': 'ライトクロスボウ',
+      '2H_REPEATINGCROSSBOW_UNDEAD': 'ウィーピングリピーター',
+      '2H_DUALCROSSBOW_HELL': 'ボルトキャスター',
+      '2H_CROSSBOWLARGE_MORGANA': 'シージボウ',
+      '2H_CROSSBOW_CANNON_AVALON': 'エネルギーシェイパー',
+      '2H_DUALCROSSBOW_CRYSTAL': 'アークライトブラスター',
+      // 剣 (Sword)
+      'MAIN_SWORD': 'ブロードソード',
+      '2H_CLAYMORE': 'クレイモア',
+      '2H_DUALSWORD': '双剣',
+      'MAIN_SCIMITAR_MORGANA': 'クラレントブレード',
+      '2H_CLEAVER_HELL': 'カービングソード',
+      '2H_DUALSCIMITAR_UNDEAD': 'ガラティンの双剣',
+      '2H_CLAYMORE_AVALON': 'キングメイカー',
+      'MAIN_SWORD_CRYSTAL': 'インフィニティーブレード',
+      // 斧 (Axe)
+      'MAIN_AXE': 'バトルアックス',
+      '2H_AXE': '大斧',
+      '2H_HALBERD': 'ハルバード',
+      '2H_HALBERD_MORGANA': 'カリオンコーラー',
+      '2H_SCYTHE_HELL': '冥界の鎌',
+      '2H_DUALAXE_KEEPER': '熊の手',
+      '2H_AXE_AVALON': 'レルムブレイカー',
+      '2H_SCYTHE_CRYSTAL': 'クリスタルリーパー',
+      // メイス (Mace)
+      'MAIN_MACE': 'メイス',
+      '2H_MACE': 'ヘビーメイス',
+      '2H_FLAIL': 'モーニングスター',
+      'MAIN_ROCKMACE_KEEPER': '基岩のメイス',
+      'MAIN_MACE_HELL': '夢魔のメイス',
+      '2H_MACE_MORGANA': 'カムランのメイス',
+      '2H_DUALMACE_AVALON': 'オースキーパー',
+      'MAIN_MACE_CRYSTAL': 'ドレッドストーム・モナーク',
+      // ハンマー (Hammer)
+      'MAIN_HAMMER': 'ハンマー',
+      '2H_POLEHAMMER': 'ポールハンマー',
+      '2H_HAMMER': '偉大なハンマー',
+      '2H_HAMMER_UNDEAD': 'トゥームハンマー',
+      '2H_DUALHAMMER_HELL': 'フォージハンマー',
+      '2H_RAM_KEEPER': 'グローブキーパー',
+      '2H_HAMMER_AVALON': '審判の手',
+      '2H_HAMMER_CRYSTAL': 'トゥルーボルト・ハンマー',
+      // クォータースタッフ (Quarterstaff)
+      '2H_QUARTERSTAFF': '六尺杖',
+      '2H_IRONCLADEDSTAFF': '甲鉄の杖',
+      '2H_DOUBLEBLADEDSTAFF': '諸刃の杖',
+      '2H_COMBATSTAFF_MORGANA': '黒僧の杖',
+      '2H_TWINSCYTHE_HELL': '魂の鎌',
+      '2H_ROCKSTAFF_KEEPER': '均衡の杖',
+      '2H_QUARTERSTAFF_AVALON': 'グレイルシーカー',
+      '2H_DOUBLEBLADEDSTAFF_CRYSTAL': 'ファントム・ツインブレード',
+      // 槍 (Spear)
+      'MAIN_SPEAR': '槍',
+      '2H_SPEAR': 'パイク',
+      '2H_GLAIVE': 'グレイブ',
+      'MAIN_SPEAR_KEEPER': 'ヘロンスピア',
+      '2H_HARPOON_HELL': 'スピリットハンター',
+      '2H_TRIDENT_UNDEAD': 'トリニティスピア',
+      'MAIN_SPEAR_LANCE_AVALON': 'デイブレイカー',
+      '2H_GLAIVE_CRYSTAL': 'リフトグレーブ',
+      // ダガー (Dagger)
+      'MAIN_DAGGER': 'ダガー',
+      '2H_DAGGERPAIR': 'ダガーペア',
+      '2H_CLAWPAIR': 'かぎ爪',
+      'MAIN_RAPIER_MORGANA': 'ブラッドレター',
+      'MAIN_DAGGER_HELL': 'デーモンファング',
+      '2H_DUALSICKLE_UNDEAD': 'デスギヴァー',
+      '2H_DAGGER_KATAR_AVALON': '抑怒の短剣',
+      '2H_DAGGERPAIR_CRYSTAL': 'ツインスレイヤー',
+      // ナックル (Knuckles)
+      '2H_KNUCKLES_SET1': '乱闘者のグローブ',
+      '2H_KNUCKLES_SET2': 'バトルブレイサー',
+      '2H_KNUCKLES_SET3': 'スパイクガントレット',
+      '2H_KNUCKLES_KEEPER': '熊殺し',
+      '2H_KNUCKLES_HELL': '業火の拳',
+      '2H_KNUCKLES_MORGANA': '大烏のセスタス',
+      '2H_IRONGAUNTLETS_HELL': '黒き手',
+      '2H_KNUCKLES_AVALON': 'アバロンの拳',
+      '2H_KNUCKLES_CRYSTAL': 'フォースパルスブレイサー',
+      // 火杖 (Fire Staff)
+      'MAIN_FIRESTAFF': '炎の杖',
+      '2H_FIRESTAFF': '偉大な炎の杖',
+      '2H_INFERNOSTAFF': '冥界の杖',
+      'MAIN_FIRESTAFF_KEEPER': '野火の杖',
+      '2H_FIRESTAFF_HELL': '硫黄の杖',
+      '2H_INFERNOSTAFF_MORGANA': '灼熱の杖',
+      '2H_FIRE_RINGPAIR_AVALON': 'ドーンソング',
+      'MAIN_FIRESTAFF_CRYSTAL': 'フレームウォーカーの杖',
+      // 氷杖 (Frost Staff)
+      'MAIN_FROSTSTAFF': '霜天の杖',
+      '2H_FROSTSTAFF': '偉大な霜天の杖',
+      '2H_GLACIALSTAFF': '氷河の杖',
+      'MAIN_FROSTSTAFF_KEEPER': '白霜の杖',
+      '2H_ICEGAUNTLETS_HELL': '氷柱の杖',
+      '2H_ICECRYSTAL_UNDEAD': '凍土のプリズム',
+      'MAIN_FROSTSTAFF_AVALON': 'チルハウル',
+      '2H_FROSTSTAFF_CRYSTAL': 'アークティックスタッフ',
+      // 秘術杖 (Arcane Staff)
+      'MAIN_ARCANESTAFF': 'アーケインの杖',
+      '2H_ARCANESTAFF': '偉大なアーケインの杖',
+      '2H_ENIGMATICSTAFF': '不可思議の杖',
+      'MAIN_ARCANESTAFF_UNDEAD': 'ウィッチワークの杖',
+      '2H_ARCANESTAFF_HELL': '神秘の杖',
+      '2H_ENIGMATICORB_MORGANA': '邪悪な軌跡',
+      '2H_ARCANE_RINGPAIR_AVALON': 'イーブンソング',
+      '2H_ARCANESTAFF_CRYSTAL': 'アストラルスタッフ',
+      // 聖杖 (Holy Staff)
+      'MAIN_HOLYSTAFF': '聖なる杖',
+      '2H_HOLYSTAFF': '偉大な聖なる杖',
+      '2H_DIVINESTAFF': '神の杖',
+      'MAIN_HOLYSTAFF_MORGANA': '触命の杖',
+      '2H_HOLYSTAFF_HELL': '堕落の杖',
+      '2H_HOLYSTAFF_UNDEAD': 'あがないの杖',
+      'MAIN_HOLYSTAFF_AVALON': 'ホローフォール',
+      '2H_HOLYSTAFF_CRYSTAL': 'エグゾルテッドスタッフ',
+      // 自然杖 (Nature Staff)
+      'MAIN_NATURESTAFF': '自然の杖',
+      '2H_NATURESTAFF': '偉大な自然の杖',
+      '2H_WILDSTAFF': '野生の杖',
+      'MAIN_NATURESTAFF_KEEPER': 'ドルイドの杖',
+      '2H_NATURESTAFF_HELL': '胴枯れの杖',
+      '2H_NATURESTAFF_KEEPER': '蔓延の杖',
+      'MAIN_NATURESTAFF_AVALON': '鉄根の杖',
+      'MAIN_NATURESTAFF_CRYSTAL': 'フォージバークの杖',
+      // 呪い杖 (Cursed Staff)
+      'MAIN_CURSEDSTAFF': '呪いの杖',
+      '2H_CURSEDSTAFF': '偉大な呪いの杖',
+      '2H_DEMONICSTAFF': '悪魔の杖',
+      'MAIN_CURSEDSTAFF_UNDEAD': '生呪の杖',
+      '2H_SKULLORB_HELL': '呪いの髑髏',
+      '2H_CURSEDSTAFF_MORGANA': '破滅の杖',
+      'MAIN_CURSEDSTAFF_AVALON': 'シャドウコーラー',
+      'MAIN_CURSEDSTAFF_CRYSTAL': 'ロットコーラーの杖',
+      // 変身杖 (Shapeshifter Staff)
+      '2H_SHAPESHIFTER_SET1': 'プラウリングの杖',
+      '2H_SHAPESHIFTER_SET2': 'ルートバウンドの杖',
+      '2H_SHAPESHIFTER_SET3': 'プライマルの杖',
+      '2H_SHAPESHIFTER_MORGANA': 'ブラッドムーンの杖',
+      '2H_SHAPESHIFTER_HELL': 'ヘルスポーンの杖',
+      '2H_SHAPESHIFTER_KEEPER': 'アースルーンの杖',
+      '2H_SHAPESHIFTER_AVALON': 'ライトコーラー',
+      '2H_SHAPESHIFTER_CRYSTAL': '凍りつけの杖',
+      // 盾 (Shield)
+      'OFF_SHIELD': 'シールド',
+      'OFF_TOWERSHIELD_UNDEAD': 'サルコファガス',
+      'OFF_SHIELD_HELL': '臆病者のシールド',
+      'OFF_SPIKEDSHIELD_MORGANA': 'フェイスブレイカー',
+      'OFF_SHIELD_AVALON': 'アストラルイージス',
+      'OFF_SHIELD_CRYSTAL': '不壊のウォード',
+      // 本 (Book)
+      'OFF_BOOK': '呪文の書',
+      'OFF_ORB_MORGANA': 'アイズ・オブ・シークレット',
+      'OFF_DEMONSKULL_HELL': 'ムイサク',
+      'OFF_TOTEM_KEEPER': 'タップルート',
+      'OFF_CENSER_AVALON': '天空の吊り香炉',
+      'OFF_TOME_CRYSTAL': '時間封印のグリモワール',
+      // 松明 (Torch)
+      'OFF_TORCH': 'たいまつ',
+      'OFF_HORN_KEEPER': '霧の呼び手',
+      'OFF_TALISMAN_AVALON': '聖なる笏',
+      'OFF_LAMP_UNDEAD': '地下室の蝋燭',
+      'OFF_JESTERCANE_HELL': '流し目の杖',
+      'OFF_TORCH_CRYSTAL': '青い炎のたいまつ',
     };
     
     // Tier prefixes to remove from item names
@@ -2768,6 +2732,9 @@
 
       // Fetch item names in background
       const allWeaponIds = [...myWeapons.values(), ...opponentWeapons.values()];
+      // Cache for language toggle
+      cachedMyWeapons = myWeapons;
+      cachedOpponentWeapons = opponentWeapons;
       fetchItemNames(allWeaponIds).then(() => {
         // Update weapon selects after names are fetched
         updateWeaponSelects(myWeapons, opponentWeapons);
@@ -2885,12 +2852,17 @@
     // Get weapon name from cache (synchronous - for display)
     // Can accept either full itemId or baseType
     function getWeaponName(itemIdOrBaseType) {
-      if (!itemIdOrBaseType) return 'Unknown';
+      if (!itemIdOrBaseType) return currentLanguage === 'ja' ? '不明' : 'Unknown';
       
       // Get base type (handles both full itemId and already-extracted baseType)
       const baseType = getBaseWeaponType(itemIdOrBaseType) || itemIdOrBaseType;
       
-      // Check manual overrides first (highest priority)
+      // If Japanese language selected, check Japanese translations first
+      if (currentLanguage === 'ja' && WEAPON_TRANSLATIONS_JA[baseType]) {
+        return WEAPON_TRANSLATIONS_JA[baseType];
+      }
+      
+      // Check manual overrides (English)
       if (WEAPON_NAME_OVERRIDES[baseType]) {
         return WEAPON_NAME_OVERRIDES[baseType];
       }
@@ -3291,9 +3263,6 @@
                   : '<div class="ml-inventory-empty-side"></div>') +
                 '</div>' +
               '</div>' +
-              '<div class="inventory-value" id="inv-value-' + eventId + '" data-inventory=\'' + JSON.stringify(victimInventory || []).replace(/'/g, "&#39;") + '\'>' +
-                '<span class="inventory-value-loading">💰 所持品価格: ...</span>' +
-              '</div>' +
             '</div>'
           : '';
           
@@ -3322,9 +3291,6 @@
                       ${getMLEquipIcon(myEquip?.Food)}
                       ${getMLEquipIcon(myEquip?.Potion)}
                     </div>
-                  </div>
-                  <div class="equip-value" id="my-value-${eventId}" data-equip='${JSON.stringify(myEquip || {}).replace(/'/g, "&#39;")}'>
-                    <span class="equip-value-loading">💰 ...</span>
                   </div>
                 </div>
                 
@@ -3358,94 +3324,13 @@
                       ${getMLEquipIcon(enemyEquip?.Potion)}
                     </div>
                   </div>
-                  <div class="equip-value right" id="enemy-value-${eventId}" data-equip='${JSON.stringify(enemyEquip || {}).replace(/'/g, "&#39;")}'>
-                    <span class="equip-value-loading">💰 ...</span>
-                  </div>
                 </div>
               </div>
               ${inventoryHtml}
             </div>
           `;
         }).join('');
-        
-        // Update prices after rendering
-        updateEventPrices();
       }
-    }
-    
-    // Update event prices asynchronously
-    async function updateEventPrices() {
-      const equipValues = document.querySelectorAll('.equip-value');
-      const invValues = document.querySelectorAll('.inventory-value');
-      
-      if (equipValues.length === 0 && invValues.length === 0) return;
-      
-      // Collect all item IDs with qualities
-      const allItemIds = [];
-      const allQualities = {};
-      
-      equipValues.forEach(el => {
-        try {
-          const equip = JSON.parse(el.dataset.equip || '{}');
-          const { itemIds, qualities } = getEquipmentItems(equip);
-          itemIds.forEach(id => {
-            if (!allItemIds.includes(id)) allItemIds.push(id);
-            allQualities[id] = qualities[id];
-          });
-        } catch (e) {}
-      });
-      
-      invValues.forEach(el => {
-        try {
-          const inventory = JSON.parse(el.dataset.inventory || '[]');
-          const { itemIds, qualities } = getInventoryItems(inventory);
-          itemIds.forEach(id => {
-            if (!allItemIds.includes(id)) allItemIds.push(id);
-            allQualities[id] = qualities[id];
-          });
-        } catch (e) {}
-      });
-      
-      if (allItemIds.length === 0) {
-        equipValues.forEach(el => { el.innerHTML = ''; });
-        invValues.forEach(el => { el.innerHTML = ''; });
-        return;
-      }
-      
-      // Fetch prices with qualities
-      const prices = await fetchPrices(allItemIds, allQualities);
-      
-      // Update equipment values
-      equipValues.forEach(el => {
-        try {
-          const equip = JSON.parse(el.dataset.equip || '{}');
-          const value = calculateEquipmentValue(equip, prices);
-          
-          if (value > 0) {
-            el.innerHTML = `<span class="equip-value-amount">💰 ${formatSilver(value)}</span>`;
-          } else {
-            el.innerHTML = `<span class="equip-value-amount" style="opacity: 0.5;">💰 ---</span>`;
-          }
-        } catch (e) {
-          el.innerHTML = '';
-        }
-      });
-      
-      // Update inventory values
-      invValues.forEach(el => {
-        try {
-          const inventory = JSON.parse(el.dataset.inventory || '[]');
-          const value = calculateInventoryValue(inventory, prices);
-          
-          if (value > 0) {
-            el.innerHTML = `<span class="inventory-value-amount">💰 所持品価格: ${formatSilver(value)}</span>`;
-          } else {
-            el.innerHTML = `<span class="inventory-value-amount" style="opacity: 0.5;">💰 所持品価格: ---</span>`;
-          }
-        } catch (e) {
-          el.innerHTML = '';
-        }
-      });
     }
 
     // Convert KillArea to readable location name
@@ -3922,8 +3807,9 @@
       }
     }
     
-    // Initialize theme and favorites
+    // Initialize theme, language and favorites
     initTheme();
+    initLanguage();
     renderFavorites();
     
     // Restore from hash on page load
