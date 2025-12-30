@@ -1359,7 +1359,7 @@
             <span>⭐</span>
           </button>
           <button class="header-btn" id="languageToggle" onclick="toggleLanguage()" title="言語切り替え / Language">
-            <span class="language-icon">🇯🇵</span>
+            <span class="language-text">JA</span>
           </button>
           <button class="header-btn" id="themeToggle" onclick="toggleTheme()" title="テーマ切り替え">
             <span class="theme-icon">🌙</span>
@@ -1429,33 +1429,202 @@
     const FAVORITES_KEY = 'albion_log_favorites';
     const LANGUAGE_KEY = 'albion_log_language';
     
+    // UI Translations
+    const UI_TEXT = {
+      ja: {
+        // Header
+        favorites: 'お気に入り',
+        theme: 'テーマ切り替え',
+        language: '言語切り替え',
+        favoritesHeader: '⭐ お気に入り',
+        noFavorites: 'お気に入りがありません',
+        addToFavorites: 'お気に入りに追加',
+        removeFromFavorites: 'お気に入りから削除',
+        // Search
+        searchPlaceholder: 'プレイヤー名を入力...',
+        search: '検索',
+        searchHistory: '検索履歴',
+        searchResults: '検索結果',
+        // Errors
+        enterPlayerName: 'プレイヤー名を入力してください',
+        playerNotFound: 'プレイヤーが見つかりませんでした',
+        loadError: 'プレイヤーデータの読み込みに失敗しました',
+        searchError: 'プレイヤーの検索に失敗しました',
+        // Player stats
+        noGuild: 'No Guild',
+        kills: 'キル',
+        deaths: 'デス',
+        assists: 'アシスト',
+        soloKills: 'ソロキル',
+        winRate: '勝率',
+        fameRatio: 'フェイム比',
+        avgIP: '平均IP',
+        // Filters
+        filterTitle: '絞り込み',
+        opponentSearch: '相手検索',
+        opponentPlaceholder: '名前で検索...',
+        battleSize: '戦闘規模',
+        myWeapon: '自分の武器',
+        opponentWeapon: '相手の武器',
+        sortBy: '並び替え',
+        any: 'すべて',
+        solo: 'ソロ',
+        small: '少人数 (2-5)',
+        medium: '中規模 (6-20)',
+        large: '大規模 (20+)',
+        byDate: '日付順',
+        byFame: 'フェイム順',
+        byIP: 'IP順',
+        showKills: 'キル',
+        showDeaths: 'デス',
+        showAssists: 'アシスト',
+        // View modes
+        viewEvents: '個別ログ',
+        viewBattles: '戦闘別',
+        // Event cards
+        killed: 'をキル',
+        killedBy: 'にキルされた',
+        assistedKill: 'のキルをアシスト',
+        fame: 'フェイム',
+        participants: '参加者',
+        battle: '戦闘',
+        // Kill log
+        killLog: 'キルログ',
+        // Time
+        ago: '前',
+        seconds: '秒',
+        minutes: '分',
+        hours: '時間',
+        days: '日',
+        // Stats
+        unknown: '不明',
+      },
+      en: {
+        // Header
+        favorites: 'Favorites',
+        theme: 'Toggle Theme',
+        language: 'Toggle Language',
+        favoritesHeader: '⭐ Favorites',
+        noFavorites: 'No favorites yet',
+        addToFavorites: 'Add to favorites',
+        removeFromFavorites: 'Remove from favorites',
+        // Search
+        searchPlaceholder: 'Enter player name...',
+        search: 'Search',
+        searchHistory: 'Search History',
+        searchResults: 'Search Results',
+        // Errors
+        enterPlayerName: 'Please enter a player name',
+        playerNotFound: 'Player not found',
+        loadError: 'Failed to load player data',
+        searchError: 'Failed to search player',
+        // Player stats
+        noGuild: 'No Guild',
+        kills: 'Kills',
+        deaths: 'Deaths',
+        assists: 'Assists',
+        soloKills: 'Solo Kills',
+        winRate: 'Win Rate',
+        fameRatio: 'Fame Ratio',
+        avgIP: 'Avg IP',
+        // Filters
+        filterTitle: 'Filters',
+        opponentSearch: 'Opponent',
+        opponentPlaceholder: 'Search by name...',
+        battleSize: 'Battle Size',
+        myWeapon: 'My Weapon',
+        opponentWeapon: 'Opponent Weapon',
+        sortBy: 'Sort By',
+        any: 'Any',
+        solo: 'Solo',
+        small: 'Small (2-5)',
+        medium: 'Medium (6-20)',
+        large: 'Large (20+)',
+        byDate: 'By Date',
+        byFame: 'By Fame',
+        byIP: 'By IP',
+        showKills: 'Kills',
+        showDeaths: 'Deaths',
+        showAssists: 'Assists',
+        // View modes
+        viewEvents: 'Event Log',
+        viewBattles: 'By Battle',
+        // Event cards
+        killed: 'killed',
+        killedBy: 'killed by',
+        assistedKill: 'assisted kill on',
+        fame: 'Fame',
+        participants: 'Participants',
+        battle: 'Battle',
+        // Kill log
+        killLog: 'Kill Log',
+        // Time
+        ago: 'ago',
+        seconds: 's',
+        minutes: 'm',
+        hours: 'h',
+        days: 'd',
+        // Stats
+        unknown: 'Unknown',
+      }
+    };
+    
+    // Translation helper
+    function t(key) {
+      return UI_TEXT[currentLanguage]?.[key] || UI_TEXT['en'][key] || key;
+    }
+    
     // Language functions
     let currentLanguage = 'ja'; // Default to Japanese
     
     function initLanguage() {
       currentLanguage = localStorage.getItem(LANGUAGE_KEY) || 'ja';
-      updateLanguageIcon();
+      updateLanguageButton();
+      // Update static UI text based on saved language
+      updateAllUIText();
     }
     
     function toggleLanguage() {
       currentLanguage = currentLanguage === 'ja' ? 'en' : 'ja';
       localStorage.setItem(LANGUAGE_KEY, currentLanguage);
-      updateLanguageIcon();
-      // Re-render to update weapon names
-      if (currentPlayer) {
-        renderCurrentView();
-        // Update filter dropdowns with new language
-        if (cachedMyWeapons.size > 0 || cachedOpponentWeapons.size > 0) {
-          updateWeaponSelects(cachedMyWeapons, cachedOpponentWeapons);
-        }
+      updateLanguageButton();
+      updateAllUIText();
+    }
+    
+    function updateLanguageButton() {
+      const btn = document.getElementById('languageToggle');
+      if (btn) {
+        btn.innerHTML = `<span class="language-text">${currentLanguage.toUpperCase()}</span>`;
       }
     }
     
-    function updateLanguageIcon() {
-      const icon = document.querySelector('.language-icon');
-      if (icon) {
-        icon.textContent = currentLanguage === 'ja' ? '🇯🇵' : '🇬🇧';
+    function updateAllUIText() {
+      // Update header buttons
+      document.getElementById('favoritesToggle')?.setAttribute('title', t('favorites'));
+      document.getElementById('themeToggle')?.setAttribute('title', t('theme'));
+      document.getElementById('languageToggle')?.setAttribute('title', t('language'));
+      
+      // Update favorites panel
+      const favHeader = document.querySelector('.favorites-panel-header');
+      if (favHeader) favHeader.textContent = t('favoritesHeader');
+      
+      // Update search
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+      const searchBtn = document.getElementById('searchBtn');
+      if (searchBtn) searchBtn.textContent = t('search');
+      
+      // Update loading text
+      const loadingText = document.querySelector('#loading p');
+      if (loadingText) loadingText.textContent = currentLanguage === 'ja' ? '読み込み中...' : 'Loading...';
+      
+      // Re-render current view if player is loaded
+      if (currentPlayer) {
+        renderPlayerPage();
       }
+      
+      // Update favorites list
+      renderFavorites();
     }
     
     // Theme functions
@@ -1524,7 +1693,7 @@
       const favorites = getFavorites();
       
       if (favorites.length === 0) {
-        list.innerHTML = '<div class="favorites-panel-empty">お気に入りがありません</div>';
+        list.innerHTML = `<div class="favorites-panel-empty">${t('noFavorites')}</div>`;
         return;
       }
       
@@ -2066,7 +2235,7 @@
       }
       
       autocompleteList.innerHTML = `
-        <div class="autocomplete-section">検索履歴</div>
+        <div class="autocomplete-section">${t('searchHistory')}</div>
         ${history.map(name => `
           <div class="autocomplete-item" onclick="selectPlayer('${escapeHtml(name)}')">
             <span>${escapeHtml(name)}</span>
@@ -2108,7 +2277,7 @@
 
     function renderAutocomplete(players) {
       autocompleteList.innerHTML = `
-        <div class="autocomplete-section">検索結果</div>
+        <div class="autocomplete-section">${t('searchResults')}</div>
         ${players.map(p => `
           <div class="autocomplete-item" onclick="selectPlayer('${escapeHtml(p.Name)}')">
             <div>
@@ -2133,7 +2302,7 @@
       const query = searchInput.value.trim();
 
       if (!query) {
-        showError('プレイヤー名を入力してください');
+        showError(t('enterPlayerName'));
         return;
       }
 
@@ -2147,7 +2316,7 @@
         addToSearchHistory(query);
       } catch (error) {
         console.error('Search error:', error);
-        showError(error.message || 'エラーが発生しました');
+        showError(error.message || (currentLanguage === 'ja' ? 'エラーが発生しました' : 'An error occurred'));
       } finally {
         hideLoading();
       }
@@ -2170,7 +2339,7 @@
       const response = await fetch(url);
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`APIエラー: ${response.status} - ${errorText}`);
+        throw new Error(`${currentLanguage === 'ja' ? 'APIエラー' : 'API Error'}: ${response.status} - ${errorText}`);
       }
       return response.json();
     }
@@ -2210,7 +2379,7 @@
             // Fallback to search API
             const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
             if (!searchResult.players || searchResult.players.length === 0) {
-              showError('プレイヤーが見つかりませんでした');
+              showError(t('playerNotFound'));
               return;
             }
             currentPlayer = searchResult.players.find(p => p.Id === playerId) || searchResult.players[0];
@@ -2219,7 +2388,7 @@
           console.log('Direct player lookup failed, falling back to search:', e);
           const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
           if (!searchResult.players || searchResult.players.length === 0) {
-            showError('プレイヤーが見つかりませんでした');
+            showError(t('playerNotFound'));
             return;
           }
           currentPlayer = searchResult.players[0];
@@ -2232,7 +2401,7 @@
         const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
         
         if (!searchResult.players || searchResult.players.length === 0) {
-          showError('プレイヤーが見つかりませんでした');
+          showError(t('playerNotFound'));
           return;
         }
 
@@ -2512,7 +2681,7 @@
         const events = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
         
         if (!events || events.length === 0) {
-          showError('バトルデータが見つかりませんでした（古いバトルはAPIから削除されている可能性があります）');
+          showError(currentLanguage === 'ja' ? 'バトルデータが見つかりませんでした（古いバトルはAPIから削除されている可能性があります）' : 'Battle data not found (old battles may have been removed from the API)');
           hideLoading();
           return;
         }
@@ -2532,7 +2701,7 @@
         
         renderBattleDetails(battle, events);
       } catch (error) {
-        showError('バトルデータの取得に失敗しました：' + error.message);
+        showError((currentLanguage === 'ja' ? 'バトルデータの取得に失敗しました：' : 'Failed to fetch battle data: ') + error.message);
       } finally {
         hideLoading();
       }
@@ -2751,7 +2920,7 @@
               <div class="player-name-title">${escapeHtml(currentPlayer.Name)}</div>
               <div class="player-guild-name">${guildDisplay}</div>
             </div>
-            <button class="favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite()" title="${isFav ? 'お気に入りから削除' : 'お気に入りに追加'}">
+            <button class="favorite-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite()" title="${isFav ? t('removeFromFavorites') : t('addToFavorites')}">
               ${isFav ? '⭐' : '☆'}
             </button>
           </div>
@@ -2759,69 +2928,69 @@
 
         <div class="view-tabs">
           <button class="view-tab ${currentViewMode === 'events' ? 'active' : ''}" onclick="switchView('events')">
-            個別ログ (${allEvents.length})
+            ${t('viewEvents')} (${allEvents.length})
           </button>
           <button class="view-tab ${currentViewMode === 'battles' ? 'active' : ''}" onclick="switchView('battles')">
-            バトル別 (${battleMap.size})
+            ${t('viewBattles')} (${battleMap.size})
           </button>
         </div>
 
         <div id="filterSection" class="filter-section" style="display: ${currentViewMode === 'events' ? 'block' : 'none'}">
           <div class="filter-row">
             <div class="filter-group">
-              <label class="filter-label">相手検索</label>
-              <input type="text" class="filter-input" id="filterOpponent" placeholder="名前で検索..." value="${filters.opponentSearch}" onkeyup="updateFilter('opponentSearch', this.value)">
+              <label class="filter-label">${t('opponentSearch')}</label>
+              <input type="text" class="filter-input" id="filterOpponent" placeholder="${t('opponentPlaceholder')}" value="${filters.opponentSearch}" onkeyup="updateFilter('opponentSearch', this.value)">
             </div>
             <div class="filter-group">
-              <label class="filter-label">バトルサイズ</label>
+              <label class="filter-label">${t('battleSize')}</label>
               <select class="filter-select" id="filterBattleSize" onchange="updateFilter('battleSize', this.value)">
-                <option value="any" ${filters.battleSize === 'any' ? 'selected' : ''}>Any</option>
+                <option value="any" ${filters.battleSize === 'any' ? 'selected' : ''}>${t('any')}</option>
                 <option value="1v1" ${filters.battleSize === '1v1' ? 'selected' : ''}>1v1</option>
                 <option value="2v2" ${filters.battleSize === '2v2' ? 'selected' : ''}>2v2</option>
                 <option value="5v5" ${filters.battleSize === '5v5' ? 'selected' : ''}>5v5+</option>
               </select>
             </div>
             <div class="filter-group">
-              <label class="filter-label">並び順</label>
+              <label class="filter-label">${t('sortBy')}</label>
               <select class="filter-select" id="filterOrderBy" onchange="updateFilter('orderBy', this.value)">
-                <option value="date" ${filters.orderBy === 'date' ? 'selected' : ''}>日時</option>
-                <option value="fame" ${filters.orderBy === 'fame' ? 'selected' : ''}>Fame</option>
+                <option value="date" ${filters.orderBy === 'date' ? 'selected' : ''}>${t('byDate')}</option>
+                <option value="fame" ${filters.orderBy === 'fame' ? 'selected' : ''}>${t('byFame')}</option>
               </select>
             </div>
             <div class="filter-group">
-              <label class="filter-label">自分の武器</label>
+              <label class="filter-label">${t('myWeapon')}</label>
               <div class="filter-weapon-wrapper">
                 ${filters.myWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(myWeapons.get(filters.myWeapon) || filters.myWeapon)}" alt="">` : ''}
                 <select class="filter-select" id="filterMyWeapon" onchange="updateFilter('myWeapon', this.value)">
-                  <option value="any">Any</option>
+                  <option value="any">${t('any')}</option>
                   ${Array.from(myWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.myWeapon === baseType ? 'selected' : ''}>${getWeaponName(baseType)}</option>`).join('')}
                 </select>
               </div>
             </div>
             <div class="filter-group">
-              <label class="filter-label">相手の武器</label>
+              <label class="filter-label">${t('opponentWeapon')}</label>
               <div class="filter-weapon-wrapper">
                 ${filters.opponentWeapon !== 'any' ? `<img class="filter-weapon-icon" src="${getWeaponImageUrl(opponentWeapons.get(filters.opponentWeapon) || filters.opponentWeapon)}" alt="">` : ''}
                 <select class="filter-select" id="filterOpponentWeapon" onchange="updateFilter('opponentWeapon', this.value)">
-                  <option value="any">Any</option>
+                  <option value="any">${t('any')}</option>
                   ${Array.from(opponentWeapons.entries()).map(([baseType, itemId]) => `<option value="${baseType}" ${filters.opponentWeapon === baseType ? 'selected' : ''}>${getWeaponName(baseType)}</option>`).join('')}
                 </select>
               </div>
             </div>
             <div class="filter-group">
-              <label class="filter-label">表示</label>
+              <label class="filter-label">${currentLanguage === 'ja' ? '表示' : 'Show'}</label>
               <div class="filter-checkboxes">
                 <label class="filter-checkbox kill">
                   <input type="checkbox" ${filters.showKills ? 'checked' : ''} onchange="updateFilter('showKills', this.checked)">
-                  Kills
+                  ${t('showKills')}
                 </label>
                 <label class="filter-checkbox death">
                   <input type="checkbox" ${filters.showDeaths ? 'checked' : ''} onchange="updateFilter('showDeaths', this.checked)">
-                  Deaths
+                  ${t('showDeaths')}
                 </label>
                 <label class="filter-checkbox assist">
                   <input type="checkbox" ${filters.showAssists ? 'checked' : ''} onchange="updateFilter('showAssists', this.checked)">
-                  Assists
+                  ${t('showAssists')}
                 </label>
               </div>
             </div>
@@ -2829,7 +2998,7 @@
         </div>
 
         <div class="info-notice" style="font-size: 0.8rem; color: #b58900; margin-bottom: 12px; padding: 8px 12px; background: rgba(255,193,7,0.15); border-radius: 6px;">
-          ⚠️ 一部のイベントでは装備情報が表示されない場合があります
+          ⚠️ ${currentLanguage === 'ja' ? '一部のイベントでは装備情報が表示されない場合があります' : 'Some events may not display equipment information'}
         </div>
 
         <div id="playerContent"></div>
@@ -3171,7 +3340,7 @@
         
         // Murder Ledger style individual events
         container.innerHTML = filteredEvents.length === 0 
-          ? '<div style="text-align:center;padding:40px;color:var(--text-secondary)">フィルター条件に一致するログがありません</div>'
+          ? `<div style="text-align:center;padding:40px;color:var(--text-secondary)">${currentLanguage === 'ja' ? 'フィルター条件に一致するログがありません' : 'No logs match the filter criteria'}</div>`
           : filteredEvents.slice(0, 200).map(event => {
           const eventType = event.eventType;
           const isKill = eventType === 'kill';
@@ -3246,19 +3415,19 @@
           const inventoryHtml = hasInventory ? 
             '<div class="ml-inventory-toggle" onclick="toggleInventory(\'' + eventId + '\', this)">' +
               '<span class="arrow">▼</span>' +
-              '<span>所持品を表示 (' + itemCount + '個)</span>' +
+              '<span>' + (currentLanguage === 'ja' ? '所持品を表示' : 'Show Inventory') + ' (' + itemCount + (currentLanguage === 'ja' ? '個' : '') + ')</span>' +
             '</div>' +
             '<div class="ml-inventory-content" id="inv-' + eventId + '">' +
               '<div class="ml-inventory-row">' +
                 '<div class="ml-inventory-col left">' +
                   (isDeath ? 
-                    '<div class="ml-inventory-side-label me">自分の所持品</div>' +
+                    '<div class="ml-inventory-side-label me">' + (currentLanguage === 'ja' ? '自分の所持品' : 'My Inventory') + '</div>' +
                     '<div class="ml-inventory-grid">' + inventoryItemsHtml + '</div>'
                   : '<div class="ml-inventory-empty-side"></div>') +
                 '</div>' +
                 '<div class="ml-inventory-col right">' +
                   (!isDeath ? 
-                    '<div class="ml-inventory-side-label enemy">相手の所持品</div>' +
+                    '<div class="ml-inventory-side-label enemy">' + (currentLanguage === 'ja' ? '相手の所持品' : 'Enemy Inventory') + '</div>' +
                     '<div class="ml-inventory-grid">' + inventoryItemsHtml + '</div>'
                   : '<div class="ml-inventory-empty-side"></div>') +
                 '</div>' +
@@ -3378,11 +3547,19 @@
       const hours = Math.floor(diff / 3600000);
       const days = Math.floor(diff / 86400000);
       
-      if (minutes < 1) return 'たった今';
-      if (minutes < 60) return `${minutes}分前`;
-      if (hours < 24) return `${hours}時間前`;
-      if (days < 7) return `${days}日前`;
-      return date.toLocaleDateString('ja-JP');
+      if (currentLanguage === 'ja') {
+        if (minutes < 1) return 'たった今';
+        if (minutes < 60) return `${minutes}分前`;
+        if (hours < 24) return `${hours}時間前`;
+        if (days < 7) return `${days}日前`;
+        return date.toLocaleDateString('ja-JP');
+      } else {
+        if (minutes < 1) return 'just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString('en-US');
+      }
     }
 
     // Toggle inventory display
@@ -3554,7 +3731,7 @@
 
         <div class="team-card">
           <div class="team-header">
-            <span>参加者（ダメージ順）</span>
+            <span>${currentLanguage === 'ja' ? '参加者（ダメージ順）' : 'Participants (by damage)'}</span>
             <span style="font-weight:normal;color:var(--text-secondary);font-size:0.8rem">
               同じ色 = 同じチーム
             </span>
@@ -3603,7 +3780,7 @@
         </div>
 
         <div class="kill-events">
-          <div class="kill-events-header">キルログ</div>
+          <div class="kill-events-header">${t('killLog')}</div>
           ${events.slice(0, 30).map(event => `
             <div class="kill-event">
               <span class="killer-name" onclick="searchPlayerByName('${escapeHtml(event.Killer?.Name || '')}')">${escapeHtml(event.Killer?.Name || '?')}</span>
@@ -3763,7 +3940,7 @@
                   console.log('searchPlayer completed successfully');
                 } catch (e) {
                   console.error('Failed to load player:', e);
-                  showError('プレイヤーデータの読み込みに失敗しました: ' + e.message);
+                  showError((currentLanguage === 'ja' ? 'プレイヤーデータの読み込みに失敗しました: ' : 'Failed to load player data: ') + e.message);
                 } finally {
                   hideLoading();
                 }
@@ -3797,11 +3974,11 @@
           const player = results.players.find(p => p.Name.toLowerCase() === playerName.toLowerCase()) || results.players[0];
           await searchPlayer(player.Id, player.Name, true);
         } else {
-          showError('プレイヤーが見つかりませんでした');
+          showError(t('playerNotFound'));
         }
       } catch (e) {
         console.log('Failed to search player:', e);
-        showError('プレイヤーの検索に失敗しました');
+        showError(currentLanguage === 'ja' ? 'プレイヤーの検索に失敗しました' : 'Failed to search for player');
       } finally {
         hideLoading();
       }
@@ -3809,8 +3986,7 @@
     
     // Initialize theme, language and favorites
     initTheme();
-    initLanguage();
-    renderFavorites();
+    initLanguage(); // This also calls updateAllUIText() which calls renderFavorites()
     
     // Restore from hash on page load
     initFromHash();
