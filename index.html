@@ -1374,6 +1374,243 @@
         gap: 10px;
       }
     }
+
+    /* Ranking Section */
+    .ranking-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .ranking-btn {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .ranking-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Ranking Modal */
+    .ranking-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .ranking-modal.visible {
+      display: flex;
+    }
+
+    .ranking-modal-content {
+      background: var(--bg-card);
+      border-radius: 16px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ranking-modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ranking-modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ranking-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .ranking-modal-close:hover {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+
+    .ranking-modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .ranking-loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    .ranking-loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    .ranking-info {
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .ranking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: var(--bg-main);
+      border-radius: 10px;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+
+    .ranking-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .ranking-rank {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .ranking-rank.gold {
+      background: linear-gradient(135deg, #ffd700, #ffb700);
+      color: #000;
+    }
+
+    .ranking-rank.silver {
+      background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+      color: #000;
+    }
+
+    .ranking-rank.bronze {
+      background: linear-gradient(135deg, #cd7f32, #b87333);
+      color: #fff;
+    }
+
+    .ranking-rank.normal {
+      background: var(--bg-card);
+      color: var(--text-secondary);
+    }
+
+    .ranking-player {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ranking-player-name {
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--accent);
+    }
+
+    .ranking-player-name:hover {
+      text-decoration: underline;
+    }
+
+    .ranking-player-guild {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ranking-stats {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .ranking-stat {
+      text-align: center;
+    }
+
+    .ranking-stat-value {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .ranking-stat-label {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+    }
+
+    .ranking-winrate {
+      font-weight: 700;
+      font-size: 1.1rem;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .ranking-winrate.high {
+      color: #22c55e;
+    }
+
+    .ranking-winrate.medium {
+      color: #f59e0b;
+    }
+
+    .ranking-winrate.low {
+      color: #ef4444;
+    }
+
+    .ranking-empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
   </style>
 </head>
 <body>
@@ -1413,6 +1650,12 @@
         </form>
         <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
+    </section>
+
+    <section class="ranking-section">
+      <button class="ranking-btn" id="rankingBtn" onclick="showRankingModal()">
+        🏆 <span id="rankingBtnText">1v1 ランキング</span>
+      </button>
     </section>
 
     <div class="loading" id="loading" style="display: none;">
@@ -1640,6 +1883,10 @@
       if (searchInput) searchInput.placeholder = t('searchPlaceholder');
       const searchBtn = document.getElementById('searchBtn');
       if (searchBtn) searchBtn.textContent = t('search');
+      
+      // Update ranking button
+      const rankingBtnText = document.getElementById('rankingBtnText');
+      if (rankingBtnText) rankingBtnText.textContent = currentLanguage === 'ja' ? '1v1 ランキング' : '1v1 Ranking';
       
       // Update loading text
       const loadingText = document.querySelector('#loading p');
@@ -3737,16 +3984,16 @@
 
       const rawLocation = events[0]?.Location || events[0]?.KillArea || '';
       const location = getLocationName(rawLocation) || rawLocation;
-      const battleTime = new Date(battle.startTime).toLocaleString('ja-JP');
+      const battleTime = new Date(battle.startTime).toLocaleString(currentLanguage === 'ja' ? 'ja-JP' : 'en-US');
 
       resultsSection.innerHTML = `
         <div class="battle-header">
-          <div class="battle-title">Battle #${battle.id}</div>
+          <div class="battle-title">${currentLanguage === 'ja' ? 'バトル' : 'Battle'} #${battle.id}</div>
           <div class="battle-meta">
             <span>${battleTime}</span>
-            <span>${sortedParticipants.length} players</span>
-            <span>${events.length} kills</span>
-            <span>${(battle.totalFame || 0).toLocaleString()} Fame</span>
+            <span>${sortedParticipants.length} ${currentLanguage === 'ja' ? '人' : 'players'}</span>
+            <span>${events.length} ${currentLanguage === 'ja' ? 'キル' : 'kills'}</span>
+            <span>${(battle.totalFame || 0).toLocaleString()} ${currentLanguage === 'ja' ? 'フェイム' : 'Fame'}</span>
           </div>
         </div>
 
@@ -3754,11 +4001,11 @@
           <div class="team-header">
             <span>${currentLanguage === 'ja' ? '参加者（ダメージ順）' : 'Participants (by damage)'}</span>
             <span style="font-weight:normal;color:var(--text-secondary);font-size:0.8rem">
-              同じ色 = 同じチーム
+              ${currentLanguage === 'ja' ? '同じ色 = 同じチーム' : 'Same color = Same team'}
             </span>
           </div>
           <div style="padding:8px 12px;background:rgba(255,193,7,0.1);border-radius:6px;margin:8px 12px;font-size:0.8rem;color:#ffc107;">
-            ⚠️ 死亡者のダメージ/ヒール量はAPIの仕様上、表示されない場合があります
+            ⚠️ ${currentLanguage === 'ja' ? '死亡者のダメージ/ヒール量はAPIの仕様上、表示されない場合があります' : 'Damage/healing for dead players may not be displayed due to API limitations'}
           </div>
           ${sortedParticipants.map(p => `
             <div class="player-card">
@@ -3774,18 +4021,18 @@
               </div>
               <div class="player-card-stats">
                 <div class="stat-item">
-                  <div class="stat-label">ダメージ</div>
+                  <div class="stat-label">${currentLanguage === 'ja' ? 'ダメージ' : 'Damage'}</div>
                   <div class="stat-value damage">${p.damage > 0 ? p.damagePercent + '%' : '-'}</div>
                   <div class="damage-bar" style="width:80px">
                     <div class="damage-bar-fill" style="width:${p.damage > 0 ? (p.damage / maxDamage * 100) : 0}%"></div>
                   </div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-label">実数</div>
+                  <div class="stat-label">${currentLanguage === 'ja' ? '実数' : 'Raw'}</div>
                   <div class="stat-value">${p.damage > 0 ? p.damage.toLocaleString() : '-'}</div>
                 </div>
                 <div class="stat-item">
-                  <div class="stat-label">ヒール</div>
+                  <div class="stat-label">${currentLanguage === 'ja' ? 'ヒール' : 'Heal'}</div>
                   <div class="stat-value healing">${p.healing > 0 ? p.healing.toLocaleString() : '-'}</div>
                 </div>
               </div>
@@ -4011,6 +4258,336 @@
     
     // Restore from hash on page load
     initFromHash();
+
+    // ==================== RANKING FUNCTIONS ====================
+    
+    // Show ranking modal
+    function showRankingModal() {
+      const modal = document.getElementById('rankingModal');
+      modal.classList.add('visible');
+      
+      // Update title and button text based on language
+      document.getElementById('rankingModalTitle').textContent = 
+        currentLanguage === 'ja' ? '1v1 ランキング（直近）' : '1v1 Ranking (Recent)';
+      document.getElementById('rankingLoadingText').textContent = 
+        currentLanguage === 'ja' ? 'データを収集中...' : 'Collecting data...';
+      document.getElementById('rankingBtnText').textContent = 
+        currentLanguage === 'ja' ? '1v1 ランキング' : '1v1 Ranking';
+      
+      // Load ranking data
+      loadRankingData();
+    }
+    
+    // Close ranking modal
+    function closeRankingModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      const modal = document.getElementById('rankingModal');
+      modal.classList.remove('visible');
+    }
+    
+    // Load ranking data from Murder Ledger API
+    async function loadRankingData() {
+      const body = document.getElementById('rankingModalBody');
+      const server = document.getElementById('serverSelect').value;
+      
+      // Show loading
+      body.innerHTML = `
+        <div class="ranking-loading">
+          <div class="ranking-loading-spinner"></div>
+          <p>${currentLanguage === 'ja' ? 'Murder Ledgerからデータ取得中...' : 'Fetching from Murder Ledger...'}</p>
+        </div>
+      `;
+      
+      try {
+        // Try Murder Ledger leaderboard API first
+        console.log('Fetching from Murder Ledger leaderboard API...');
+        
+        const mlResponse = await fetch(`/api/murderledger/leaderboards/1v1?skip=0&take=50&server=${server}`);
+        
+        if (mlResponse.ok) {
+          const mlData = await mlResponse.json();
+          console.log('Murder Ledger leaderboard data:', mlData);
+          
+          if (mlData && mlData.length > 0) {
+            // Murder Ledger returns data in format like:
+            // { player_id, player_name, guild_name, rating, rank, wins, losses, ... }
+            renderMurderLedgerRanking(mlData);
+            return;
+          }
+        }
+        
+        // Fallback: Use official API events
+        console.log('Murder Ledger API failed, falling back to official API...');
+        await loadRankingFromOfficialAPI(body);
+        
+      } catch (error) {
+        console.error('Murder Ledger API error:', error);
+        // Fallback to official API
+        await loadRankingFromOfficialAPI(body);
+      }
+    }
+    
+    // Render Murder Ledger ranking data
+    function renderMurderLedgerRanking(data) {
+      const body = document.getElementById('rankingModalBody');
+      
+      if (!data || data.length === 0) {
+        body.innerHTML = `
+          <div class="ranking-empty">
+            ${currentLanguage === 'ja' ? '1v1データが見つかりませんでした' : 'No 1v1 data found'}
+          </div>
+        `;
+        return;
+      }
+      
+      const infoText = currentLanguage === 'ja' 
+        ? 'Murder Ledger 1v1ランキング（Corrupted Dungeon）'
+        : 'Murder Ledger 1v1 Ranking (Corrupted Dungeon)';
+      
+      const winText = currentLanguage === 'ja' ? '勝' : 'W';
+      const loseText = currentLanguage === 'ja' ? '敗' : 'L';
+      
+      body.innerHTML = `
+        <div class="ranking-info">
+          🏆 ${infoText}
+        </div>
+        <div class="ranking-list">
+          ${data.slice(0, 50).map((player, index) => {
+            const rank = player.rank || (index + 1);
+            let rankClass = 'normal';
+            if (rank === 1) rankClass = 'gold';
+            else if (rank === 2) rankClass = 'silver';
+            else if (rank === 3) rankClass = 'bronze';
+            
+            const wins = player.wins || 0;
+            const losses = player.losses || 0;
+            const total = wins + losses;
+            const winRate = total > 0 ? (wins / total * 100) : 0;
+            
+            let winRateClass = 'low';
+            if (winRate >= 60) winRateClass = 'high';
+            else if (winRate >= 40) winRateClass = 'medium';
+            
+            const playerName = player.player_name || player.name || 'Unknown';
+            const guildName = player.guild_name || player.guild || '';
+            const rating = player.rating || 0;
+            
+            return `
+              <div class="ranking-item">
+                <div class="ranking-rank ${rankClass}">${rank}</div>
+                <div class="ranking-player">
+                  <div class="ranking-player-name" onclick="searchFromRanking('${escapeHtml(playerName)}')">${escapeHtml(playerName)}</div>
+                  <div class="ranking-player-guild">${escapeHtml(guildName) || 'No Guild'}</div>
+                </div>
+                <div class="ranking-stats">
+                  <div class="ranking-stat">
+                    <div class="ranking-stat-value" style="color: #22c55e">${wins}</div>
+                    <div class="ranking-stat-label">${winText}</div>
+                  </div>
+                  <div class="ranking-stat">
+                    <div class="ranking-stat-value" style="color: #ef4444">${losses}</div>
+                    <div class="ranking-stat-label">${loseText}</div>
+                  </div>
+                  ${rating ? `
+                  <div class="ranking-stat">
+                    <div class="ranking-stat-value" style="color: #f59e0b">${rating}</div>
+                    <div class="ranking-stat-label">Rating</div>
+                  </div>
+                  ` : ''}
+                </div>
+                <div class="ranking-winrate ${winRateClass}">${winRate.toFixed(1)}%</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+    
+    // Fallback: Load ranking from official API
+    async function loadRankingFromOfficialAPI(body) {
+      body.innerHTML = `
+        <div class="ranking-loading">
+          <div class="ranking-loading-spinner"></div>
+          <p>${currentLanguage === 'ja' ? '公式APIからデータ収集中...' : 'Collecting from official API...'}</p>
+        </div>
+      `;
+      
+      try {
+        const allEvents = [];
+        const pagesToFetch = 10;
+        
+        const pagePromises = [];
+        for (let i = 0; i < pagesToFetch; i++) {
+          const offset = i * 50;
+          pagePromises.push(
+            fetchAPI(`/events?offset=${offset}&limit=50`).catch(() => [])
+          );
+        }
+        
+        const results = await Promise.all(pagePromises);
+        results.forEach(events => {
+          if (Array.isArray(events)) {
+            allEvents.push(...events);
+          }
+        });
+        
+        console.log('Total events fetched:', allEvents.length);
+        
+        const oneVsOneEvents = allEvents.filter(event => {
+          const participants = event.Participants || [];
+          const damageParticipants = participants.filter(p => p.DamageDone > 0);
+          return damageParticipants.length <= 1;
+        });
+        
+        console.log('1v1 events:', oneVsOneEvents.length);
+        
+        const playerStats = {};
+        
+        oneVsOneEvents.forEach(event => {
+          const killer = event.Killer;
+          const victim = event.Victim;
+          
+          if (!killer || !victim) return;
+          
+          const killerId = killer.Id;
+          if (!playerStats[killerId]) {
+            playerStats[killerId] = {
+              id: killerId,
+              name: killer.Name,
+              guild: killer.GuildName || '',
+              wins: 0,
+              losses: 0
+            };
+          }
+          playerStats[killerId].wins++;
+          playerStats[killerId].name = killer.Name;
+          playerStats[killerId].guild = killer.GuildName || '';
+          
+          const victimId = victim.Id;
+          if (!playerStats[victimId]) {
+            playerStats[victimId] = {
+              id: victimId,
+              name: victim.Name,
+              guild: victim.GuildName || '',
+              wins: 0,
+              losses: 0
+            };
+          }
+          playerStats[victimId].losses++;
+          playerStats[victimId].name = victim.Name;
+          playerStats[victimId].guild = victim.GuildName || '';
+        });
+        
+        const rankings = Object.values(playerStats)
+          .map(p => ({
+            ...p,
+            total: p.wins + p.losses,
+            winRate: p.wins + p.losses > 0 ? (p.wins / (p.wins + p.losses) * 100) : 0
+          }))
+          .filter(p => p.total >= 3)
+          .sort((a, b) => {
+            if (b.winRate !== a.winRate) return b.winRate - a.winRate;
+            return b.total - a.total;
+          })
+          .slice(0, 50);
+        
+        renderRanking(rankings, oneVsOneEvents.length);
+        
+      } catch (error) {
+        console.error('Failed to load ranking:', error);
+        body.innerHTML = `
+          <div class="ranking-empty">
+            ${currentLanguage === 'ja' ? 'ランキングの読み込みに失敗しました' : 'Failed to load ranking'}
+          </div>
+        `;
+      }
+    }
+    
+    // Render ranking list
+    function renderRanking(rankings, totalEvents) {
+      const body = document.getElementById('rankingModalBody');
+      
+      if (rankings.length === 0) {
+        body.innerHTML = `
+          <div class="ranking-empty">
+            ${currentLanguage === 'ja' ? '1v1データが見つかりませんでした' : 'No 1v1 data found'}
+          </div>
+        `;
+        return;
+      }
+      
+      const infoText = currentLanguage === 'ja' 
+        ? `直近の1v1イベント ${totalEvents}件から集計（3戦以上のプレイヤーのみ）`
+        : `Based on ${totalEvents} recent 1v1 events (players with 3+ fights)`;
+      
+      const winText = currentLanguage === 'ja' ? '勝' : 'W';
+      const loseText = currentLanguage === 'ja' ? '敗' : 'L';
+      
+      body.innerHTML = `
+        <div class="ranking-info">
+          ℹ️ ${infoText}
+        </div>
+        <div class="ranking-list">
+          ${rankings.map((player, index) => {
+            const rank = index + 1;
+            let rankClass = 'normal';
+            if (rank === 1) rankClass = 'gold';
+            else if (rank === 2) rankClass = 'silver';
+            else if (rank === 3) rankClass = 'bronze';
+            
+            let winRateClass = 'low';
+            if (player.winRate >= 60) winRateClass = 'high';
+            else if (player.winRate >= 40) winRateClass = 'medium';
+            
+            return `
+              <div class="ranking-item">
+                <div class="ranking-rank ${rankClass}">${rank}</div>
+                <div class="ranking-player">
+                  <div class="ranking-player-name" onclick="searchFromRanking('${escapeHtml(player.name)}')">${escapeHtml(player.name)}</div>
+                  <div class="ranking-player-guild">${escapeHtml(player.guild) || 'No Guild'}</div>
+                </div>
+                <div class="ranking-stats">
+                  <div class="ranking-stat">
+                    <div class="ranking-stat-value" style="color: #22c55e">${player.wins}</div>
+                    <div class="ranking-stat-label">${winText}</div>
+                  </div>
+                  <div class="ranking-stat">
+                    <div class="ranking-stat-value" style="color: #ef4444">${player.losses}</div>
+                    <div class="ranking-stat-label">${loseText}</div>
+                  </div>
+                </div>
+                <div class="ranking-winrate ${winRateClass}">${player.winRate.toFixed(1)}%</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+    
+    // Search player from ranking
+    function searchFromRanking(playerName) {
+      closeRankingModal();
+      document.getElementById('searchInput').value = playerName;
+      handleSearch(new Event('submit'));
+    }
   </script>
+
+  <!-- Ranking Modal -->
+  <div class="ranking-modal" id="rankingModal" onclick="closeRankingModal(event)">
+    <div class="ranking-modal-content" onclick="event.stopPropagation()">
+      <div class="ranking-modal-header">
+        <div class="ranking-modal-title">
+          🏆 <span id="rankingModalTitle">1v1 ランキング</span>
+        </div>
+        <button class="ranking-modal-close" onclick="closeRankingModal()">&times;</button>
+      </div>
+      <div class="ranking-modal-body" id="rankingModalBody">
+        <div class="ranking-loading">
+          <div class="ranking-loading-spinner"></div>
+          <p id="rankingLoadingText">データを収集中...</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
