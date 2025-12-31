@@ -2354,65 +2354,35 @@
       history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
     }
 
-    // Convert Murder Ledger equipment format to official API format
-    function convertMlEquipment(mlEquip) {
-      if (!mlEquip) return {};
+    // Convert Murder Ledger loadout format to official API Equipment format
+    function convertMlEquipment(mlLoadout) {
+      if (!mlLoadout) return {};
       
+      // Murder Ledger uses: main_hand, off_hand, head, body, shoe, bag, cape, mount, food, potion
+      // Official API uses: MainHand, OffHand, Head, Armor, Shoes, Bag, Cape, Mount, Food, Potion
       const mapping = {
         'main_hand': 'MainHand',
         'off_hand': 'OffHand',
         'head': 'Head',
-        'armor': 'Armor',
-        'shoes': 'Shoes',
-        'cape': 'Cape',
+        'body': 'Armor',      // ML uses 'body', API uses 'Armor'
+        'shoe': 'Shoes',      // ML uses 'shoe', API uses 'Shoes'
         'bag': 'Bag',
+        'cape': 'Cape',
         'mount': 'Mount',
-        'potion': 'Potion',
-        'food': 'Food'
+        'food': 'Food',
+        'potion': 'Potion'
       };
       
       const result = {};
       
       for (const [mlKey, apiKey] of Object.entries(mapping)) {
-        const item = mlEquip[mlKey];
-        if (item) {
-          // Handle different formats
-          if (typeof item === 'string') {
-            // Format: "T8_MAIN_SWORD" or "T8_MAIN_SWORD@3"
-            const [itemType, quality] = item.split('@');
-            result[apiKey] = {
-              Type: itemType,
-              Count: 1,
-              Quality: quality ? parseInt(quality) : 1
-            };
-          } else if (typeof item === 'object') {
-            // Format: { type: "T8_MAIN_SWORD", quality: 3 } or { Type: "T8_MAIN_SWORD" }
-            result[apiKey] = {
-              Type: item.type || item.Type || item.item_type || '',
-              Count: item.count || item.Count || 1,
-              Quality: item.quality || item.Quality || 1,
-              ActiveSpells: item.active_spells || item.ActiveSpells || [],
-              PassiveSpells: item.passive_spells || item.PassiveSpells || []
-            };
-          }
-        }
-      }
-      
-      // Also check for direct keys (MainHand, OffHand, etc.) - in case already in correct format
-      const directKeys = ['MainHand', 'OffHand', 'Head', 'Armor', 'Shoes', 'Cape', 'Bag', 'Mount', 'Potion', 'Food'];
-      for (const key of directKeys) {
-        if (mlEquip[key] && !result[key]) {
-          const item = mlEquip[key];
-          if (typeof item === 'string') {
-            const [itemType, quality] = item.split('@');
-            result[key] = {
-              Type: itemType,
-              Count: 1,
-              Quality: quality ? parseInt(quality) : 1
-            };
-          } else if (typeof item === 'object' && item.Type) {
-            result[key] = item;
-          }
+        const item = mlLoadout[mlKey];
+        if (item && item.id && item.id !== '') {
+          result[apiKey] = {
+            Type: item.id,  // Use 'id' field (e.g., "T6_2H_CLAWPAIR")
+            Count: 1,
+            Quality: item.quality || 1
+          };
         }
       }
       
@@ -2540,13 +2510,12 @@
       currentDeaths = [];
       
       if (murderLedgerSuccess) {
-        // Debug: Log first event's full structure
+        // Debug: Log first event's loadout structure
         if (allMlEvents.length > 0) {
           const firstEvent = allMlEvents[0];
-          console.log('Murder Ledger FULL event structure:');
-          console.log('  Full event:', JSON.stringify(firstEvent, null, 2));
-          console.log('  Killer keys:', firstEvent.killer ? Object.keys(firstEvent.killer) : 'no killer');
-          console.log('  Victim keys:', firstEvent.victim ? Object.keys(firstEvent.victim) : 'no victim');
+          console.log('Murder Ledger first event:');
+          console.log('  tags:', firstEvent.tags);
+          console.log('  Killer loadout converted:', convertMlEquipment(firstEvent.killer?.loadout));
         }
         
         // Process Murder Ledger events
@@ -2554,6 +2523,7 @@
           const killerName = (e.killer?.name || '').toLowerCase();
           const victimName = (e.victim?.name || '').toLowerCase();
           const participantCount = e.participant_count || 1;
+          const is1v1 = e.tags?.is_1v1 || false;
           
           const isKiller = killerName === playerNameLower;
           const isVictim = victimName === playerNameLower;
@@ -2575,7 +2545,7 @@
               AllianceTag: e.killer.alliance_tag || '',
               AllianceId: e.killer.alliance_id || '',
               AverageItemPower: e.killer.item_power || 0,
-              Equipment: convertMlEquipment(e.killer.equipment)
+              Equipment: convertMlEquipment(e.killer.loadout)
             } : null,
             Victim: e.victim ? {
               Id: e.victim.id,
@@ -2586,29 +2556,26 @@
               AllianceTag: e.victim.alliance_tag || '',
               AllianceId: e.victim.alliance_id || '',
               AverageItemPower: e.victim.item_power || 0,
-              Equipment: convertMlEquipment(e.victim.equipment),
+              Equipment: convertMlEquipment(e.victim.loadout),
               Inventory: []
             } : null,
             Participants: [],
             GroupMembers: [],
             numberOfParticipants: participantCount,
-            groupMemberCount: e.party_size || 1
+            groupMemberCount: e.party_size || 1,
+            tags: e.tags || {}
           };
           
-          // Classify event
-          if (isKiller && participantCount === 1) {
-            // Solo Kill
+          // Classify event based on tags.is_1v1 for solo kills
+          if (isKiller && is1v1) {
+            // Solo Kill (1v1)
             soloKills.push({ ...convertedEvent, eventType: 'kill' });
-          } else if (isKiller && participantCount > 1) {
+          } else if (isKiller && !is1v1) {
             // Assist (group kill where player is the killer)
             assists.push({ ...convertedEvent, eventType: 'assist' });
           } else if (isVictim) {
             // Death
             currentDeaths.push({ ...convertedEvent, eventType: 'death' });
-          } else {
-            // Player is in participants but not killer/victim - also an assist
-            // Check if player might be in participants (Murder Ledger doesn't always show this)
-            // For now, skip these events
           }
         });
         
