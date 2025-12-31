@@ -2540,13 +2540,13 @@
       currentDeaths = [];
       
       if (murderLedgerSuccess) {
-        // Debug: Log first event's equipment structure
+        // Debug: Log first event's full structure
         if (allMlEvents.length > 0) {
           const firstEvent = allMlEvents[0];
-          console.log('Murder Ledger equipment debug:');
-          console.log('  Raw killer equipment:', JSON.stringify(firstEvent.killer?.equipment));
-          console.log('  Raw victim equipment:', JSON.stringify(firstEvent.victim?.equipment));
-          console.log('  Converted killer equipment:', JSON.stringify(convertMlEquipment(firstEvent.killer?.equipment)));
+          console.log('Murder Ledger FULL event structure:');
+          console.log('  Full event:', JSON.stringify(firstEvent, null, 2));
+          console.log('  Killer keys:', firstEvent.killer ? Object.keys(firstEvent.killer) : 'no killer');
+          console.log('  Victim keys:', firstEvent.victim ? Object.keys(firstEvent.victim) : 'no victim');
         }
         
         // Process Murder Ledger events
