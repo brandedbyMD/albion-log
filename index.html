@@ -107,6 +107,33 @@
       transform: scale(1.05);
     }
 
+    .header-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: all 0.2s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 28px;
+    }
+
+    .header-select:hover {
+      background-color: var(--bg-hover);
+    }
+
+    .header-select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
     /* Favorites Panel */
     .favorites-panel {
       position: absolute;
@@ -1358,9 +1385,10 @@
           <button class="header-btn" id="favoritesToggle" onclick="toggleFavoritesPanel()" title="お気に入り">
             <span>⭐</span>
           </button>
-          <button class="header-btn" id="languageToggle" onclick="toggleLanguage()" title="言語切り替え / Language">
-            <span class="language-text">JA</span>
-          </button>
+          <select class="header-select" id="languageSelect" onchange="changeLanguage(this.value)" title="Language">
+            <option value="ja">JP</option>
+            <option value="en">EN</option>
+          </select>
           <button class="header-btn" id="themeToggle" onclick="toggleTheme()" title="テーマ切り替え">
             <span class="theme-icon">🌙</span>
           </button>
@@ -1579,22 +1607,21 @@
     
     function initLanguage() {
       currentLanguage = localStorage.getItem(LANGUAGE_KEY) || 'ja';
-      updateLanguageButton();
+      updateLanguageSelect();
       // Update static UI text based on saved language
       updateAllUIText();
     }
     
-    function toggleLanguage() {
-      currentLanguage = currentLanguage === 'ja' ? 'en' : 'ja';
+    function changeLanguage(lang) {
+      currentLanguage = lang;
       localStorage.setItem(LANGUAGE_KEY, currentLanguage);
-      updateLanguageButton();
       updateAllUIText();
     }
     
-    function updateLanguageButton() {
-      const btn = document.getElementById('languageToggle');
-      if (btn) {
-        btn.innerHTML = `<span class="language-text">${currentLanguage.toUpperCase()}</span>`;
+    function updateLanguageSelect() {
+      const select = document.getElementById('languageSelect');
+      if (select) {
+        select.value = currentLanguage;
       }
     }
     
@@ -1602,7 +1629,7 @@
       // Update header buttons
       document.getElementById('favoritesToggle')?.setAttribute('title', t('favorites'));
       document.getElementById('themeToggle')?.setAttribute('title', t('theme'));
-      document.getElementById('languageToggle')?.setAttribute('title', t('language'));
+      document.getElementById('languageSelect')?.setAttribute('title', t('language'));
       
       // Update favorites panel
       const favHeader = document.querySelector('.favorites-panel-header');
@@ -2164,16 +2191,10 @@
       
       if (toFetch.length === 0) return;
       
-      console.log('Fetching names for', toFetch.length, 'weapon types...');
+      console.log('Fetching names for', toFetch.length, 'weapon types (all in parallel)...');
       
-      // Fetch in parallel (max 5 at a time to avoid overwhelming)
-      const batchSize = 5;
-      for (let i = 0; i < toFetch.length; i += batchSize) {
-        const batch = toFetch.slice(i, i + batchSize);
-        await Promise.all(batch.map(async (itemId) => {
-          await getItemName(itemId);
-        }));
-      }
+      // Fetch all in parallel
+      await Promise.all(toFetch.map(itemId => getItemName(itemId)));
       
       console.log('Item names cached:', Object.keys(itemNamesCache).length);
     }
@@ -2356,9 +2377,11 @@
         
         // Get player info directly using the ID
         try {
-          // First try to get kills to verify player exists and get their info
-          const kills = await fetchAPI(`/players/${playerId}/kills?limit=1`);
-          const deaths = await fetchAPI(`/players/${playerId}/deaths?limit=1`);
+          // Get kills and deaths in parallel to verify player exists
+          const [kills, deaths] = await Promise.all([
+            fetchAPI(`/players/${playerId}/kills?limit=1`),
+            fetchAPI(`/players/${playerId}/deaths?limit=1`)
+          ]);
           
           // Extract player info from kills or deaths
           if (kills.length > 0 && kills[0].Killer) {
@@ -2410,10 +2433,13 @@
       
       playerId = String(currentPlayer.Id);
       
-      // Get deaths and kills (where player is killer) from official API
-      // Add limit parameter to get more events
-      currentDeaths = await fetchAPI(`/players/${currentPlayer.Id}/deaths?limit=50`);
-      const soloKills = await fetchAPI(`/players/${currentPlayer.Id}/kills?limit=50`);
+      // Get deaths and kills in parallel (faster!)
+      console.log('Fetching deaths and kills in parallel...');
+      const [deaths, soloKills] = await Promise.all([
+        fetchAPI(`/players/${currentPlayer.Id}/deaths?limit=50`),
+        fetchAPI(`/players/${currentPlayer.Id}/kills?limit=50`)
+      ]);
+      currentDeaths = deaths;
       
       // Get assists from multiple sources
       let assists = [];
@@ -2423,41 +2449,39 @@
       // Try Murder Ledger API first (has complete event history!)
       let murderLedgerSuccess = false;
       try {
-        console.log('Fetching from Murder Ledger API...');
+        console.log('Fetching from Murder Ledger API (all pages in parallel)...');
         
         const playerName = currentPlayer.Name.toLowerCase();
         let allMlEvents = [];
         
-        // Fetch events with pagination
-        for (let skip = 0; skip < 200; skip += 50) {
-          const mlUrl = `/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`;
-          const mlResponse = await fetch(mlUrl);
-          
-          if (mlResponse.ok) {
-            const mlData = await mlResponse.json();
-            console.log(`Murder Ledger page (skip=${skip}):`, mlData.events?.length || 0, 'events');
-            
-            if (mlData.events && mlData.events.length > 0) {
-              // Debug first 5 events
-              if (skip === 0) {
-                mlData.events.slice(0, 5).forEach((e, i) => {
-                  console.log(`Event ${i}:`, {
-                    id: e.id,
-                    killer: e.killer?.name,
-                    victim: e.victim?.name,
-                    participant_count: e.participant_count,
-                    party_size: e.party_size
-                  });
+        // Fetch all 4 pages in parallel (much faster!)
+        const pageOffsets = [0, 50, 100, 150];
+        const mlPromises = pageOffsets.map(skip => 
+          fetch(`/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`)
+            .then(res => res.ok ? res.json() : null)
+            .catch(() => null)
+        );
+        
+        const mlResults = await Promise.all(mlPromises);
+        
+        mlResults.forEach((mlData, index) => {
+          if (mlData && mlData.events && mlData.events.length > 0) {
+            console.log(`Murder Ledger page (skip=${pageOffsets[index]}):`, mlData.events.length, 'events');
+            // Debug first 5 events from first page
+            if (index === 0) {
+              mlData.events.slice(0, 5).forEach((e, i) => {
+                console.log(`Event ${i}:`, {
+                  id: e.id,
+                  killer: e.killer?.name,
+                  victim: e.victim?.name,
+                  participant_count: e.participant_count,
+                  party_size: e.party_size
                 });
-              }
-              allMlEvents = allMlEvents.concat(mlData.events);
-            } else {
-              break;
+              });
             }
-          } else {
-            break;
+            allMlEvents = allMlEvents.concat(mlData.events);
           }
-        }
+        });
         
         console.log('Total Murder Ledger events:', allMlEvents.length);
         
@@ -2529,49 +2553,44 @@
           
           // Fetch full details for assist events from official API (for equipment info)
           const assistsNeedingDetails = assists.filter(a => a.needsDetails);
-          console.log('Fetching details for', assistsNeedingDetails.length, 'assist events...');
+          console.log('Fetching details for', assistsNeedingDetails.length, 'assist events (all in parallel)...');
           
-          // Fetch in parallel batches of 5 to speed up
-          const batchSize = 5;
+          // Fetch ALL assist details in parallel (much faster!)
           let successCount = 0, failCount = 0;
           
-          for (let i = 0; i < assistsNeedingDetails.length; i += batchSize) {
-            const batch = assistsNeedingDetails.slice(i, i + batchSize);
-            const promises = batch.map(async (assist) => {
-              try {
-                const eventUrl = `/api/events/${assist.EventId}?server=${currentServer}`;
-                const eventResponse = await fetch(eventUrl);
-                if (eventResponse.ok) {
-                  const eventData = await eventResponse.json();
-                  successCount++;
-                  
-                  // Update with full details, but keep existing data if API returns empty
-                  if (eventData.Killer && eventData.Killer.Equipment && Object.keys(eventData.Killer.Equipment).length > 0) {
-                    assist.Killer = eventData.Killer;
-                  }
-                  if (eventData.Victim && eventData.Victim.Equipment && Object.keys(eventData.Victim.Equipment).length > 0) {
-                    assist.Victim = eventData.Victim;
-                  }
-                  if (eventData.Participants && eventData.Participants.length > 0) {
-                    assist.Participants = eventData.Participants;
-                  }
-                  if (eventData.GroupMembers && eventData.GroupMembers.length > 0) {
-                    assist.GroupMembers = eventData.GroupMembers;
-                  }
-                  assist.Location = eventData.Location || assist.Location;
-                  assist.KillArea = eventData.KillArea || assist.KillArea;
-                } else {
-                  failCount++;
-                  console.log('Event API returned', eventResponse.status, 'for', assist.EventId);
+          const detailPromises = assistsNeedingDetails.map(async (assist) => {
+            try {
+              const eventUrl = `/api/events/${assist.EventId}?server=${currentServer}`;
+              const eventResponse = await fetch(eventUrl);
+              if (eventResponse.ok) {
+                const eventData = await eventResponse.json();
+                successCount++;
+                
+                // Update with full details, but keep existing data if API returns empty
+                if (eventData.Killer && eventData.Killer.Equipment && Object.keys(eventData.Killer.Equipment).length > 0) {
+                  assist.Killer = eventData.Killer;
                 }
-              } catch (e) {
+                if (eventData.Victim && eventData.Victim.Equipment && Object.keys(eventData.Victim.Equipment).length > 0) {
+                  assist.Victim = eventData.Victim;
+                }
+                if (eventData.Participants && eventData.Participants.length > 0) {
+                  assist.Participants = eventData.Participants;
+                }
+                if (eventData.GroupMembers && eventData.GroupMembers.length > 0) {
+                  assist.GroupMembers = eventData.GroupMembers;
+                }
+                assist.Location = eventData.Location || assist.Location;
+                assist.KillArea = eventData.KillArea || assist.KillArea;
+              } else {
                 failCount++;
-                console.log('Failed to fetch event details:', assist.EventId, e.message);
               }
-              delete assist.needsDetails;
-            });
-            await Promise.all(promises);
-          }
+            } catch (e) {
+              failCount++;
+            }
+            delete assist.needsDetails;
+          });
+          
+          await Promise.all(detailPromises);
           console.log('Finished fetching assist details. Success:', successCount, 'Failed:', failCount);
         }
       } catch (e) {
@@ -2603,32 +2622,34 @@
         
         console.log('Total battle IDs to check:', battleIds.size);
         
-        // Fetch events from each battle
+        // Fetch events from all battles in parallel (much faster!)
         const battleIdArray = Array.from(battleIds).slice(0, 50);
         
-        for (const battleId of battleIdArray) {
-          try {
-            const battleEvents = await fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`);
+        const battlePromises = battleIdArray.map(battleId => 
+          fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`).catch(() => [])
+        );
+        
+        const allBattleEvents = await Promise.all(battlePromises);
+        
+        allBattleEvents.forEach(battleEvents => {
+          if (!Array.isArray(battleEvents)) return;
+          
+          battleEvents.forEach(event => {
+            if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
+              return;
+            }
             
-            battleEvents.forEach(event => {
-              if (soloKillEventIds.has(event.EventId) || deathEventIds.has(event.EventId)) {
-                return;
-              }
-              
-              const killerId = String(event.Killer?.Id || '');
-              const victimId = String(event.Victim?.Id || '');
-              const isKiller = killerId === playerId;
-              const isVictim = victimId === playerId;
-              const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
-              
-              if (inParticipants && !isKiller && !isVictim) {
-                assists.push({ ...event, eventType: 'assist' });
-              }
-            });
-          } catch (e) {
-            // Silently skip failed battle fetches
-          }
-        }
+            const killerId = String(event.Killer?.Id || '');
+            const victimId = String(event.Victim?.Id || '');
+            const isKiller = killerId === playerId;
+            const isVictim = victimId === playerId;
+            const inParticipants = event.Participants?.some(p => String(p.Id) === playerId);
+            
+            if (inParticipants && !isKiller && !isVictim) {
+              assists.push({ ...event, eventType: 'assist' });
+            }
+          });
+        });
       }
       
       // Remove duplicates
