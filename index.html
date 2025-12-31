@@ -1374,243 +1374,6 @@
         gap: 10px;
       }
     }
-
-    /* Ranking Section */
-    .ranking-section {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .ranking-btn {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 24px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-    }
-
-    .ranking-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
-    }
-
-    /* Ranking Modal */
-    .ranking-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .ranking-modal.visible {
-      display: flex;
-    }
-
-    .ranking-modal-content {
-      background: var(--bg-card);
-      border-radius: 16px;
-      max-width: 600px;
-      width: 100%;
-      max-height: 80vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .ranking-modal-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .ranking-modal-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .ranking-modal-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text-secondary);
-      padding: 4px 8px;
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-
-    .ranking-modal-close:hover {
-      background: var(--bg-hover);
-      color: var(--text);
-    }
-
-    .ranking-modal-body {
-      padding: 20px;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    .ranking-loading {
-      text-align: center;
-      padding: 40px;
-      color: var(--text-secondary);
-    }
-
-    .ranking-loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 16px;
-    }
-
-    .ranking-info {
-      background: rgba(59, 130, 246, 0.1);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 16px;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-    }
-
-    .ranking-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .ranking-item {
-      display: flex;
-      align-items: center;
-      padding: 12px;
-      background: var(--bg-main);
-      border-radius: 10px;
-      gap: 12px;
-      transition: all 0.2s;
-    }
-
-    .ranking-item:hover {
-      background: var(--bg-hover);
-    }
-
-    .ranking-rank {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      border-radius: 8px;
-      font-size: 0.9rem;
-    }
-
-    .ranking-rank.gold {
-      background: linear-gradient(135deg, #ffd700, #ffb700);
-      color: #000;
-    }
-
-    .ranking-rank.silver {
-      background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
-      color: #000;
-    }
-
-    .ranking-rank.bronze {
-      background: linear-gradient(135deg, #cd7f32, #b87333);
-      color: #fff;
-    }
-
-    .ranking-rank.normal {
-      background: var(--bg-card);
-      color: var(--text-secondary);
-    }
-
-    .ranking-player {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .ranking-player-name {
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--accent);
-    }
-
-    .ranking-player-name:hover {
-      text-decoration: underline;
-    }
-
-    .ranking-player-guild {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .ranking-stats {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      font-size: 0.85rem;
-    }
-
-    .ranking-stat {
-      text-align: center;
-    }
-
-    .ranking-stat-value {
-      font-weight: 700;
-      font-size: 1rem;
-    }
-
-    .ranking-stat-label {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-    }
-
-    .ranking-winrate {
-      font-weight: 700;
-      font-size: 1.1rem;
-      min-width: 60px;
-      text-align: right;
-    }
-
-    .ranking-winrate.high {
-      color: #22c55e;
-    }
-
-    .ranking-winrate.medium {
-      color: #f59e0b;
-    }
-
-    .ranking-winrate.low {
-      color: #ef4444;
-    }
-
-    .ranking-empty {
-      text-align: center;
-      padding: 40px;
-      color: var(--text-secondary);
-    }
   </style>
 </head>
 <body>
@@ -1650,12 +1413,6 @@
         </form>
         <div class="autocomplete-list" id="autocompleteList"></div>
       </div>
-    </section>
-
-    <section class="ranking-section">
-      <button class="ranking-btn" id="rankingBtn" onclick="showRankingModal()">
-        🏆 <span id="rankingBtnText">1v1 ランキング</span>
-      </button>
     </section>
 
     <div class="loading" id="loading" style="display: none;">
@@ -1883,10 +1640,6 @@
       if (searchInput) searchInput.placeholder = t('searchPlaceholder');
       const searchBtn = document.getElementById('searchBtn');
       if (searchBtn) searchBtn.textContent = t('search');
-      
-      // Update ranking button
-      const rankingBtnText = document.getElementById('rankingBtnText');
-      if (rankingBtnText) rankingBtnText.textContent = currentLanguage === 'ja' ? '1v1 ランキング' : '1v1 Ranking';
       
       // Update loading text
       const loadingText = document.querySelector('#loading p');
@@ -2601,6 +2354,40 @@
       history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
     }
 
+    // Convert Murder Ledger equipment format to official API format
+    function convertMlEquipment(mlEquip) {
+      if (!mlEquip) return {};
+      
+      const mapping = {
+        'main_hand': 'MainHand',
+        'off_hand': 'OffHand',
+        'head': 'Head',
+        'armor': 'Armor',
+        'shoes': 'Shoes',
+        'cape': 'Cape',
+        'bag': 'Bag',
+        'mount': 'Mount',
+        'potion': 'Potion',
+        'food': 'Food'
+      };
+      
+      const result = {};
+      
+      for (const [mlKey, apiKey] of Object.entries(mapping)) {
+        if (mlEquip[mlKey]) {
+          result[apiKey] = {
+            Type: mlEquip[mlKey].type || mlEquip[mlKey].Type || '',
+            Count: mlEquip[mlKey].count || mlEquip[mlKey].Count || 1,
+            Quality: mlEquip[mlKey].quality || mlEquip[mlKey].Quality || 1,
+            ActiveSpells: mlEquip[mlKey].active_spells || mlEquip[mlKey].ActiveSpells || [],
+            PassiveSpells: mlEquip[mlKey].passive_spells || mlEquip[mlKey].PassiveSpells || []
+          };
+        }
+      }
+      
+      return result;
+    }
+
     // API Functions
     async function fetchAPI(endpoint) {
       const url = `/api${endpoint}${endpoint.includes('?') ? '&' : '?'}server=${currentServer}`;
@@ -2680,28 +2467,16 @@
       
       playerId = String(currentPlayer.Id);
       
-      // Get deaths and kills in parallel (faster!)
-      console.log('Fetching deaths and kills in parallel...');
-      const [deaths, soloKills] = await Promise.all([
-        fetchAPI(`/players/${currentPlayer.Id}/deaths?limit=50`),
-        fetchAPI(`/players/${currentPlayer.Id}/kills?limit=50`)
-      ]);
-      currentDeaths = deaths;
+      // ==================== MURDER LEDGER API (MAIN) ====================
+      // Murder Ledger APIをメインに使用（公式APIと同じログを表示）
       
-      // Get assists from multiple sources
-      let assists = [];
-      const soloKillEventIds = new Set(soloKills.map(e => e.EventId));
-      const deathEventIds = new Set(currentDeaths.map(e => e.EventId));
+      console.log('Fetching from Murder Ledger API (MAIN)...');
       
-      // Try Murder Ledger API first (has complete event history!)
+      let allMlEvents = [];
       let murderLedgerSuccess = false;
+      
       try {
-        console.log('Fetching from Murder Ledger API (all pages in parallel)...');
-        
-        const playerName = currentPlayer.Name.toLowerCase();
-        let allMlEvents = [];
-        
-        // Fetch all 4 pages in parallel (much faster!)
+        // Fetch 200 events (4 pages) in parallel
         const pageOffsets = [0, 50, 100, 150];
         const mlPromises = pageOffsets.map(skip => 
           fetch(`/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`)
@@ -2714,18 +2489,6 @@
         mlResults.forEach((mlData, index) => {
           if (mlData && mlData.events && mlData.events.length > 0) {
             console.log(`Murder Ledger page (skip=${pageOffsets[index]}):`, mlData.events.length, 'events');
-            // Debug first 5 events from first page
-            if (index === 0) {
-              mlData.events.slice(0, 5).forEach((e, i) => {
-                console.log(`Event ${i}:`, {
-                  id: e.id,
-                  killer: e.killer?.name,
-                  victim: e.victim?.name,
-                  participant_count: e.participant_count,
-                  party_size: e.party_size
-                });
-              });
-            }
             allMlEvents = allMlEvents.concat(mlData.events);
           }
         });
@@ -2734,126 +2497,106 @@
         
         if (allMlEvents.length > 0) {
           murderLedgerSuccess = true;
-          
-          // Debug: count by type
-          let soloKillCount = 0, assistKillCount = 0, deathCount = 0;
-          
-          allMlEvents.forEach((e, index) => {
-            const eventId = e.id;
-            const killerName = (e.killer?.name || '').toLowerCase();
-            const victimName = (e.victim?.name || '').toLowerCase();
-            const participantCount = e.participant_count || 1;
-            
-            const isKiller = killerName === playerName;
-            const isVictim = victimName === playerName;
-            
-            // Murder Ledger logic:
-            // - If player is killer AND participant_count === 1 → Solo Kill
-            // - If player is killer AND participant_count > 1 → Assist (group kill)
-            // - If player is victim → Death
-            
-            if (isKiller && participantCount === 1) {
-              soloKillCount++;
-            } else if (isKiller && participantCount > 1) {
-              assistKillCount++;
-              
-              // Skip if already have this event
-              if (!soloKillEventIds.has(eventId) && !deathEventIds.has(eventId)) {
-                // Store basic info, will fetch full details later
-                assists.push({
-                  EventId: eventId,
-                  BattleId: e.battle_id,
-                  TimeStamp: new Date(e.time * 1000).toISOString(),
-                  TotalVictimKillFame: e.total_kill_fame || 0,
-                  Killer: e.killer ? {
-                    Id: e.killer.id,
-                    Name: e.killer.name,
-                    GuildName: e.killer.guild_name,
-                    AllianceName: e.killer.alliance_name,
-                    AllianceTag: e.killer.alliance_tag,
-                    AverageItemPower: e.killer.item_power,
-                    Equipment: e.killer.equipment || {}
-                  } : null,
-                  Victim: e.victim ? {
-                    Id: e.victim.id,
-                    Name: e.victim.name,
-                    GuildName: e.victim.guild_name,
-                    AllianceName: e.victim.alliance_name,
-                    AllianceTag: e.victim.alliance_tag,
-                    AverageItemPower: e.victim.item_power,
-                    Equipment: e.victim.equipment || {},
-                    Inventory: []
-                  } : null,
-                  Participants: [],
-                  GroupMembers: [],
-                  eventType: 'assist',
-                  needsDetails: true  // Flag to fetch full details
-                });
-              }
-            } else if (isVictim) {
-              deathCount++;
-            }
-          });
-          
-          console.log('Murder Ledger breakdown - Solo Kills:', soloKillCount, 'Group Kills (Assists):', assistKillCount, 'Deaths:', deathCount);
-          console.log('Assists from Murder Ledger:', assists.length);
-          
-          // Fetch full details for assist events from official API (for equipment info)
-          const assistsNeedingDetails = assists.filter(a => a.needsDetails);
-          console.log('Fetching details for', assistsNeedingDetails.length, 'assist events (all in parallel)...');
-          
-          // Fetch ALL assist details in parallel (much faster!)
-          let successCount = 0, failCount = 0;
-          
-          const detailPromises = assistsNeedingDetails.map(async (assist) => {
-            try {
-              const eventUrl = `/api/events/${assist.EventId}?server=${currentServer}`;
-              const eventResponse = await fetch(eventUrl);
-              if (eventResponse.ok) {
-                const eventData = await eventResponse.json();
-                successCount++;
-                
-                // Update with full details, but keep existing data if API returns empty
-                if (eventData.Killer && eventData.Killer.Equipment && Object.keys(eventData.Killer.Equipment).length > 0) {
-                  assist.Killer = eventData.Killer;
-                }
-                if (eventData.Victim && eventData.Victim.Equipment && Object.keys(eventData.Victim.Equipment).length > 0) {
-                  assist.Victim = eventData.Victim;
-                }
-                if (eventData.Participants && eventData.Participants.length > 0) {
-                  assist.Participants = eventData.Participants;
-                }
-                if (eventData.GroupMembers && eventData.GroupMembers.length > 0) {
-                  assist.GroupMembers = eventData.GroupMembers;
-                }
-                assist.Location = eventData.Location || assist.Location;
-                assist.KillArea = eventData.KillArea || assist.KillArea;
-              } else {
-                failCount++;
-              }
-            } catch (e) {
-              failCount++;
-            }
-            delete assist.needsDetails;
-          });
-          
-          await Promise.all(detailPromises);
-          console.log('Finished fetching assist details. Success:', successCount, 'Failed:', failCount);
         }
       } catch (e) {
         console.log('Murder Ledger API failed:', e);
       }
       
-      // Fallback to official API if Murder Ledger didn't work
-      if (!murderLedgerSuccess) {
-        console.log('Using official API for assists (fallback)...');
+      // Convert Murder Ledger events to our format
+      const playerNameLower = currentPlayer.Name.toLowerCase();
+      let soloKills = [];
+      let assists = [];
+      currentDeaths = [];
+      
+      if (murderLedgerSuccess) {
+        // Process Murder Ledger events
+        allMlEvents.forEach(e => {
+          const killerName = (e.killer?.name || '').toLowerCase();
+          const victimName = (e.victim?.name || '').toLowerCase();
+          const participantCount = e.participant_count || 1;
+          
+          const isKiller = killerName === playerNameLower;
+          const isVictim = victimName === playerNameLower;
+          
+          // Convert to official API format
+          const convertedEvent = {
+            EventId: e.id,
+            BattleId: e.battle_id,
+            TimeStamp: new Date(e.time * 1000).toISOString(),
+            TotalVictimKillFame: e.total_kill_fame || 0,
+            Location: e.location || '',
+            KillArea: e.kill_area || '',
+            Killer: e.killer ? {
+              Id: e.killer.id,
+              Name: e.killer.name,
+              GuildName: e.killer.guild_name || '',
+              GuildId: e.killer.guild_id || '',
+              AllianceName: e.killer.alliance_name || '',
+              AllianceTag: e.killer.alliance_tag || '',
+              AllianceId: e.killer.alliance_id || '',
+              AverageItemPower: e.killer.item_power || 0,
+              Equipment: convertMlEquipment(e.killer.equipment)
+            } : null,
+            Victim: e.victim ? {
+              Id: e.victim.id,
+              Name: e.victim.name,
+              GuildName: e.victim.guild_name || '',
+              GuildId: e.victim.guild_id || '',
+              AllianceName: e.victim.alliance_name || '',
+              AllianceTag: e.victim.alliance_tag || '',
+              AllianceId: e.victim.alliance_id || '',
+              AverageItemPower: e.victim.item_power || 0,
+              Equipment: convertMlEquipment(e.victim.equipment),
+              Inventory: []
+            } : null,
+            Participants: [],
+            GroupMembers: [],
+            numberOfParticipants: participantCount,
+            groupMemberCount: e.party_size || 1
+          };
+          
+          // Classify event
+          if (isKiller && participantCount === 1) {
+            // Solo Kill
+            soloKills.push({ ...convertedEvent, eventType: 'kill' });
+          } else if (isKiller && participantCount > 1) {
+            // Assist (group kill where player is the killer)
+            assists.push({ ...convertedEvent, eventType: 'assist' });
+          } else if (isVictim) {
+            // Death
+            currentDeaths.push({ ...convertedEvent, eventType: 'death' });
+          } else {
+            // Player is in participants but not killer/victim - also an assist
+            // Check if player might be in participants (Murder Ledger doesn't always show this)
+            // For now, skip these events
+          }
+        });
         
-        // Collect battle IDs from kills and deaths
+        console.log('Murder Ledger breakdown:');
+        console.log('  Solo Kills:', soloKills.length);
+        console.log('  Assists:', assists.length);
+        console.log('  Deaths:', currentDeaths.length);
+        
+      } else {
+        // ==================== FALLBACK: Official API ====================
+        console.log('Murder Ledger failed, falling back to official API...');
+        
+        const [deaths, kills] = await Promise.all([
+          fetchAPI(`/players/${currentPlayer.Id}/deaths?limit=50`),
+          fetchAPI(`/players/${currentPlayer.Id}/kills?limit=50`)
+        ]);
+        
+        currentDeaths = deaths.map(e => ({ ...e, eventType: 'death' }));
+        soloKills = kills.map(e => ({ ...e, eventType: 'kill' }));
+        
+        // Try to get assists from battle events
+        const soloKillEventIds = new Set(soloKills.map(e => e.EventId));
+        const deathEventIds = new Set(currentDeaths.map(e => e.EventId));
+        
         const battleIds = new Set();
         soloKills.forEach(e => e.BattleId && battleIds.add(e.BattleId));
         currentDeaths.forEach(e => e.BattleId && battleIds.add(e.BattleId));
         
-        // Also get guild battles if available
         if (currentPlayer.GuildId) {
           try {
             const guildBattles = await fetchAPI(`/guilds/${currentPlayer.GuildId}/top?range=week&limit=20`);
@@ -2867,11 +2610,7 @@
           }
         }
         
-        console.log('Total battle IDs to check:', battleIds.size);
-        
-        // Fetch events from all battles in parallel (much faster!)
         const battleIdArray = Array.from(battleIds).slice(0, 50);
-        
         const battlePromises = battleIdArray.map(battleId => 
           fetchAPI(`/events/battle/${battleId}?offset=0&limit=51`).catch(() => [])
         );
@@ -2899,29 +2638,24 @@
         });
       }
       
-      // Remove duplicates
+      // Remove duplicates from assists
       const assistEventIds = new Set();
       assists = assists.filter(e => {
-        const eventId = e.EventId || e.event_id;
+        const eventId = e.EventId;
         if (assistEventIds.has(eventId)) return false;
         assistEventIds.add(eventId);
         return true;
       });
       
-      console.log('Total assists found:', assists.length);
-      
-      // Process kills
-      currentSoloKills = soloKills.map(e => ({ ...e, eventType: 'kill' }));
-      currentAssists = assists.map(e => e.eventType ? e : { ...e, eventType: 'assist' });
+      // Store results
+      currentSoloKills = soloKills;
+      currentAssists = assists;
       currentKills = [...soloKills, ...assists];
       
-      console.log('Player ID:', playerId);
-      console.log('Solo kills:', currentSoloKills.length);
-      console.log('Assists:', currentAssists.length);
-      console.log('Deaths:', currentDeaths.length);
-      
-      // Add event type to deaths
-      currentDeaths = currentDeaths.map(e => ({ ...e, eventType: 'death' }));
+      console.log('Final counts:');
+      console.log('  Solo kills:', currentSoloKills.length);
+      console.log('  Assists:', currentAssists.length);
+      console.log('  Deaths:', currentDeaths.length);
       
       // Only set default viewMode if not restoring from history
       if (!skipHistory) {
@@ -4258,336 +3992,6 @@
     
     // Restore from hash on page load
     initFromHash();
-
-    // ==================== RANKING FUNCTIONS ====================
-    
-    // Show ranking modal
-    function showRankingModal() {
-      const modal = document.getElementById('rankingModal');
-      modal.classList.add('visible');
-      
-      // Update title and button text based on language
-      document.getElementById('rankingModalTitle').textContent = 
-        currentLanguage === 'ja' ? '1v1 ランキング（直近）' : '1v1 Ranking (Recent)';
-      document.getElementById('rankingLoadingText').textContent = 
-        currentLanguage === 'ja' ? 'データを収集中...' : 'Collecting data...';
-      document.getElementById('rankingBtnText').textContent = 
-        currentLanguage === 'ja' ? '1v1 ランキング' : '1v1 Ranking';
-      
-      // Load ranking data
-      loadRankingData();
-    }
-    
-    // Close ranking modal
-    function closeRankingModal(event) {
-      if (event && event.target !== event.currentTarget) return;
-      const modal = document.getElementById('rankingModal');
-      modal.classList.remove('visible');
-    }
-    
-    // Load ranking data from Murder Ledger API
-    async function loadRankingData() {
-      const body = document.getElementById('rankingModalBody');
-      const server = document.getElementById('serverSelect').value;
-      
-      // Show loading
-      body.innerHTML = `
-        <div class="ranking-loading">
-          <div class="ranking-loading-spinner"></div>
-          <p>${currentLanguage === 'ja' ? 'Murder Ledgerからデータ取得中...' : 'Fetching from Murder Ledger...'}</p>
-        </div>
-      `;
-      
-      try {
-        // Try Murder Ledger leaderboard API first
-        console.log('Fetching from Murder Ledger leaderboard API...');
-        
-        const mlResponse = await fetch(`/api/murderledger/leaderboards/1v1?skip=0&take=50&server=${server}`);
-        
-        if (mlResponse.ok) {
-          const mlData = await mlResponse.json();
-          console.log('Murder Ledger leaderboard data:', mlData);
-          
-          if (mlData && mlData.length > 0) {
-            // Murder Ledger returns data in format like:
-            // { player_id, player_name, guild_name, rating, rank, wins, losses, ... }
-            renderMurderLedgerRanking(mlData);
-            return;
-          }
-        }
-        
-        // Fallback: Use official API events
-        console.log('Murder Ledger API failed, falling back to official API...');
-        await loadRankingFromOfficialAPI(body);
-        
-      } catch (error) {
-        console.error('Murder Ledger API error:', error);
-        // Fallback to official API
-        await loadRankingFromOfficialAPI(body);
-      }
-    }
-    
-    // Render Murder Ledger ranking data
-    function renderMurderLedgerRanking(data) {
-      const body = document.getElementById('rankingModalBody');
-      
-      if (!data || data.length === 0) {
-        body.innerHTML = `
-          <div class="ranking-empty">
-            ${currentLanguage === 'ja' ? '1v1データが見つかりませんでした' : 'No 1v1 data found'}
-          </div>
-        `;
-        return;
-      }
-      
-      const infoText = currentLanguage === 'ja' 
-        ? 'Murder Ledger 1v1ランキング（Corrupted Dungeon）'
-        : 'Murder Ledger 1v1 Ranking (Corrupted Dungeon)';
-      
-      const winText = currentLanguage === 'ja' ? '勝' : 'W';
-      const loseText = currentLanguage === 'ja' ? '敗' : 'L';
-      
-      body.innerHTML = `
-        <div class="ranking-info">
-          🏆 ${infoText}
-        </div>
-        <div class="ranking-list">
-          ${data.slice(0, 50).map((player, index) => {
-            const rank = player.rank || (index + 1);
-            let rankClass = 'normal';
-            if (rank === 1) rankClass = 'gold';
-            else if (rank === 2) rankClass = 'silver';
-            else if (rank === 3) rankClass = 'bronze';
-            
-            const wins = player.wins || 0;
-            const losses = player.losses || 0;
-            const total = wins + losses;
-            const winRate = total > 0 ? (wins / total * 100) : 0;
-            
-            let winRateClass = 'low';
-            if (winRate >= 60) winRateClass = 'high';
-            else if (winRate >= 40) winRateClass = 'medium';
-            
-            const playerName = player.player_name || player.name || 'Unknown';
-            const guildName = player.guild_name || player.guild || '';
-            const rating = player.rating || 0;
-            
-            return `
-              <div class="ranking-item">
-                <div class="ranking-rank ${rankClass}">${rank}</div>
-                <div class="ranking-player">
-                  <div class="ranking-player-name" onclick="searchFromRanking('${escapeHtml(playerName)}')">${escapeHtml(playerName)}</div>
-                  <div class="ranking-player-guild">${escapeHtml(guildName) || 'No Guild'}</div>
-                </div>
-                <div class="ranking-stats">
-                  <div class="ranking-stat">
-                    <div class="ranking-stat-value" style="color: #22c55e">${wins}</div>
-                    <div class="ranking-stat-label">${winText}</div>
-                  </div>
-                  <div class="ranking-stat">
-                    <div class="ranking-stat-value" style="color: #ef4444">${losses}</div>
-                    <div class="ranking-stat-label">${loseText}</div>
-                  </div>
-                  ${rating ? `
-                  <div class="ranking-stat">
-                    <div class="ranking-stat-value" style="color: #f59e0b">${rating}</div>
-                    <div class="ranking-stat-label">Rating</div>
-                  </div>
-                  ` : ''}
-                </div>
-                <div class="ranking-winrate ${winRateClass}">${winRate.toFixed(1)}%</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-    
-    // Fallback: Load ranking from official API
-    async function loadRankingFromOfficialAPI(body) {
-      body.innerHTML = `
-        <div class="ranking-loading">
-          <div class="ranking-loading-spinner"></div>
-          <p>${currentLanguage === 'ja' ? '公式APIからデータ収集中...' : 'Collecting from official API...'}</p>
-        </div>
-      `;
-      
-      try {
-        const allEvents = [];
-        const pagesToFetch = 10;
-        
-        const pagePromises = [];
-        for (let i = 0; i < pagesToFetch; i++) {
-          const offset = i * 50;
-          pagePromises.push(
-            fetchAPI(`/events?offset=${offset}&limit=50`).catch(() => [])
-          );
-        }
-        
-        const results = await Promise.all(pagePromises);
-        results.forEach(events => {
-          if (Array.isArray(events)) {
-            allEvents.push(...events);
-          }
-        });
-        
-        console.log('Total events fetched:', allEvents.length);
-        
-        const oneVsOneEvents = allEvents.filter(event => {
-          const participants = event.Participants || [];
-          const damageParticipants = participants.filter(p => p.DamageDone > 0);
-          return damageParticipants.length <= 1;
-        });
-        
-        console.log('1v1 events:', oneVsOneEvents.length);
-        
-        const playerStats = {};
-        
-        oneVsOneEvents.forEach(event => {
-          const killer = event.Killer;
-          const victim = event.Victim;
-          
-          if (!killer || !victim) return;
-          
-          const killerId = killer.Id;
-          if (!playerStats[killerId]) {
-            playerStats[killerId] = {
-              id: killerId,
-              name: killer.Name,
-              guild: killer.GuildName || '',
-              wins: 0,
-              losses: 0
-            };
-          }
-          playerStats[killerId].wins++;
-          playerStats[killerId].name = killer.Name;
-          playerStats[killerId].guild = killer.GuildName || '';
-          
-          const victimId = victim.Id;
-          if (!playerStats[victimId]) {
-            playerStats[victimId] = {
-              id: victimId,
-              name: victim.Name,
-              guild: victim.GuildName || '',
-              wins: 0,
-              losses: 0
-            };
-          }
-          playerStats[victimId].losses++;
-          playerStats[victimId].name = victim.Name;
-          playerStats[victimId].guild = victim.GuildName || '';
-        });
-        
-        const rankings = Object.values(playerStats)
-          .map(p => ({
-            ...p,
-            total: p.wins + p.losses,
-            winRate: p.wins + p.losses > 0 ? (p.wins / (p.wins + p.losses) * 100) : 0
-          }))
-          .filter(p => p.total >= 3)
-          .sort((a, b) => {
-            if (b.winRate !== a.winRate) return b.winRate - a.winRate;
-            return b.total - a.total;
-          })
-          .slice(0, 50);
-        
-        renderRanking(rankings, oneVsOneEvents.length);
-        
-      } catch (error) {
-        console.error('Failed to load ranking:', error);
-        body.innerHTML = `
-          <div class="ranking-empty">
-            ${currentLanguage === 'ja' ? 'ランキングの読み込みに失敗しました' : 'Failed to load ranking'}
-          </div>
-        `;
-      }
-    }
-    
-    // Render ranking list
-    function renderRanking(rankings, totalEvents) {
-      const body = document.getElementById('rankingModalBody');
-      
-      if (rankings.length === 0) {
-        body.innerHTML = `
-          <div class="ranking-empty">
-            ${currentLanguage === 'ja' ? '1v1データが見つかりませんでした' : 'No 1v1 data found'}
-          </div>
-        `;
-        return;
-      }
-      
-      const infoText = currentLanguage === 'ja' 
-        ? `直近の1v1イベント ${totalEvents}件から集計（3戦以上のプレイヤーのみ）`
-        : `Based on ${totalEvents} recent 1v1 events (players with 3+ fights)`;
-      
-      const winText = currentLanguage === 'ja' ? '勝' : 'W';
-      const loseText = currentLanguage === 'ja' ? '敗' : 'L';
-      
-      body.innerHTML = `
-        <div class="ranking-info">
-          ℹ️ ${infoText}
-        </div>
-        <div class="ranking-list">
-          ${rankings.map((player, index) => {
-            const rank = index + 1;
-            let rankClass = 'normal';
-            if (rank === 1) rankClass = 'gold';
-            else if (rank === 2) rankClass = 'silver';
-            else if (rank === 3) rankClass = 'bronze';
-            
-            let winRateClass = 'low';
-            if (player.winRate >= 60) winRateClass = 'high';
-            else if (player.winRate >= 40) winRateClass = 'medium';
-            
-            return `
-              <div class="ranking-item">
-                <div class="ranking-rank ${rankClass}">${rank}</div>
-                <div class="ranking-player">
-                  <div class="ranking-player-name" onclick="searchFromRanking('${escapeHtml(player.name)}')">${escapeHtml(player.name)}</div>
-                  <div class="ranking-player-guild">${escapeHtml(player.guild) || 'No Guild'}</div>
-                </div>
-                <div class="ranking-stats">
-                  <div class="ranking-stat">
-                    <div class="ranking-stat-value" style="color: #22c55e">${player.wins}</div>
-                    <div class="ranking-stat-label">${winText}</div>
-                  </div>
-                  <div class="ranking-stat">
-                    <div class="ranking-stat-value" style="color: #ef4444">${player.losses}</div>
-                    <div class="ranking-stat-label">${loseText}</div>
-                  </div>
-                </div>
-                <div class="ranking-winrate ${winRateClass}">${player.winRate.toFixed(1)}%</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-    
-    // Search player from ranking
-    function searchFromRanking(playerName) {
-      closeRankingModal();
-      document.getElementById('searchInput').value = playerName;
-      handleSearch(new Event('submit'));
-    }
   </script>
-
-  <!-- Ranking Modal -->
-  <div class="ranking-modal" id="rankingModal" onclick="closeRankingModal(event)">
-    <div class="ranking-modal-content" onclick="event.stopPropagation()">
-      <div class="ranking-modal-header">
-        <div class="ranking-modal-title">
-          🏆 <span id="rankingModalTitle">1v1 ランキング</span>
-        </div>
-        <button class="ranking-modal-close" onclick="closeRankingModal()">&times;</button>
-      </div>
-      <div class="ranking-modal-body" id="rankingModalBody">
-        <div class="ranking-loading">
-          <div class="ranking-loading-spinner"></div>
-          <p id="rankingLoadingText">データを収集中...</p>
-        </div>
-      </div>
-    </div>
-  </div>
 </body>
 </html>
