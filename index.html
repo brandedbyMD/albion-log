@@ -1374,6 +1374,167 @@
         gap: 10px;
       }
     }
+
+    /* Feedback Button & Modal */
+    .feedback-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+      z-index: 1000;
+    }
+
+    .feedback-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+
+    .feedback-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .feedback-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .feedback-modal {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      transform: translateY(20px);
+      transition: transform 0.2s;
+    }
+
+    .feedback-modal-overlay.active .feedback-modal {
+      transform: translateY(0);
+    }
+
+    .feedback-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .feedback-modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .feedback-modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .feedback-modal-close:hover {
+      color: var(--text);
+    }
+
+    .feedback-form-group {
+      margin-bottom: 16px;
+    }
+
+    .feedback-form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text-secondary);
+    }
+
+    .feedback-form-group select,
+    .feedback-form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.15s;
+    }
+
+    .feedback-form-group select:focus,
+    .feedback-form-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .feedback-form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .feedback-submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .feedback-submit-btn:hover {
+      opacity: 0.9;
+    }
+
+    .feedback-submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .feedback-success {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .feedback-success-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .feedback-success-text {
+      font-size: 1.1rem;
+      color: var(--text);
+    }
   </style>
 </head>
 <body>
@@ -3996,6 +4157,125 @@
     
     // Restore from hash on page load
     initFromHash();
+  </script>
+
+  <!-- Feedback Button & Modal -->
+  <button class="feedback-btn" onclick="openFeedbackModal()" title="フィードバック">
+    💬
+  </button>
+
+  <div class="feedback-modal-overlay" id="feedbackModalOverlay" onclick="closeFeedbackModalOnOverlay(event)">
+    <div class="feedback-modal">
+      <div class="feedback-modal-header">
+        <span class="feedback-modal-title" id="feedbackModalTitle">フィードバック</span>
+        <button class="feedback-modal-close" onclick="closeFeedbackModal()">×</button>
+      </div>
+      <div id="feedbackFormContainer">
+        <form id="feedbackForm" onsubmit="submitFeedback(event)">
+          <div class="feedback-form-group">
+            <label id="feedbackTypeLabel">種類</label>
+            <select id="feedbackType" required>
+              <option value="bug">🐛 バグ報告</option>
+              <option value="feature">💡 機能要望</option>
+              <option value="question">❓ 質問</option>
+              <option value="other">📝 その他</option>
+            </select>
+          </div>
+          <div class="feedback-form-group">
+            <label id="feedbackMessageLabel">メッセージ</label>
+            <textarea id="feedbackMessage" placeholder="ここに内容を入力してください..." required></textarea>
+          </div>
+          <button type="submit" class="feedback-submit-btn" id="feedbackSubmitBtn">送信</button>
+        </form>
+      </div>
+      <div id="feedbackSuccessContainer" style="display: none;">
+        <div class="feedback-success">
+          <div class="feedback-success-icon">✅</div>
+          <div class="feedback-success-text" id="feedbackSuccessText">送信しました！ありがとうございます！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Feedback Modal Functions
+    function openFeedbackModal() {
+      document.getElementById('feedbackModalOverlay').classList.add('active');
+      document.getElementById('feedbackFormContainer').style.display = 'block';
+      document.getElementById('feedbackSuccessContainer').style.display = 'none';
+      document.getElementById('feedbackForm').reset();
+      updateFeedbackModalLanguage();
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModalOverlay').classList.remove('active');
+    }
+
+    function closeFeedbackModalOnOverlay(event) {
+      if (event.target === event.currentTarget) {
+        closeFeedbackModal();
+      }
+    }
+
+    function updateFeedbackModalLanguage() {
+      const isJa = currentLanguage === 'ja';
+      document.getElementById('feedbackModalTitle').textContent = isJa ? 'フィードバック' : 'Feedback';
+      document.getElementById('feedbackTypeLabel').textContent = isJa ? '種類' : 'Type';
+      document.getElementById('feedbackMessageLabel').textContent = isJa ? 'メッセージ' : 'Message';
+      document.getElementById('feedbackSubmitBtn').textContent = isJa ? '送信' : 'Submit';
+      document.getElementById('feedbackSuccessText').textContent = isJa ? '送信しました！ありがとうございます！' : 'Sent! Thank you!';
+      document.getElementById('feedbackMessage').placeholder = isJa ? 'ここに内容を入力してください...' : 'Enter your message here...';
+      
+      const typeSelect = document.getElementById('feedbackType');
+      typeSelect.options[0].text = isJa ? '🐛 バグ報告' : '🐛 Bug Report';
+      typeSelect.options[1].text = isJa ? '💡 機能要望' : '💡 Feature Request';
+      typeSelect.options[2].text = isJa ? '❓ 質問' : '❓ Question';
+      typeSelect.options[3].text = isJa ? '📝 その他' : '📝 Other';
+    }
+
+    async function submitFeedback(event) {
+      event.preventDefault();
+      
+      const submitBtn = document.getElementById('feedbackSubmitBtn');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = currentLanguage === 'ja' ? '送信中...' : 'Sending...';
+      
+      const feedbackData = {
+        type: document.getElementById('feedbackType').value,
+        message: document.getElementById('feedbackMessage').value,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href,
+        player: currentPlayer?.Name || 'N/A'
+      };
+      
+      try {
+        const response = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(feedbackData)
+        });
+        
+        if (response.ok) {
+          document.getElementById('feedbackFormContainer').style.display = 'none';
+          document.getElementById('feedbackSuccessContainer').style.display = 'block';
+          setTimeout(() => {
+            closeFeedbackModal();
+          }, 2000);
+        } else {
+          throw new Error('Failed to send feedback');
+        }
+      } catch (error) {
+        console.error('Feedback error:', error);
+        alert(currentLanguage === 'ja' ? '送信に失敗しました。後でもう一度お試しください。' : 'Failed to send. Please try again later.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    }
   </script>
 </body>
 </html>
