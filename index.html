@@ -1476,7 +1476,8 @@
     }
 
     .feedback-form-group select,
-    .feedback-form-group textarea {
+    .feedback-form-group textarea,
+    .feedback-form-group input[type="text"] {
       width: 100%;
       padding: 12px;
       border: 1px solid var(--border);
@@ -1489,7 +1490,8 @@
     }
 
     .feedback-form-group select:focus,
-    .feedback-form-group textarea:focus {
+    .feedback-form-group textarea:focus,
+    .feedback-form-group input[type="text"]:focus {
       outline: none;
       border-color: var(--accent);
     }
@@ -4185,6 +4187,11 @@
             <label id="feedbackMessageLabel">メッセージ</label>
             <textarea id="feedbackMessage" placeholder="ここに内容を入力してください..." required></textarea>
           </div>
+          <div class="feedback-form-group">
+            <label id="feedbackContactLabel">連絡先（任意）</label>
+            <input type="text" id="feedbackContact" placeholder="返信が欲しい場合はメールかDiscordを入力">
+            <small id="feedbackContactHint" style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 4px; display: block;">※ 返信が必要な場合のみ入力してください</small>
+          </div>
           <button type="submit" class="feedback-submit-btn" id="feedbackSubmitBtn">送信</button>
         </form>
       </div>
@@ -4222,6 +4229,9 @@
       document.getElementById('feedbackModalTitle').textContent = isJa ? 'フィードバック' : 'Feedback';
       document.getElementById('feedbackTypeLabel').textContent = isJa ? '種類' : 'Type';
       document.getElementById('feedbackMessageLabel').textContent = isJa ? 'メッセージ' : 'Message';
+      document.getElementById('feedbackContactLabel').textContent = isJa ? '連絡先（任意）' : 'Contact (optional)';
+      document.getElementById('feedbackContact').placeholder = isJa ? '返信が欲しい場合はメールかDiscordを入力' : 'Enter email or Discord for replies';
+      document.getElementById('feedbackContactHint').textContent = isJa ? '※ 返信が必要な場合のみ入力してください' : '* Only fill in if you need a reply';
       document.getElementById('feedbackSubmitBtn').textContent = isJa ? '送信' : 'Submit';
       document.getElementById('feedbackSuccessText').textContent = isJa ? '送信しました！ありがとうございます！' : 'Sent! Thank you!';
       document.getElementById('feedbackMessage').placeholder = isJa ? 'ここに内容を入力してください...' : 'Enter your message here...';
@@ -4244,6 +4254,7 @@
       const feedbackData = {
         type: document.getElementById('feedbackType').value,
         message: document.getElementById('feedbackMessage').value,
+        contact: document.getElementById('feedbackContact').value || '',
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent,
         url: window.location.href,

@@ -1,4 +1,4 @@
-// Feedback API endpoint - sends feedback via email using Resend
+// Feedback API endpoint - sends feedback to Discord via Webhook
 export async function onRequestPost(context) {
   const { request, env } = context;
   
@@ -20,68 +20,78 @@ export async function onRequestPost(context) {
       });
     }
 
-    // Type labels
-    const typeLabels = {
-      bug: '🐛 バグ報告 / Bug Report',
-      feature: '💡 機能要望 / Feature Request',
-      question: '❓ 質問 / Question',
-      other: '📝 その他 / Other'
+    // Type labels and colors
+    const typeConfig = {
+      bug: { label: '🐛 バグ報告', color: 0xDC2626 },      // Red
+      feature: { label: '💡 機能要望', color: 0x2563EB },  // Blue
+      question: { label: '❓ 質問', color: 0x7C3AED },     // Purple
+      other: { label: '📝 その他', color: 0x737373 }       // Gray
     };
 
-    // Build email content
-    const emailSubject = `[Albion Log] ${typeLabels[data.type] || data.type}`;
-    const emailBody = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📬 Albion Log フィードバック
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    const config = typeConfig[data.type] || typeConfig.other;
 
-【種類 / Type】
-${typeLabels[data.type] || data.type}
+    // Build Discord embed
+    const embed = {
+      title: `${config.label}`,
+      color: config.color,
+      fields: [
+        {
+          name: '📝 メッセージ',
+          value: data.message.substring(0, 1024) || 'N/A',
+          inline: false
+        }
+      ],
+      footer: {
+        text: `Albion Log Feedback`
+      },
+      timestamp: new Date().toISOString()
+    };
 
-【メッセージ / Message】
-${data.message}
+    // Add contact field if provided
+    if (data.contact && data.contact.trim()) {
+      embed.fields.push({
+        name: '📬 連絡先',
+        value: data.contact,
+        inline: true
+      });
+    }
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 追加情報 / Additional Info
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    // Add player info if available
+    if (data.player && data.player !== 'N/A') {
+      embed.fields.push({
+        name: '🎮 プレイヤー',
+        value: data.player,
+        inline: true
+      });
+    }
 
-送信日時: ${data.timestamp || new Date().toISOString()}
-プレイヤー: ${data.player || 'N/A'}
-URL: ${data.url || 'N/A'}
-User Agent: ${data.userAgent || 'N/A'}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`;
-
-    // Check if Resend API key is configured
-    if (!env.RESEND_API_KEY) {
-      console.log('RESEND_API_KEY not configured. Feedback data:', data);
+    // Discord Webhook URL from environment variable
+    const webhookUrl = env.DISCORD_WEBHOOK_URL;
+    
+    if (!webhookUrl) {
+      console.log('DISCORD_WEBHOOK_URL not configured. Feedback data:', JSON.stringify(data));
       // Still return success for development/testing
-      return new Response(JSON.stringify({ success: true, message: 'Feedback received (email not configured)' }), {
+      return new Response(JSON.stringify({ success: true, message: 'Feedback received (webhook not configured)' }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Send email via Resend API
-    const resendResponse = await fetch('https://api.resend.com/emails', {
+    // Send to Discord
+    const discordResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Albion Log <feedback@resend.dev>',
-        to: env.FEEDBACK_EMAIL || 'your-email@example.com',
-        subject: emailSubject,
-        text: emailBody
+        embeds: [embed]
       })
     });
 
-    if (!resendResponse.ok) {
-      const errorData = await resendResponse.text();
-      console.error('Resend API error:', errorData);
-      throw new Error('Failed to send email');
+    if (!discordResponse.ok) {
+      const errorText = await discordResponse.text();
+      console.error('Discord Webhook error:', errorText);
+      throw new Error('Failed to send to Discord');
     }
 
     return new Response(JSON.stringify({ success: true }), {
