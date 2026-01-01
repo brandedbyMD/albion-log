@@ -3365,19 +3365,18 @@
           if (isDeath) {
             meData = event.Victim;
             enemyData = event.Killer;
+          } else if (isKill || isAssist) {
+            // Murder Ledger: アシストでもKillerにプレイヤーの情報が入る
+            meData = event.Killer;
+            enemyData = event.Victim;
           } else {
             enemyData = event.Victim;
-            
-            if (isKill) {
-              meData = event.Killer;
-            } else {
-              meData = event.Participants?.find(p => String(p.Id) === playerId);
-              if (!meData && event.GroupMembers) {
-                meData = event.GroupMembers.find(gm => String(gm.Id) === playerId);
-              }
-              if (!meData) {
-                meData = { Name: currentPlayer.Name, GuildName: currentPlayer.GuildName, Equipment: {}, AverageItemPower: 0 };
-              }
+            meData = event.Participants?.find(p => String(p.Id) === playerId);
+            if (!meData && event.GroupMembers) {
+              meData = event.GroupMembers.find(gm => String(gm.Id) === playerId);
+            }
+            if (!meData) {
+              meData = { Name: currentPlayer.Name, GuildName: currentPlayer.GuildName, Equipment: {}, AverageItemPower: 0 };
             }
           }
           
