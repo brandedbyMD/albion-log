@@ -3225,20 +3225,10 @@
             if (e.eventType === 'death' && e.Victim?.Equipment) {
               myEquip = e.Victim.Equipment;
               break;
-            } else if (e.eventType === 'kill' && e.Killer?.Equipment) {
+            } else if ((e.eventType === 'kill' || e.eventType === 'assist') && e.Killer?.Equipment) {
+              // Murder Ledger: アシストでもKillerに装備が入る
               myEquip = e.Killer.Equipment;
               break;
-            } else if (e.eventType === 'assist') {
-              const me = e.Participants?.find(p => String(p.Id) === playerId);
-              if (me?.Equipment && Object.keys(me.Equipment).length > 0) {
-                myEquip = me.Equipment;
-                break;
-              }
-              const meGm = e.GroupMembers?.find(gm => String(gm.Id) === playerId);
-              if (meGm?.Equipment && Object.keys(meGm.Equipment).length > 0) {
-                myEquip = meGm.Equipment;
-                break;
-              }
             }
           }
           
@@ -3890,7 +3880,12 @@
           if (type === 'player') {
             // Restore view mode before rendering
             currentViewMode = data.viewMode || 'events';
-            await searchPlayer(data.playerName, true); // skipHistory = true
+            // Use playerId if available for more reliable loading
+            if (data.playerId && data.playerName) {
+              await searchPlayer(data.playerId, data.playerName, true);
+            } else {
+              await searchPlayer(data.playerName, true);
+            }
             // Restore scroll position after a short delay
             if (data.scrollY) {
               setTimeout(() => window.scrollTo(0, data.scrollY), 100);
