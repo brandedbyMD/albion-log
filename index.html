@@ -2994,14 +2994,6 @@
       history = history.slice(0, 10);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
     }
-    
-    function removeFromHistory(name, e) {
-      e.stopPropagation();
-      let history = getSearchHistory();
-      history = history.filter(h => h !== name);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-      showHistory();
-    }
 
     // DOM Elements
     const searchInput = document.getElementById('searchInput');
@@ -3037,15 +3029,45 @@
         return;
       }
       
+      window._historyData = history;
+      
       autocompleteList.innerHTML = `
         <div class="autocomplete-section">${t('searchHistory')}</div>
-        ${history.map(name => `
-          <div class="autocomplete-item" onclick="selectFromHistory('${escapeHtml(name)}')">
+        ${history.map((name, index) => `
+          <div class="autocomplete-item" data-history-index="${index}">
             <span>${escapeHtml(name)}</span>
-            <span class="delete-history" onclick="removeFromHistory('${escapeHtml(name)}', event)">✕</span>
+            <span class="delete-history" data-history-delete="${index}">✕</span>
           </div>
         `).join('')}
       `;
+      
+      // Add mousedown handlers
+      autocompleteList.querySelectorAll('[data-history-index]').forEach(item => {
+        item.addEventListener('mousedown', (e) => {
+          // Don't trigger if clicking delete button
+          if (e.target.hasAttribute('data-history-delete')) return;
+          e.preventDefault();
+          const index = parseInt(item.dataset.historyIndex);
+          const name = window._historyData[index];
+          if (name) {
+            selectFromHistory(name);
+          }
+        });
+      });
+      
+      // Add delete button handlers
+      autocompleteList.querySelectorAll('[data-history-delete]').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const index = parseInt(btn.dataset.historyDelete);
+          const name = window._historyData[index];
+          if (name) {
+            removeFromHistory(name);
+          }
+        });
+      });
+      
       autocompleteList.classList.add('visible');
     }
     
@@ -3053,6 +3075,13 @@
       searchInput.value = name;
       autocompleteList.classList.remove('visible');
       searchForm.dispatchEvent(new Event('submit'));
+    }
+    
+    function removeFromHistory(name) {
+      let history = getSearchHistory();
+      history = history.filter(h => h !== name);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      showHistory();
     }
 
     // Autocomplete
@@ -3105,10 +3134,12 @@
     });
 
     function renderAutocomplete(players) {
+      window._playerAutocompleteData = players;
+      
       autocompleteList.innerHTML = `
         <div class="autocomplete-section">${t('searchResults')}</div>
-        ${players.map(p => `
-          <div class="autocomplete-item" onclick="selectPlayer('${p.Id}', '${escapeHtml(p.Name)}')">
+        ${players.map((p, index) => `
+          <div class="autocomplete-item" data-player-index="${index}">
             <div>
               <div>${escapeHtml(p.Name)}</div>
               <div class="guild">${escapeHtml(p.GuildName || 'No Guild')}</div>
@@ -3116,23 +3147,51 @@
           </div>
         `).join('')}
       `;
+      
+      // Add mousedown handlers (fires before blur)
+      autocompleteList.querySelectorAll('[data-player-index]').forEach(item => {
+        item.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          const index = parseInt(item.dataset.playerIndex);
+          const player = window._playerAutocompleteData[index];
+          if (player) {
+            selectPlayer(player.Id, player.Name);
+          }
+        });
+      });
+      
       autocompleteList.classList.add('visible');
     }
     
     function renderGuildAutocomplete(guilds) {
-      console.log('renderGuildAutocomplete guilds:', guilds);
-      console.log('First guild structure:', JSON.stringify(guilds[0], null, 2));
+      // Store guilds for click handler
+      window._guildAutocompleteData = guilds;
+      
       autocompleteList.innerHTML = `
         <div class="autocomplete-section">${t('searchResults')}</div>
-        ${guilds.map(g => `
-          <div class="autocomplete-item" onclick="selectGuild('${g.Id}', \`${escapeHtml(g.Name)}\`)">
+        ${guilds.map((g, index) => `
+          <div class="autocomplete-item" data-guild-index="${index}">
             <div>
-              <div>${escapeHtml(g.Name)}${g.AllianceTag ? ` <span style="color:var(--text-secondary)">[${escapeHtml(g.AllianceTag)}]</span>` : ''}</div>
-              <div class="guild">${g.MemberCount || g.memberCount || 0} ${currentLanguage === 'ja' ? 'メンバー' : 'members'}</div>
+              <div>${escapeHtml(g.Name)}${g.AllianceTag || g.AllianceName ? ` <span style="color:var(--text-secondary)">[${escapeHtml(g.AllianceTag || g.AllianceName)}]</span>` : ''}</div>
+              <div class="guild">${currentLanguage === 'ja' ? 'ギルド' : 'Guild'}</div>
             </div>
           </div>
         `).join('')}
       `;
+      
+      // Add mousedown handlers (fires before blur)
+      autocompleteList.querySelectorAll('[data-guild-index]').forEach(item => {
+        item.addEventListener('mousedown', (e) => {
+          e.preventDefault(); // Prevent blur
+          const index = parseInt(item.dataset.guildIndex);
+          const guild = window._guildAutocompleteData[index];
+          console.log('Guild mousedown:', index, guild);
+          if (guild) {
+            selectGuild(guild.Id, guild.Name);
+          }
+        });
+      });
+      
       autocompleteList.classList.add('visible');
     }
 
