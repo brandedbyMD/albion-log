@@ -1883,12 +1883,13 @@
 
     <footer class="site-footer">
       <div class="footer-links">
+        <a href="/about.html" id="footerAbout">このサイトについて</a>
         <a href="/privacy.html" id="footerPrivacy">プライバシーポリシー</a>
         <a href="#" onclick="openFeedbackModal(); return false;" id="footerContact">お問い合わせ</a>
       </div>
       <div class="footer-copyright">© 2026 Albion Log</div>
       <div class="footer-disclaimer" id="footerDisclaimer">
-        このサイトはAlbion Onlineの非公式ファンサイトです。Sandbox Interactive GmbHとは関係ありません。
+        本サイトはAlbion Onlineの公式サービスではありません。
       </div>
     </footer>
   </div>
@@ -2172,14 +2173,16 @@
       if (loadingText) loadingText.textContent = currentLanguage === 'ja' ? '読み込み中...' : 'Loading...';
       
       // Update footer
+      const footerAbout = document.getElementById('footerAbout');
+      if (footerAbout) footerAbout.textContent = currentLanguage === 'ja' ? 'このサイトについて' : 'About';
       const footerPrivacy = document.getElementById('footerPrivacy');
       if (footerPrivacy) footerPrivacy.textContent = currentLanguage === 'ja' ? 'プライバシーポリシー' : 'Privacy Policy';
       const footerContact = document.getElementById('footerContact');
       if (footerContact) footerContact.textContent = currentLanguage === 'ja' ? 'お問い合わせ' : 'Contact';
       const footerDisclaimer = document.getElementById('footerDisclaimer');
       if (footerDisclaimer) footerDisclaimer.textContent = currentLanguage === 'ja' 
-        ? 'このサイトはAlbion Onlineの非公式ファンサイトです。Sandbox Interactive GmbHとは関係ありません。' 
-        : 'This is an unofficial fan site for Albion Online. Not affiliated with Sandbox Interactive GmbH.';
+        ? '本サイトはAlbion Onlineの公式サービスではありません。' 
+        : 'This site is not an official Albion Online service.';
       
       // Re-render current view if player is loaded
       if (currentPlayer) {
