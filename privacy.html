@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プライバシーポリシー - Albion Log</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --accent: #3b82f6;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .back-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2:first-child {
+      margin-top: 0;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+    }
+
+    ul {
+      margin-bottom: 16px;
+      padding-left: 24px;
+      color: var(--text-secondary);
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .updated {
+      text-align: right;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 32px;
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .lang-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .lang-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .lang-content {
+      display: none;
+    }
+
+    .lang-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📜 プライバシーポリシー / Privacy Policy</h1>
+      <a href="/" class="back-link">← Albion Log に戻る / Back to Albion Log</a>
+    </header>
+
+    <div class="lang-switch">
+      <button class="lang-btn active" onclick="switchLang('ja')">日本語</button>
+      <button class="lang-btn" onclick="switchLang('en')">English</button>
+    </div>
+
+    <div class="content">
+      <!-- 日本語版 -->
+      <div id="lang-ja" class="lang-content active">
+        <h2>はじめに</h2>
+        <p>Albion Log（以下「当サイト」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めています。本プライバシーポリシーでは、当サイトがどのような情報を収集し、どのように使用するかについて説明します。</p>
+
+        <h2>収集する情報</h2>
+        <p>当サイトでは、以下の情報を収集・保存する場合があります：</p>
+        <ul>
+          <li><strong>ローカルストレージ：</strong>検索履歴、お気に入りプレイヤー、テーマ設定、言語設定などをお使いのブラウザに保存します。これらはサーバーには送信されません。</li>
+          <li><strong>フィードバック情報：</strong>フィードバックフォームから送信された内容（メッセージ、連絡先情報など）</li>
+          <li><strong>アクセスログ：</strong>IPアドレス、ブラウザ情報、アクセス日時などの一般的なアクセスログ</li>
+        </ul>
+
+        <h2>外部サービスの利用</h2>
+        <p>当サイトでは、以下の外部サービスを利用しています：</p>
+        <ul>
+          <li><strong>Albion Online API：</strong>プレイヤー情報、ギルド情報、キルログなどのゲームデータを取得するために使用しています。</li>
+          <li><strong>Murder Ledger API：</strong>詳細な戦闘データを取得するために使用しています。</li>
+          <li><strong>Google AdSense：</strong>広告配信のために使用しています。Google AdSenseはCookieを使用して、ユーザーの興味に基づいた広告を表示することがあります。</li>
+        </ul>
+
+        <h2>Cookieについて</h2>
+        <p>当サイトおよび第三者サービス（Google AdSense等）は、Cookieを使用する場合があります。Cookieは、ウェブサイトの利便性向上や広告配信の最適化のために使用されます。</p>
+        <p>ブラウザの設定でCookieを無効にすることができますが、一部の機能が正常に動作しなくなる可能性があります。</p>
+
+        <h2>情報の利用目的</h2>
+        <p>収集した情報は、以下の目的で使用します：</p>
+        <ul>
+          <li>サービスの提供・改善</li>
+          <li>ユーザーサポート</li>
+          <li>広告の配信</li>
+          <li>サイトの利用状況の分析</li>
+        </ul>
+
+        <h2>第三者への提供</h2>
+        <p>当サイトは、法令に基づく場合を除き、ユーザーの個人情報を第三者に提供することはありません。</p>
+
+        <h2>免責事項</h2>
+        <p>当サイトは、Albion Onlineの非公式ファンサイトです。Sandbox Interactive GmbHとは一切関係ありません。ゲームデータの正確性について保証するものではありません。</p>
+
+        <h2>お問い合わせ</h2>
+        <p>プライバシーポリシーに関するお問い合わせは、サイト内のフィードバック機能よりご連絡ください。</p>
+
+        <h2>ポリシーの変更</h2>
+        <p>本プライバシーポリシーは、必要に応じて変更されることがあります。変更があった場合は、当ページにて公開します。</p>
+
+        <p class="updated">最終更新日：2026年1月3日</p>
+      </div>
+
+      <!-- English Version -->
+      <div id="lang-en" class="lang-content">
+        <h2>Introduction</h2>
+        <p>Albion Log ("this site") respects user privacy and is committed to protecting personal information. This Privacy Policy explains what information we collect and how we use it.</p>
+
+        <h2>Information We Collect</h2>
+        <p>This site may collect and store the following information:</p>
+        <ul>
+          <li><strong>Local Storage:</strong> Search history, favorite players, theme settings, language preferences are stored in your browser. This data is not sent to our servers.</li>
+          <li><strong>Feedback Information:</strong> Content submitted through the feedback form (messages, contact information, etc.)</li>
+          <li><strong>Access Logs:</strong> General access logs including IP addresses, browser information, and access timestamps</li>
+        </ul>
+
+        <h2>Third-Party Services</h2>
+        <p>This site uses the following third-party services:</p>
+        <ul>
+          <li><strong>Albion Online API:</strong> Used to retrieve game data such as player information, guild information, and kill logs.</li>
+          <li><strong>Murder Ledger API:</strong> Used to retrieve detailed battle data.</li>
+          <li><strong>Google AdSense:</strong> Used for advertising. Google AdSense may use cookies to display ads based on user interests.</li>
+        </ul>
+
+        <h2>Cookies</h2>
+        <p>This site and third-party services (such as Google AdSense) may use cookies. Cookies are used to improve website functionality and optimize ad delivery.</p>
+        <p>You can disable cookies in your browser settings, but some features may not function properly.</p>
+
+        <h2>Use of Information</h2>
+        <p>Collected information is used for the following purposes:</p>
+        <ul>
+          <li>Providing and improving services</li>
+          <li>User support</li>
+          <li>Advertising delivery</li>
+          <li>Analysis of site usage</li>
+        </ul>
+
+        <h2>Disclosure to Third Parties</h2>
+        <p>This site will not disclose personal information to third parties except as required by law.</p>
+
+        <h2>Disclaimer</h2>
+        <p>This site is an unofficial fan site for Albion Online and is not affiliated with Sandbox Interactive GmbH. We do not guarantee the accuracy of game data.</p>
+
+        <h2>Contact</h2>
+        <p>For inquiries regarding this Privacy Policy, please use the feedback feature on the site.</p>
+
+        <h2>Policy Changes</h2>
+        <p>This Privacy Policy may be updated as needed. Any changes will be posted on this page.</p>
+
+        <p class="updated">Last Updated: January 3, 2026</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check saved theme
+    const savedTheme = localStorage.getItem('albion_log_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    function switchLang(lang) {
+      document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.lang-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('lang-' + lang).classList.add('active');
+      document.querySelector('.lang-btn[onclick*="' + lang + '"]').classList.add('active');
+    }
+
+    // Check saved language
+    const savedLang = localStorage.getItem('albion_log_language') || 'ja';
+    if (savedLang === 'en') {
+      switchLang('en');
+    }
+  </script>
+</body>
+</html>

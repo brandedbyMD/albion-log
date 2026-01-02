@@ -1395,6 +1395,45 @@
       }
     }
 
+    /* Footer */
+    .site-footer {
+      margin-top: 60px;
+      padding: 24px 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-btn);
+      text-decoration: underline;
+    }
+
+    .footer-copyright {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .footer-disclaimer {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      opacity: 0.7;
+    }
+
     /* Feedback Button & Modal */
     .feedback-btn {
       position: fixed;
@@ -1841,6 +1880,17 @@
     <div class="error-message" id="errorMessage" style="display: none;"></div>
 
     <section class="results-section" id="resultsSection"></section>
+
+    <footer class="site-footer">
+      <div class="footer-links">
+        <a href="/privacy.html" id="footerPrivacy">プライバシーポリシー</a>
+        <a href="#" onclick="openFeedbackModal(); return false;" id="footerContact">お問い合わせ</a>
+      </div>
+      <div class="footer-copyright">© 2026 Albion Log</div>
+      <div class="footer-disclaimer" id="footerDisclaimer">
+        このサイトはAlbion Onlineの非公式ファンサイトです。Sandbox Interactive GmbHとは関係ありません。
+      </div>
+    </footer>
   </div>
 
   <script>
@@ -2120,6 +2170,16 @@
       // Update loading text
       const loadingText = document.querySelector('#loading p');
       if (loadingText) loadingText.textContent = currentLanguage === 'ja' ? '読み込み中...' : 'Loading...';
+      
+      // Update footer
+      const footerPrivacy = document.getElementById('footerPrivacy');
+      if (footerPrivacy) footerPrivacy.textContent = currentLanguage === 'ja' ? 'プライバシーポリシー' : 'Privacy Policy';
+      const footerContact = document.getElementById('footerContact');
+      if (footerContact) footerContact.textContent = currentLanguage === 'ja' ? 'お問い合わせ' : 'Contact';
+      const footerDisclaimer = document.getElementById('footerDisclaimer');
+      if (footerDisclaimer) footerDisclaimer.textContent = currentLanguage === 'ja' 
+        ? 'このサイトはAlbion Onlineの非公式ファンサイトです。Sandbox Interactive GmbHとは関係ありません。' 
+        : 'This is an unofficial fan site for Albion Online. Not affiliated with Sandbox Interactive GmbH.';
       
       // Re-render current view if player is loaded
       if (currentPlayer) {
