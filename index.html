@@ -1884,6 +1884,7 @@
     <footer class="site-footer">
       <div class="footer-links">
         <a href="/about.html" id="footerAbout">このサイトについて</a>
+        <a href="/guide.html" id="footerGuide">使い方ガイド</a>
         <a href="/privacy.html" id="footerPrivacy">プライバシーポリシー</a>
         <a href="#" onclick="openFeedbackModal(); return false;" id="footerContact">お問い合わせ</a>
       </div>
@@ -2175,6 +2176,8 @@
       // Update footer
       const footerAbout = document.getElementById('footerAbout');
       if (footerAbout) footerAbout.textContent = currentLanguage === 'ja' ? 'このサイトについて' : 'About';
+      const footerGuide = document.getElementById('footerGuide');
+      if (footerGuide) footerGuide.textContent = currentLanguage === 'ja' ? '使い方ガイド' : 'User Guide';
       const footerPrivacy = document.getElementById('footerPrivacy');
       if (footerPrivacy) footerPrivacy.textContent = currentLanguage === 'ja' ? 'プライバシーポリシー' : 'Privacy Policy';
       const footerContact = document.getElementById('footerContact');

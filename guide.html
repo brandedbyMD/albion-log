@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使い方ガイド - Albion Log</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --accent: #3b82f6;
+      --kill: #22c55e;
+      --death: #ef4444;
+      --assist: #f59e0b;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 8px;
+    }
+
+    .back-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .content {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      margin-top: 40px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2:first-child {
+      margin-top: 0;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+    }
+
+    ul, ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+      color: var(--text-secondary);
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .step-list {
+      list-style: none;
+      padding-left: 0;
+      counter-reset: step;
+    }
+
+    .step-list li {
+      counter-increment: step;
+      padding: 16px;
+      background: var(--bg);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      position: relative;
+      padding-left: 50px;
+    }
+
+    .step-list li::before {
+      content: counter(step);
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .tip-box {
+      background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+    }
+
+    [data-theme="dark"] .tip-box {
+      background: linear-gradient(135deg, #1e3a5f 0%, #312e81 100%);
+    }
+
+    .tip-box strong {
+      color: var(--accent);
+    }
+
+    .tip-box p {
+      margin-bottom: 0;
+      color: var(--text);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-kill {
+      background: rgba(34, 197, 94, 0.2);
+      color: var(--kill);
+    }
+
+    .badge-death {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--death);
+    }
+
+    .badge-assist {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--assist);
+    }
+
+    .feature-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    .feature-table th,
+    .feature-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feature-table th {
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .feature-table td {
+      color: var(--text-secondary);
+    }
+
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .lang-btn {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .lang-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .lang-content {
+      display: none;
+    }
+
+    .lang-content.active {
+      display: block;
+    }
+
+    .toc {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 32px;
+    }
+
+    .toc-title {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .toc-list li {
+      margin-bottom: 8px;
+    }
+
+    .toc-list a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .toc-list a:hover {
+      text-decoration: underline;
+    }
+
+    .screenshot-placeholder {
+      background: var(--bg);
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      color: var(--text-secondary);
+      margin: 16px 0;
+    }
+
+    kbd {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📚 使い方ガイド / User Guide</h1>
+      <a href="/" class="back-link">← Albion Log に戻る / Back to Albion Log</a>
+    </header>
+
+    <div class="lang-switch">
+      <button class="lang-btn active" onclick="switchLang('ja')">日本語</button>
+      <button class="lang-btn" onclick="switchLang('en')">English</button>
+    </div>
+
+    <div class="content">
+      <!-- 日本語版 -->
+      <div id="lang-ja" class="lang-content active">
+        <nav class="toc">
+          <div class="toc-title">📋 目次</div>
+          <ol class="toc-list">
+            <li><a href="#ja-player-search">プレイヤー検索</a></li>
+            <li><a href="#ja-guild-search">ギルド検索</a></li>
+            <li><a href="#ja-kill-log">キルログの見方</a></li>
+            <li><a href="#ja-battle-detail">バトル詳細</a></li>
+            <li><a href="#ja-favorites">お気に入り機能</a></li>
+            <li><a href="#ja-settings">設定・カスタマイズ</a></li>
+          </ol>
+        </nav>
+
+        <h2 id="ja-player-search">👤 プレイヤー検索</h2>
+        <p>プレイヤー名を入力して、キルログや統計情報を確認できます。</p>
+        
+        <h3>検索方法</h3>
+        <ol class="step-list">
+          <li>画面上部の「プレイヤー」タブが選択されていることを確認</li>
+          <li>検索ボックスにプレイヤー名を入力（2文字以上で候補が表示されます）</li>
+          <li>候補から選択するか、Enterキーで検索</li>
+          <li>サーバーを変更したい場合は、検索ボックス右のドロップダウンから選択</li>
+        </ol>
+
+        <div class="tip-box">
+          <strong>💡 ヒント</strong>
+          <p>検索履歴は自動で保存されます。検索ボックスをクリックすると過去に検索したプレイヤーが表示されます。</p>
+        </div>
+
+        <h3>サーバー選択</h3>
+        <table class="feature-table">
+          <tr>
+            <th>サーバー</th>
+            <th>地域</th>
+          </tr>
+          <tr>
+            <td>Asia</td>
+            <td>アジア（日本・韓国・東南アジア等）</td>
+          </tr>
+          <tr>
+            <td>Americas</td>
+            <td>北米・南米</td>
+          </tr>
+          <tr>
+            <td>Europe</td>
+            <td>ヨーロッパ</td>
+          </tr>
+        </table>
+
+        <h2 id="ja-guild-search">🏰 ギルド検索</h2>
+        <p>ギルド名で検索して、ギルド情報やメンバー一覧を確認できます。</p>
+
+        <h3>検索方法</h3>
+        <ol class="step-list">
+          <li>画面上部の「ギルド」タブをクリック</li>
+          <li>検索ボックスにギルド名を入力</li>
+          <li>候補から選択するか、Enterキーで検索</li>
+        </ol>
+
+        <h3>ギルド情報ページで確認できること</h3>
+        <ul>
+          <li><strong>基本情報</strong> - 創設者、創設日、同盟</li>
+          <li><strong>統計</strong> - メンバー数、キル名声、デス名声、名声比</li>
+          <li><strong>メンバー一覧</strong> - 全メンバーの名声データ（ソート・フィルター可能）</li>
+        </ul>
+
+        <div class="tip-box">
+          <strong>💡 ヒント</strong>
+          <p>メンバー名をクリックすると、そのプレイヤーのキルログページに移動できます。</p>
+        </div>
+
+        <h2 id="ja-kill-log">⚔️ キルログの見方</h2>
+        <p>プレイヤーページでは、キル・デス・アシストの履歴を確認できます。</p>
+
+        <h3>ログの種類</h3>
+        <table class="feature-table">
+          <tr>
+            <th>種類</th>
+            <th>色</th>
+            <th>説明</th>
+          </tr>
+          <tr>
+            <td><span class="badge badge-kill">KILL</span></td>
+            <td>緑</td>
+            <td>あなたが敵を倒したログ</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-death">DEATH</span></td>
+            <td>赤</td>
+            <td>あなたが倒されたログ</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-assist">ASSIST</span></td>
+            <td>オレンジ</td>
+            <td>キルに貢献したログ</td>
+          </tr>
+        </table>
+
+        <h3>表示モード</h3>
+        <p>「個別ログ」と「バトル」の2つの表示モードがあります。</p>
+        <ul>
+          <li><strong>個別ログ</strong> - 1件ずつの戦闘を時系列で表示</li>
+          <li><strong>バトル</strong> - 複数の戦闘をバトル（集団戦）単位でまとめて表示</li>
+        </ul>
+
+        <h3>ログカードの見方</h3>
+        <ul>
+          <li><strong>左側</strong> - 自分の情報（装備・IP）</li>
+          <li><strong>中央</strong> - 結果アイコン（⚔️/💀）・名声・時間・場所</li>
+          <li><strong>右側</strong> - 相手の情報（装備・IP）</li>
+        </ul>
+
+        <div class="tip-box">
+          <strong>💡 ヒント</strong>
+          <p>ログカードをクリックすると、詳細情報（インベントリなど）が表示されます。</p>
+        </div>
+
+        <h2 id="ja-battle-detail">📊 バトル詳細</h2>
+        <p>バトルモードでバトルを選択すると、詳細ページに移動します。</p>
+
+        <h3>確認できる情報</h3>
+        <ul>
+          <li><strong>バトル概要</strong> - 参加人数、総名声、発生時間</li>
+          <li><strong>参加者一覧</strong> - 全参加者の装備とキル/デス数</li>
+          <li><strong>ギルド別統計</strong> - ギルドごとのキル/デス集計</li>
+        </ul>
+
+        <h2 id="ja-favorites">⭐ お気に入り機能</h2>
+        <p>よく見るプレイヤーをお気に入りに登録して、すぐにアクセスできます。</p>
+
+        <h3>お気に入りに追加</h3>
+        <ol class="step-list">
+          <li>プレイヤーページを開く</li>
+          <li>プレイヤー名の横にある ☆ ボタンをクリック</li>
+          <li>★ に変わったら登録完了</li>
+        </ol>
+
+        <h3>お気に入りを見る</h3>
+        <ol class="step-list">
+          <li>画面右上の ⭐ ボタンをクリック</li>
+          <li>登録したプレイヤー一覧が表示されます</li>
+          <li>プレイヤー名をクリックでページに移動</li>
+        </ol>
+
+        <h2 id="ja-settings">⚙️ 設定・カスタマイズ</h2>
+        
+        <h3>テーマ切り替え</h3>
+        <p>画面右上の <span class="icon-btn">🌙</span> / <span class="icon-btn">☀️</span> ボタンでダークモード/ライトモードを切り替えられます。</p>
+
+        <h3>言語切り替え</h3>
+        <p>画面右上の <span class="icon-btn">🌐</span> ボタンで日本語/英語を切り替えられます。</p>
+
+        <h3>データについて</h3>
+        <ul>
+          <li>検索履歴、お気に入り、設定はブラウザのローカルストレージに保存されます</li>
+          <li>別のブラウザやデバイスでは同期されません</li>
+          <li>ブラウザのデータを削除すると、これらの情報も削除されます</li>
+        </ul>
+
+        <div class="tip-box">
+          <strong>💬 フィードバック</strong>
+          <p>バグ報告や機能リクエストは、画面右下の 💬 ボタンからお気軽にどうぞ！</p>
+        </div>
+      </div>
+
+      <!-- English Version -->
+      <div id="lang-en" class="lang-content">
+        <nav class="toc">
+          <div class="toc-title">📋 Table of Contents</div>
+          <ol class="toc-list">
+            <li><a href="#en-player-search">Player Search</a></li>
+            <li><a href="#en-guild-search">Guild Search</a></li>
+            <li><a href="#en-kill-log">Reading Kill Logs</a></li>
+            <li><a href="#en-battle-detail">Battle Details</a></li>
+            <li><a href="#en-favorites">Favorites</a></li>
+            <li><a href="#en-settings">Settings & Customization</a></li>
+          </ol>
+        </nav>
+
+        <h2 id="en-player-search">👤 Player Search</h2>
+        <p>Search for a player by name to view their kill logs and statistics.</p>
+        
+        <h3>How to Search</h3>
+        <ol class="step-list">
+          <li>Make sure the "Player" tab is selected at the top</li>
+          <li>Enter a player name in the search box (suggestions appear after 2 characters)</li>
+          <li>Select from suggestions or press Enter to search</li>
+          <li>To change servers, use the dropdown to the right of the search box</li>
+        </ol>
+
+        <div class="tip-box">
+          <strong>💡 Tip</strong>
+          <p>Search history is saved automatically. Click the search box to see previously searched players.</p>
+        </div>
+
+        <h3>Server Selection</h3>
+        <table class="feature-table">
+          <tr>
+            <th>Server</th>
+            <th>Region</th>
+          </tr>
+          <tr>
+            <td>Asia</td>
+            <td>Asia (Japan, Korea, Southeast Asia, etc.)</td>
+          </tr>
+          <tr>
+            <td>Americas</td>
+            <td>North & South America</td>
+          </tr>
+          <tr>
+            <td>Europe</td>
+            <td>Europe</td>
+          </tr>
+        </table>
+
+        <h2 id="en-guild-search">🏰 Guild Search</h2>
+        <p>Search for a guild to view guild information and member list.</p>
+
+        <h3>How to Search</h3>
+        <ol class="step-list">
+          <li>Click the "Guild" tab at the top</li>
+          <li>Enter a guild name in the search box</li>
+          <li>Select from suggestions or press Enter to search</li>
+        </ol>
+
+        <h3>Guild Page Information</h3>
+        <ul>
+          <li><strong>Basic Info</strong> - Founder, founding date, alliance</li>
+          <li><strong>Statistics</strong> - Member count, Kill Fame, Death Fame, Fame Ratio</li>
+          <li><strong>Member List</strong> - All members with fame data (sortable & filterable)</li>
+        </ul>
+
+        <div class="tip-box">
+          <strong>💡 Tip</strong>
+          <p>Click a member's name to go to their kill log page.</p>
+        </div>
+
+        <h2 id="en-kill-log">⚔️ Reading Kill Logs</h2>
+        <p>The player page shows kills, deaths, and assists history.</p>
+
+        <h3>Log Types</h3>
+        <table class="feature-table">
+          <tr>
+            <th>Type</th>
+            <th>Color</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td><span class="badge badge-kill">KILL</span></td>
+            <td>Green</td>
+            <td>You killed an enemy</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-death">DEATH</span></td>
+            <td>Red</td>
+            <td>You were killed</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-assist">ASSIST</span></td>
+            <td>Orange</td>
+            <td>You assisted in a kill</td>
+          </tr>
+        </table>
+
+        <h3>View Modes</h3>
+        <p>There are two view modes: "Individual Logs" and "Battles".</p>
+        <ul>
+          <li><strong>Individual Logs</strong> - Shows each combat event chronologically</li>
+          <li><strong>Battles</strong> - Groups multiple events into battle summaries</li>
+        </ul>
+
+        <h3>Reading Log Cards</h3>
+        <ul>
+          <li><strong>Left side</strong> - Your info (equipment, IP)</li>
+          <li><strong>Center</strong> - Result icon (⚔️/💀), fame, time, location</li>
+          <li><strong>Right side</strong> - Enemy info (equipment, IP)</li>
+        </ul>
+
+        <div class="tip-box">
+          <strong>💡 Tip</strong>
+          <p>Click on a log card to view details including inventory.</p>
+        </div>
+
+        <h2 id="en-battle-detail">📊 Battle Details</h2>
+        <p>In Battle mode, click a battle to view the details page.</p>
+
+        <h3>Available Information</h3>
+        <ul>
+          <li><strong>Battle Overview</strong> - Participants, total fame, timestamp</li>
+          <li><strong>Participants List</strong> - All participants with equipment and K/D</li>
+          <li><strong>Guild Statistics</strong> - Kill/death counts by guild</li>
+        </ul>
+
+        <h2 id="en-favorites">⭐ Favorites</h2>
+        <p>Save frequently viewed players for quick access.</p>
+
+        <h3>Adding to Favorites</h3>
+        <ol class="step-list">
+          <li>Open a player's page</li>
+          <li>Click the ☆ button next to the player's name</li>
+          <li>When it changes to ★, the player is saved</li>
+        </ol>
+
+        <h3>Viewing Favorites</h3>
+        <ol class="step-list">
+          <li>Click the ⭐ button in the top right</li>
+          <li>Your saved players will be displayed</li>
+          <li>Click a player name to go to their page</li>
+        </ol>
+
+        <h2 id="en-settings">⚙️ Settings & Customization</h2>
+        
+        <h3>Theme Toggle</h3>
+        <p>Click the <span class="icon-btn">🌙</span> / <span class="icon-btn">☀️</span> button in the top right to switch between dark and light mode.</p>
+
+        <h3>Language Toggle</h3>
+        <p>Click the <span class="icon-btn">🌐</span> button in the top right to switch between Japanese and English.</p>
+
+        <h3>About Data Storage</h3>
+        <ul>
+          <li>Search history, favorites, and settings are stored in your browser's local storage</li>
+          <li>Data is not synced across different browsers or devices</li>
+          <li>Clearing browser data will delete this information</li>
+        </ul>
+
+        <div class="tip-box">
+          <strong>💬 Feedback</strong>
+          <p>For bug reports or feature requests, use the 💬 button in the bottom right!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check saved theme
+    const savedTheme = localStorage.getItem('albion_log_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    function switchLang(lang) {
+      document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.lang-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('lang-' + lang).classList.add('active');
+      document.querySelector('.lang-btn[onclick*="' + lang + '"]').classList.add('active');
+    }
+
+    // Check saved language
+    const savedLang = localStorage.getItem('albion_log_language') || 'ja';
+    if (savedLang === 'en') {
+      switchLang('en');
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
