@@ -3018,14 +3018,19 @@
       currentServer = serverSelect.value;
     });
 
-    // Show history on focus
+    // Show history on focus (player search only)
     searchInput.addEventListener('focus', () => {
-      if (searchInput.value.trim().length < 2) {
+      if (currentSearchType === 'player' && searchInput.value.trim().length < 2) {
         showHistory();
       }
     });
 
     function showHistory() {
+      if (currentSearchType !== 'player') {
+        autocompleteList.classList.remove('visible');
+        return;
+      }
+      
       const history = getSearchHistory();
       if (history.length === 0) {
         autocompleteList.classList.remove('visible');
@@ -3115,13 +3120,15 @@
     }
     
     function renderGuildAutocomplete(guilds) {
+      console.log('renderGuildAutocomplete guilds:', guilds);
+      console.log('First guild structure:', JSON.stringify(guilds[0], null, 2));
       autocompleteList.innerHTML = `
         <div class="autocomplete-section">${t('searchResults')}</div>
         ${guilds.map(g => `
-          <div class="autocomplete-item" onclick="selectGuild('${g.Id}', '${escapeHtml(g.Name)}')">
+          <div class="autocomplete-item" onclick="selectGuild('${g.Id}', \`${escapeHtml(g.Name)}\`)">
             <div>
               <div>${escapeHtml(g.Name)}${g.AllianceTag ? ` <span style="color:var(--text-secondary)">[${escapeHtml(g.AllianceTag)}]</span>` : ''}</div>
-              <div class="guild">${g.MemberCount || 0} ${currentLanguage === 'ja' ? 'メンバー' : 'members'}</div>
+              <div class="guild">${g.MemberCount || g.memberCount || 0} ${currentLanguage === 'ja' ? 'メンバー' : 'members'}</div>
             </div>
           </div>
         `).join('')}
@@ -3138,6 +3145,7 @@
     }
     
     function selectGuild(guildId, guildName) {
+      console.log('selectGuild called:', guildId, guildName);
       searchInput.value = guildName;
       autocompleteList.classList.remove('visible');
       searchGuild(guildId, guildName);
