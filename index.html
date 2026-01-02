@@ -3067,13 +3067,16 @@
 
       autocompleteTimeout = setTimeout(async () => {
         try {
+          console.log('Autocomplete search:', query, 'type:', currentSearchType);
           const results = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
+          console.log('Autocomplete results:', results);
           
           if (currentSearchType === 'guild') {
             // Guild autocomplete
             if (results.guilds && results.guilds.length > 0) {
               renderGuildAutocomplete(results.guilds.slice(0, 8));
             } else {
+              console.log('No guilds found');
               autocompleteList.classList.remove('visible');
             }
           } else {
@@ -3081,10 +3084,12 @@
             if (results.players && results.players.length > 0) {
               renderAutocomplete(results.players.slice(0, 5));
             } else {
+              console.log('No players found');
               autocompleteList.classList.remove('visible');
             }
           }
         } catch (e) {
+          console.error('Autocomplete error:', e);
           autocompleteList.classList.remove('visible');
         }
       }, 300);
