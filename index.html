@@ -211,6 +211,51 @@
       font-size: 0.9rem;
     }
 
+    /* Hero Section */
+    .hero-section {
+      text-align: center;
+      padding: 32px 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero-icon {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .hero-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .hero-description {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      max-width: 500px;
+      margin: 0 auto 20px;
+    }
+
+    .hero-features {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .hero-feature {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .hero-feature-icon {
+      font-size: 1.1rem;
+    }
+
     /* Search Section */
     .search-section {
       background: var(--bg-card);
@@ -1853,6 +1898,19 @@
       </div>
     </header>
 
+    <!-- Hero Section -->
+    <section class="hero-section" id="heroSection">
+      <div class="hero-icon">⚔️</div>
+      <h2 class="hero-title">Albion Log</h2>
+      <p class="hero-description" id="heroDescription">Albion Onlineのキルログ検索ツール</p>
+      <div class="hero-features">
+        <div class="hero-feature"><span class="hero-feature-icon">👤</span> <span id="heroFeature1">プレイヤー検索</span></div>
+        <div class="hero-feature"><span class="hero-feature-icon">🏰</span> <span id="heroFeature2">ギルド検索</span></div>
+        <div class="hero-feature"><span class="hero-feature-icon">🎮</span> <span id="heroFeature3">装備確認</span></div>
+        <div class="hero-feature"><span class="hero-feature-icon">🌏</span> <span id="heroFeature4">全サーバー対応</span></div>
+      </div>
+    </section>
+
     <section class="search-section">
       <div class="search-tabs">
         <button class="search-tab active" id="playerTab" onclick="switchSearchTab('player')" data-i18n="searchTabPlayer">プレイヤー</button>
@@ -2172,6 +2230,20 @@
       // Update loading text
       const loadingText = document.querySelector('#loading p');
       if (loadingText) loadingText.textContent = currentLanguage === 'ja' ? '読み込み中...' : 'Loading...';
+      
+      // Update hero section
+      const heroDescription = document.getElementById('heroDescription');
+      if (heroDescription) heroDescription.textContent = currentLanguage === 'ja' 
+        ? 'Albion Onlineのキルログ検索ツール' 
+        : 'Kill log search tool for Albion Online';
+      const heroFeature1 = document.getElementById('heroFeature1');
+      if (heroFeature1) heroFeature1.textContent = currentLanguage === 'ja' ? 'プレイヤー検索' : 'Player Search';
+      const heroFeature2 = document.getElementById('heroFeature2');
+      if (heroFeature2) heroFeature2.textContent = currentLanguage === 'ja' ? 'ギルド検索' : 'Guild Search';
+      const heroFeature3 = document.getElementById('heroFeature3');
+      if (heroFeature3) heroFeature3.textContent = currentLanguage === 'ja' ? '装備確認' : 'Equipment';
+      const heroFeature4 = document.getElementById('heroFeature4');
+      if (heroFeature4) heroFeature4.textContent = currentLanguage === 'ja' ? '全サーバー対応' : 'All Servers';
       
       // Update footer
       const footerAbout = document.getElementById('footerAbout');
@@ -3375,6 +3447,10 @@
       currentGuildMembers = [];
       // Clear URL hash
       history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
+      
+      // Show hero section
+      const heroSection = document.getElementById('heroSection');
+      if (heroSection) heroSection.style.display = 'block';
     }
 
     // Convert Murder Ledger loadout format to official API Equipment format
@@ -3872,7 +3948,7 @@
       const itemId = item.Type;
       const quality = item.Quality || 1;
       const url = `https://render.albiononline.com/v1/item/${itemId}.png?quality=${quality}&size=128`;
-      return `<img class="equip-icon" style="width:${size}px;height:${size}px" src="${url}" alt="${itemId}" title="${itemId}" onerror="this.classList.add('empty'); this.src='';">`;
+      return `<img class="equip-icon" style="width:${size}px;height:${size}px" src="${url}" alt="${itemId}" title="${itemId}" loading="lazy" onerror="this.classList.add('empty'); this.src='';">`;
     }
 
     // Render player page
@@ -4044,6 +4120,10 @@
 
       renderPlayerContent();
       resultsSection.classList.add('visible');
+      
+      // Hide hero section when showing results
+      const heroSection = document.getElementById('heroSection');
+      if (heroSection) heroSection.style.display = 'none';
     }
     
     // Get readable weapon name from item ID
@@ -4434,7 +4514,7 @@
             const count = item.Count || 1;
             const url = 'https://render.albiononline.com/v1/item/' + item.Type + '.png?quality=' + quality + '&size=128';
             const title = item.Type + (count > 1 ? ' x' + count : '');
-            return '<img class="ml-inventory-item" src="' + url + '" alt="' + item.Type + '" title="' + title + '" onerror="this.style.display=\'none\'">';
+            return '<img class="ml-inventory-item" src="' + url + '" alt="' + item.Type + '" title="' + title + '" loading="lazy" onerror="this.style.display=\'none\'">';
           }).join('');
           
           const itemCount = victimInventory.filter(i => i).length;
@@ -4606,7 +4686,7 @@
       const itemId = item.Type;
       const quality = item.Quality || 1;
       const url = `https://render.albiononline.com/v1/item/${itemId}.png?quality=${quality}&size=128`;
-      return `<img class="ml-equip-icon" src="${url}" alt="${itemId}" title="${itemId}" onerror="this.classList.add('empty'); this.src='';">`;
+      return `<img class="ml-equip-icon" src="${url}" alt="${itemId}" title="${itemId}" loading="lazy" onerror="this.classList.add('empty'); this.src='';">`;
     }
 
     // Render battle details
@@ -4820,6 +4900,10 @@
       `;
 
       resultsSection.classList.add('visible');
+      
+      // Hide hero section when showing results
+      const heroSection = document.getElementById('heroSection');
+      if (heroSection) heroSection.style.display = 'none';
     }
 
     // Utility
