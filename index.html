@@ -1917,7 +1917,7 @@
         // Guild
         guildFounder: '創設者',
         guildFounded: '創設日',
-        guildAlliance: 'アライアンス',
+        guildAlliance: '同盟',
         guildNoAlliance: 'なし',
         guildMembers: 'メンバー',
         guildMemberCount: 'メンバー数',
@@ -2240,6 +2240,9 @@
       const guild = currentGuild;
       const members = currentGuildMembers;
       
+      // Debug: show guild data
+      console.log('Guild data:', JSON.stringify(guild, null, 2));
+      
       // Format numbers
       const formatNumber = (num) => {
         if (!num) return '0';
@@ -2261,42 +2264,47 @@
       };
       
       // Calculate Fame Ratio
-      const fameRatio = guild.DeathFame > 0 ? (guild.KillFame / guild.DeathFame).toFixed(2) : 'N/A';
+      const killFame = guild.killFame || guild.KillFame || 0;
+      const deathFame = guild.deathFame || guild.DeathFame || 0;
+      const fameRatio = deathFame > 0 ? (killFame / deathFame).toFixed(2) : (killFame > 0 ? '∞' : '-');
+      
+      // Get alliance display (use AllianceTag or AllianceName)
+      const allianceDisplay = guild.AllianceTag || guild.AllianceName || '';
       
       const html = `
         <div class="guild-card">
           <div class="guild-header">
             <span class="guild-name">${escapeHtml(guild.Name)}</span>
-            ${guild.AllianceTag ? `<span class="guild-alliance-tag">[${escapeHtml(guild.AllianceTag)}]</span>` : ''}
+            ${allianceDisplay ? `<span class="guild-alliance-tag">[${escapeHtml(allianceDisplay)}]</span>` : ''}
           </div>
           
           <div class="guild-info-row">
             <div class="guild-info-item">
               <span>👤</span>
-              <span><strong>${t('guildFounder')}:</strong> ${escapeHtml(guild.FounderName || '-')}</span>
+              <span><strong>${t('guildFounder')}:</strong> ${escapeHtml(guild.FounderName || guild.founderName || '-')}</span>
             </div>
             <div class="guild-info-item">
               <span>📅</span>
-              <span><strong>${t('guildFounded')}:</strong> ${formatDate(guild.Founded)}</span>
+              <span><strong>${t('guildFounded')}:</strong> ${formatDate(guild.Founded || guild.founded)}</span>
             </div>
             <div class="guild-info-item">
               <span>🏰</span>
-              <span><strong>${t('guildAlliance')}:</strong> ${guild.AllianceName ? escapeHtml(guild.AllianceName) : t('guildNoAlliance')}</span>
+              <span><strong>${t('guildAlliance')}:</strong> ${allianceDisplay ? escapeHtml(allianceDisplay) : t('guildNoAlliance')}</span>
             </div>
           </div>
           
           <div class="guild-stats-grid">
             <div class="guild-stat-box">
               <div class="guild-stat-label">${t('guildMemberCount')}</div>
-              <div class="guild-stat-value">${guild.MemberCount || members.length}</div>
+              <div class="guild-stat-value">${guild.MemberCount || guild.memberCount || members.length}</div>
             </div>
             <div class="guild-stat-box">
               <div class="guild-stat-label">${t('guildKillFame')}</div>
-              <div class="guild-stat-value kill">${formatNumber(guild.KillFame)}</div>
+              <div class="guild-stat-value kill">${formatNumber(killFame)}</div>
             </div>
             <div class="guild-stat-box">
               <div class="guild-stat-label">${t('guildDeathFame')}</div>
-              <div class="guild-stat-value death">${formatNumber(guild.DeathFame)}</div>
+              <div class="guild-stat-value death">${formatNumber(deathFame)}</div>
             </div>
             <div class="guild-stat-box">
               <div class="guild-stat-label">${t('fameRatio')}</div>
