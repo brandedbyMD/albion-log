@@ -1718,6 +1718,12 @@
       padding: 12px 16px;
       text-align: left;
       border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    
+    .members-table th:last-child,
+    .members-table td:last-child {
+      border-right: none;
     }
 
     .members-table th {
@@ -1912,7 +1918,7 @@
         assists: 'アシスト',
         soloKills: 'ソロキル',
         winRate: '勝率',
-        fameRatio: 'フェイム比',
+        fameRatio: '名声比',
         avgIP: '平均IP',
         // Guild
         guildFounder: '創設者',
@@ -1921,12 +1927,12 @@
         guildNoAlliance: 'なし',
         guildMembers: 'メンバー',
         guildMemberCount: 'メンバー数',
-        guildKillFame: 'キルフェイム',
-        guildDeathFame: 'デスフェイム',
+        guildKillFame: 'キル名声',
+        guildDeathFame: 'デス名声',
         guildMemberSearch: 'メンバー検索...',
         guildMemberName: '名前',
-        guildMemberKillFame: 'キルFame',
-        guildMemberDeathFame: 'デスFame',
+        guildMemberKillFame: 'キル名声',
+        guildMemberDeathFame: 'デス名声',
         guildMemberRatio: '比率',
         // Filters
         filterTitle: '絞り込み',
@@ -1942,7 +1948,7 @@
         medium: '中規模 (6-20)',
         large: '大規模 (20+)',
         byDate: '日付順',
-        byFame: 'フェイム順',
+        byFame: '名声順',
         byIP: 'IP順',
         showKills: 'キル',
         showDeaths: 'デス',
@@ -1954,7 +1960,7 @@
         killed: 'をキル',
         killedBy: 'にキルされた',
         assistedKill: 'のキルをアシスト',
-        fame: 'フェイム',
+        fame: '名声',
         participants: '参加者',
         battle: '戦闘',
         // Kill log
@@ -2268,17 +2274,25 @@
       // Get alliance display (use AllianceTag or AllianceName)
       const allianceDisplay = guild.AllianceTag || guild.AllianceName || '';
       
+      // Make founder clickable
+      const founderName = guild.FounderName || guild.founderName || '';
+      const founderId = guild.FounderId || guild.founderId || '';
+      const founderHtml = founderName ? 
+        (founderId ? 
+          `<span class="guild-clickable" onclick="searchPlayerById('${founderId}', '${escapeHtml(founderName)}')">${escapeHtml(founderName)}</span>` : 
+          escapeHtml(founderName)
+        ) : '-';
+      
       const html = `
         <div class="guild-card">
           <div class="guild-header">
             <span class="guild-name">${escapeHtml(guild.Name)}</span>
-            ${allianceDisplay ? `<span class="guild-alliance-tag">[${escapeHtml(allianceDisplay)}]</span>` : ''}
           </div>
           
           <div class="guild-info-row">
             <div class="guild-info-item">
               <span>👤</span>
-              <span><strong>${t('guildFounder')}:</strong> ${escapeHtml(guild.FounderName || guild.founderName || '-')}</span>
+              <span><strong>${t('guildFounder')}:</strong> ${founderHtml}</span>
             </div>
             <div class="guild-info-item">
               <span>📅</span>
@@ -2428,6 +2442,11 @@
       // Switch to player tab and search
       switchSearchTab('player');
       searchPlayer(playerId, playerName);
+    }
+    
+    // Alias for viewPlayerFromGuild (used from guild founder link)
+    function searchPlayerById(playerId, playerName) {
+      viewPlayerFromGuild(playerId, playerName);
     }
     
     // Navigate to guild page by guild name
@@ -4384,7 +4403,7 @@
                 <div class="ml-player-side">
                   <div class="ml-player-header">
                     <span class="ml-player-name" onclick="event.stopPropagation()">${escapeHtml(currentPlayer.Name)}</span>
-                    ${currentPlayer.GuildName ? `<span class="ml-player-guild clickable" onclick="event.stopPropagation(); viewGuildByName('${escapeHtml(currentPlayer.GuildName)}')">${escapeHtml(currentPlayer.GuildName)}</span>` : ''}
+                    ${(meData?.GuildName || currentPlayer.GuildName) ? `<span class="ml-player-guild clickable" onclick="event.stopPropagation(); viewGuildByName('${escapeHtml(meData?.GuildName || currentPlayer.GuildName)}')">${escapeHtml(meData?.GuildName || currentPlayer.GuildName)}</span>` : ''}
                     ${myIp ? `<span class="ml-player-ip">(${Math.round(myIp)} IP)</span>` : ''}
                   </div>
                   <div class="ml-equip-grid">
@@ -4667,7 +4686,7 @@
             <span>${battleTime}</span>
             <span>${sortedParticipants.length} ${currentLanguage === 'ja' ? '人' : 'players'}</span>
             <span>${events.length} ${currentLanguage === 'ja' ? 'キル' : 'kills'}</span>
-            <span>${(battle.totalFame || 0).toLocaleString()} ${currentLanguage === 'ja' ? 'フェイム' : 'Fame'}</span>
+            <span>${(battle.totalFame || 0).toLocaleString()} ${currentLanguage === 'ja' ? '名声' : 'Fame'}</span>
           </div>
         </div>
 
