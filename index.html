@@ -1537,6 +1537,231 @@
       font-size: 1.1rem;
       color: var(--text);
     }
+
+    /* Search Tabs */
+    .search-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 16px;
+    }
+
+    .search-tab {
+      padding: 10px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+
+    .search-tab:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .search-tab:last-child {
+      border-radius: 0 8px 8px 0;
+      border-left: none;
+    }
+
+    .search-tab.active {
+      background: var(--accent-btn);
+      color: var(--accent-btn-text);
+      border-color: var(--accent-btn);
+    }
+
+    .search-tab:hover:not(.active) {
+      background: var(--bg-hover);
+    }
+
+    /* Guild Card */
+    .guild-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .guild-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .guild-name {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .guild-alliance-tag {
+      background: var(--purple);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .guild-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .guild-stat-box {
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .guild-stat-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .guild-stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .guild-stat-value.kill {
+      color: var(--green);
+    }
+
+    .guild-stat-value.death {
+      color: var(--red);
+    }
+
+    .guild-info-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+
+    .guild-info-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Members Table */
+    .members-section {
+      margin-top: 24px;
+    }
+
+    .members-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .members-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .members-search {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      width: 200px;
+    }
+
+    .members-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .members-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .members-table th,
+    .members-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .members-table th {
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .members-table th:hover {
+      background: var(--bg-hover);
+    }
+
+    .members-table th.sorted-asc::after {
+      content: ' ▲';
+    }
+
+    .members-table th.sorted-desc::after {
+      content: ' ▼';
+    }
+
+    .members-table tbody tr:hover {
+      background: var(--bg-hover);
+    }
+
+    .members-table .member-name {
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--blue);
+    }
+
+    .members-table .member-name:hover {
+      text-decoration: underline;
+    }
+
+    .members-table .fame-cell {
+      text-align: right;
+      font-family: monospace;
+    }
+
+    .fame-ratio {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .fame-ratio.positive {
+      background: rgba(22, 163, 74, 0.15);
+      color: var(--green);
+    }
+
+    .fame-ratio.negative {
+      background: rgba(220, 38, 38, 0.15);
+      color: var(--red);
+    }
+
+    .fame-ratio.neutral {
+      background: var(--bg);
+      color: var(--text-secondary);
+    }
   </style>
 </head>
 <body>
@@ -1564,6 +1789,10 @@
     </header>
 
     <section class="search-section">
+      <div class="search-tabs">
+        <button class="search-tab active" id="playerTab" onclick="switchSearchTab('player')" data-i18n="searchTabPlayer">プレイヤー</button>
+        <button class="search-tab" id="guildTab" onclick="switchSearchTab('guild')" data-i18n="searchTabGuild">ギルド</button>
+      </div>
       <div class="search-wrapper">
         <form class="search-form" id="searchForm">
           <input type="text" class="search-input" id="searchInput" placeholder="プレイヤー名を入力..." autocomplete="off">
@@ -1601,6 +1830,14 @@
     let cachedMyWeapons = new Map();
     let cachedOpponentWeapons = new Map();
     
+    // Search type state
+    let currentSearchType = 'player'; // 'player' or 'guild'
+    let currentGuild = null;
+    let currentGuildMembers = [];
+    let guildMembersSortColumn = 'KillFame';
+    let guildMembersSortDirection = 'desc';
+    let guildMembersSearchFilter = '';
+    
     // Filter state
     let filters = {
       opponentSearch: '',
@@ -1631,15 +1868,22 @@
         noFavorites: 'お気に入りがありません',
         addToFavorites: 'お気に入りに追加',
         removeFromFavorites: 'お気に入りから削除',
+        // Search tabs
+        searchTabPlayer: 'プレイヤー',
+        searchTabGuild: 'ギルド',
         // Search
         searchPlaceholder: 'プレイヤー名を入力...',
+        searchPlaceholderGuild: 'ギルド名を入力...',
         search: '検索',
         searchHistory: '検索履歴',
         searchResults: '検索結果',
         // Errors
         enterPlayerName: 'プレイヤー名を入力してください',
+        enterGuildName: 'ギルド名を入力してください',
         playerNotFound: 'プレイヤーが見つかりませんでした',
+        guildNotFound: 'ギルドが見つかりませんでした',
         loadError: 'プレイヤーデータの読み込みに失敗しました',
+        guildLoadError: 'ギルドデータの読み込みに失敗しました',
         searchError: 'プレイヤーの検索に失敗しました',
         // Player stats
         noGuild: 'No Guild',
@@ -1650,6 +1894,20 @@
         winRate: '勝率',
         fameRatio: 'フェイム比',
         avgIP: '平均IP',
+        // Guild
+        guildFounder: '創設者',
+        guildFounded: '創設日',
+        guildAlliance: 'アライアンス',
+        guildNoAlliance: 'なし',
+        guildMembers: 'メンバー',
+        guildMemberCount: 'メンバー数',
+        guildKillFame: 'キルフェイム',
+        guildDeathFame: 'デスフェイム',
+        guildMemberSearch: 'メンバー検索...',
+        guildMemberName: '名前',
+        guildMemberKillFame: 'キルFame',
+        guildMemberDeathFame: 'デスFame',
+        guildMemberRatio: '比率',
         // Filters
         filterTitle: '絞り込み',
         opponentSearch: '相手検索',
@@ -1699,15 +1957,22 @@
         noFavorites: 'No favorites yet',
         addToFavorites: 'Add to favorites',
         removeFromFavorites: 'Remove from favorites',
+        // Search tabs
+        searchTabPlayer: 'Player',
+        searchTabGuild: 'Guild',
         // Search
         searchPlaceholder: 'Enter player name...',
+        searchPlaceholderGuild: 'Enter guild name...',
         search: 'Search',
         searchHistory: 'Search History',
         searchResults: 'Search Results',
         // Errors
         enterPlayerName: 'Please enter a player name',
+        enterGuildName: 'Please enter a guild name',
         playerNotFound: 'Player not found',
+        guildNotFound: 'Guild not found',
         loadError: 'Failed to load player data',
+        guildLoadError: 'Failed to load guild data',
         searchError: 'Failed to search player',
         // Player stats
         noGuild: 'No Guild',
@@ -1718,6 +1983,20 @@
         winRate: 'Win Rate',
         fameRatio: 'Fame Ratio',
         avgIP: 'Avg IP',
+        // Guild
+        guildFounder: 'Founder',
+        guildFounded: 'Founded',
+        guildAlliance: 'Alliance',
+        guildNoAlliance: 'None',
+        guildMembers: 'Members',
+        guildMemberCount: 'Member Count',
+        guildKillFame: 'Kill Fame',
+        guildDeathFame: 'Death Fame',
+        guildMemberSearch: 'Search members...',
+        guildMemberName: 'Name',
+        guildMemberKillFame: 'Kill Fame',
+        guildMemberDeathFame: 'Death Fame',
+        guildMemberRatio: 'Ratio',
         // Filters
         filterTitle: 'Filters',
         opponentSearch: 'Opponent',
@@ -1798,9 +2077,17 @@
       const favHeader = document.querySelector('.favorites-panel-header');
       if (favHeader) favHeader.textContent = t('favoritesHeader');
       
+      // Update search tabs
+      const playerTab = document.getElementById('playerTab');
+      if (playerTab) playerTab.textContent = t('searchTabPlayer');
+      const guildTab = document.getElementById('guildTab');
+      if (guildTab) guildTab.textContent = t('searchTabGuild');
+      
       // Update search
       const searchInput = document.getElementById('searchInput');
-      if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+      if (searchInput) {
+        searchInput.placeholder = currentSearchType === 'guild' ? t('searchPlaceholderGuild') : t('searchPlaceholder');
+      }
       const searchBtn = document.getElementById('searchBtn');
       if (searchBtn) searchBtn.textContent = t('search');
       
@@ -1811,6 +2098,11 @@
       // Re-render current view if player is loaded
       if (currentPlayer) {
         renderPlayerPage();
+      }
+      
+      // Re-render guild if loaded
+      if (currentGuild) {
+        renderGuildPage();
       }
       
       // Update favorites list
@@ -1839,6 +2131,291 @@
       }
     }
     
+    // Search Tab Functions
+    function switchSearchTab(type) {
+      currentSearchType = type;
+      
+      // Update tab UI
+      document.getElementById('playerTab').classList.toggle('active', type === 'player');
+      document.getElementById('guildTab').classList.toggle('active', type === 'guild');
+      
+      // Update placeholder
+      const searchInput = document.getElementById('searchInput');
+      searchInput.placeholder = type === 'guild' ? t('searchPlaceholderGuild') : t('searchPlaceholder');
+      searchInput.value = '';
+      
+      // Hide autocomplete
+      document.getElementById('autocompleteList').style.display = 'none';
+      
+      // Clear results
+      document.getElementById('resultsSection').innerHTML = '';
+      document.getElementById('errorMessage').style.display = 'none';
+      
+      // Reset state
+      if (type === 'player') {
+        currentGuild = null;
+        currentGuildMembers = [];
+      } else {
+        currentPlayer = null;
+        currentDeaths = [];
+        currentKills = [];
+        currentAssists = [];
+      }
+    }
+    
+    // Guild API Functions
+    function getGuildApiBase(server) {
+      const bases = {
+        'americas': 'https://gameinfo.albiononline.com',
+        'europe': 'https://gameinfo-ams.albiononline.com',
+        'asia': 'https://gameinfo-sgp.albiononline.com'
+      };
+      return bases[server] || bases['asia'];
+    }
+    
+    async function searchGuildByName(name, server) {
+      const base = getGuildApiBase(server);
+      const response = await fetch(`${base}/api/gameinfo/search?q=${encodeURIComponent(name)}`);
+      if (!response.ok) throw new Error('Search failed');
+      const data = await response.json();
+      return data.guilds || [];
+    }
+    
+    async function getGuildInfo(guildId, server) {
+      const base = getGuildApiBase(server);
+      const response = await fetch(`${base}/api/gameinfo/guilds/${guildId}`);
+      if (!response.ok) throw new Error('Guild not found');
+      return await response.json();
+    }
+    
+    async function getGuildMembers(guildId, server) {
+      const base = getGuildApiBase(server);
+      const response = await fetch(`${base}/api/gameinfo/guilds/${guildId}/members`);
+      if (!response.ok) throw new Error('Failed to load members');
+      return await response.json();
+    }
+    
+    async function searchGuild(guildId, guildName, skipState = false) {
+      const server = document.getElementById('serverSelect').value;
+      showLoading();
+      hideError();
+      
+      try {
+        // Fetch guild info and members in parallel
+        const [guildInfo, members] = await Promise.all([
+          getGuildInfo(guildId, server),
+          getGuildMembers(guildId, server)
+        ]);
+        
+        currentGuild = guildInfo;
+        currentGuildMembers = members;
+        currentServer = server;
+        
+        // Update URL
+        if (!skipState) {
+          const newHash = `#guild/${guildId}/${server}`;
+          history.pushState({ guildId, guildName, server, type: 'guild' }, '', newHash);
+        }
+        
+        renderGuildPage();
+      } catch (error) {
+        console.error('Guild search error:', error);
+        showError(t('guildLoadError'));
+      } finally {
+        hideLoading();
+      }
+    }
+    
+    function renderGuildPage() {
+      if (!currentGuild) return;
+      
+      const guild = currentGuild;
+      const members = currentGuildMembers;
+      
+      // Format numbers
+      const formatNumber = (num) => {
+        if (!num) return '0';
+        if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toLocaleString();
+      };
+      
+      // Format date
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(currentLanguage === 'ja' ? 'ja-JP' : 'en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      };
+      
+      // Calculate Fame Ratio
+      const fameRatio = guild.DeathFame > 0 ? (guild.KillFame / guild.DeathFame).toFixed(2) : 'N/A';
+      
+      const html = `
+        <div class="guild-card">
+          <div class="guild-header">
+            <span class="guild-name">${escapeHtml(guild.Name)}</span>
+            ${guild.AllianceTag ? `<span class="guild-alliance-tag">[${escapeHtml(guild.AllianceTag)}]</span>` : ''}
+          </div>
+          
+          <div class="guild-info-row">
+            <div class="guild-info-item">
+              <span>👤</span>
+              <span><strong>${t('guildFounder')}:</strong> ${escapeHtml(guild.FounderName || '-')}</span>
+            </div>
+            <div class="guild-info-item">
+              <span>📅</span>
+              <span><strong>${t('guildFounded')}:</strong> ${formatDate(guild.Founded)}</span>
+            </div>
+            <div class="guild-info-item">
+              <span>🏰</span>
+              <span><strong>${t('guildAlliance')}:</strong> ${guild.AllianceName ? escapeHtml(guild.AllianceName) : t('guildNoAlliance')}</span>
+            </div>
+          </div>
+          
+          <div class="guild-stats-grid">
+            <div class="guild-stat-box">
+              <div class="guild-stat-label">${t('guildMemberCount')}</div>
+              <div class="guild-stat-value">${guild.MemberCount || members.length}</div>
+            </div>
+            <div class="guild-stat-box">
+              <div class="guild-stat-label">${t('guildKillFame')}</div>
+              <div class="guild-stat-value kill">${formatNumber(guild.KillFame)}</div>
+            </div>
+            <div class="guild-stat-box">
+              <div class="guild-stat-label">${t('guildDeathFame')}</div>
+              <div class="guild-stat-value death">${formatNumber(guild.DeathFame)}</div>
+            </div>
+            <div class="guild-stat-box">
+              <div class="guild-stat-label">${t('fameRatio')}</div>
+              <div class="guild-stat-value">${fameRatio}</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="guild-card members-section">
+          <div class="members-header">
+            <span class="members-title">${t('guildMembers')} (${members.length})</span>
+            <input type="text" class="members-search" id="membersSearch" 
+                   placeholder="${t('guildMemberSearch')}" 
+                   oninput="filterGuildMembers(this.value)">
+          </div>
+          <div class="members-table-wrapper">
+            <table class="members-table">
+              <thead>
+                <tr>
+                  <th onclick="sortGuildMembers('Name')" id="sortName">${t('guildMemberName')}</th>
+                  <th onclick="sortGuildMembers('KillFame')" id="sortKillFame" class="sorted-desc">${t('guildMemberKillFame')}</th>
+                  <th onclick="sortGuildMembers('DeathFame')" id="sortDeathFame">${t('guildMemberDeathFame')}</th>
+                  <th onclick="sortGuildMembers('FameRatio')" id="sortFameRatio">${t('guildMemberRatio')}</th>
+                </tr>
+              </thead>
+              <tbody id="membersTableBody">
+                ${renderGuildMembersRows(members)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('resultsSection').innerHTML = html;
+    }
+    
+    function renderGuildMembersRows(members) {
+      // Filter
+      let filtered = members;
+      if (guildMembersSearchFilter) {
+        const search = guildMembersSearchFilter.toLowerCase();
+        filtered = members.filter(m => m.Name.toLowerCase().includes(search));
+      }
+      
+      // Sort
+      filtered.sort((a, b) => {
+        let aVal = a[guildMembersSortColumn];
+        let bVal = b[guildMembersSortColumn];
+        
+        if (guildMembersSortColumn === 'FameRatio') {
+          aVal = a.DeathFame > 0 ? a.KillFame / a.DeathFame : a.KillFame;
+          bVal = b.DeathFame > 0 ? b.KillFame / b.DeathFame : b.KillFame;
+        }
+        
+        if (typeof aVal === 'string') {
+          return guildMembersSortDirection === 'asc' 
+            ? aVal.localeCompare(bVal) 
+            : bVal.localeCompare(aVal);
+        }
+        
+        return guildMembersSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+      });
+      
+      const formatNumber = (num) => {
+        if (!num) return '0';
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toLocaleString();
+      };
+      
+      return filtered.map(member => {
+        const ratio = member.DeathFame > 0 ? (member.KillFame / member.DeathFame) : (member.KillFame > 0 ? 999 : 0);
+        const ratioClass = ratio >= 1 ? 'positive' : ratio > 0 ? 'negative' : 'neutral';
+        const ratioDisplay = member.DeathFame > 0 ? ratio.toFixed(2) : (member.KillFame > 0 ? '∞' : '-');
+        
+        return `
+          <tr>
+            <td>
+              <span class="member-name" onclick="viewPlayerFromGuild('${member.Id}', '${escapeHtml(member.Name)}')">${escapeHtml(member.Name)}</span>
+            </td>
+            <td class="fame-cell">${formatNumber(member.KillFame)}</td>
+            <td class="fame-cell">${formatNumber(member.DeathFame)}</td>
+            <td><span class="fame-ratio ${ratioClass}">${ratioDisplay}</span></td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    function sortGuildMembers(column) {
+      // Update sort state
+      if (guildMembersSortColumn === column) {
+        guildMembersSortDirection = guildMembersSortDirection === 'desc' ? 'asc' : 'desc';
+      } else {
+        guildMembersSortColumn = column;
+        guildMembersSortDirection = 'desc';
+      }
+      
+      // Update header classes
+      document.querySelectorAll('.members-table th').forEach(th => {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+      });
+      const sortedTh = document.getElementById('sort' + column);
+      if (sortedTh) {
+        sortedTh.classList.add(guildMembersSortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+      }
+      
+      // Re-render rows
+      const tbody = document.getElementById('membersTableBody');
+      if (tbody) {
+        tbody.innerHTML = renderGuildMembersRows(currentGuildMembers);
+      }
+    }
+    
+    function filterGuildMembers(searchText) {
+      guildMembersSearchFilter = searchText;
+      const tbody = document.getElementById('membersTableBody');
+      if (tbody) {
+        tbody.innerHTML = renderGuildMembersRows(currentGuildMembers);
+      }
+    }
+    
+    function viewPlayerFromGuild(playerId, playerName) {
+      // Switch to player tab and search
+      switchSearchTab('player');
+      searchPlayer(playerId, playerName);
+    }
+
     // Favorites functions
     function getFavorites() {
       try {
@@ -2486,7 +3063,7 @@
       const query = searchInput.value.trim();
 
       if (!query) {
-        showError(t('enterPlayerName'));
+        showError(currentSearchType === 'guild' ? t('enterGuildName') : t('enterPlayerName'));
         return;
       }
 
@@ -2496,8 +3073,25 @@
       autocompleteList.classList.remove('visible');
 
       try {
-        await searchPlayer(query);
-        addToSearchHistory(query);
+        if (currentSearchType === 'guild') {
+          // Guild search
+          const server = document.getElementById('serverSelect').value;
+          const guilds = await searchGuildByName(query, server);
+          
+          if (guilds.length === 0) {
+            showError(t('guildNotFound'));
+          } else if (guilds.length === 1) {
+            // Single result - go directly to guild page
+            await searchGuild(guilds[0].Id, guilds[0].Name);
+          } else {
+            // Multiple results - show selection
+            showGuildSearchResults(guilds, server);
+          }
+        } else {
+          // Player search (existing behavior)
+          await searchPlayer(query);
+          addToSearchHistory(query);
+        }
       } catch (error) {
         console.error('Search error:', error);
         showError(error.message || (currentLanguage === 'ja' ? 'エラーが発生しました' : 'An error occurred'));
@@ -2505,6 +3099,30 @@
         hideLoading();
       }
     });
+    
+    // Show guild search results
+    function showGuildSearchResults(guilds, server) {
+      const html = `
+        <div class="guild-card">
+          <div class="members-title" style="margin-bottom: 16px;">${t('searchResults')} (${guilds.length})</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${guilds.map(g => `
+              <div class="guild-search-result" onclick="searchGuild('${g.Id}', '${escapeHtml(g.Name)}')" 
+                   style="padding: 12px 16px; background: var(--bg); border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s;"
+                   onmouseover="this.style.background='var(--bg-hover)'" 
+                   onmouseout="this.style.background='var(--bg)'">
+                <div>
+                  <span style="font-weight: 600;">${escapeHtml(g.Name)}</span>
+                  ${g.AllianceTag ? `<span style="color: var(--text-secondary); margin-left: 8px;">[${escapeHtml(g.AllianceTag)}]</span>` : ''}
+                </div>
+                <span style="color: var(--text-secondary);">${g.MemberCount || 0} members</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      document.getElementById('resultsSection').innerHTML = html;
+    }
 
     // Go home
     function goHome() {
@@ -2513,6 +3131,8 @@
       searchInput.value = '';
       hideError();
       currentPlayer = null;
+      currentGuild = null;
+      currentGuildMembers = [];
       // Clear URL hash
       history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
     }
@@ -4023,10 +4643,14 @@
       currentKills = [];
       currentSoloKills = [];
       currentAssists = [];
+      currentGuild = null;
+      currentGuildMembers = [];
       resultsSection.innerHTML = '';
       resultsSection.classList.remove('visible');
       searchInput.value = '';
       hideError();
+      // Reset to player tab
+      switchSearchTab('player');
       // Clear URL hash
       history.replaceState({ type: 'home', data: {} }, '', window.location.pathname);
     }
@@ -4041,6 +4665,8 @@
         
         try {
           if (type === 'player') {
+            // Switch to player tab
+            switchSearchTab('player');
             // Restore view mode before rendering
             currentViewMode = data.viewMode || 'events';
             // Use playerId if available for more reliable loading
@@ -4062,6 +4688,13 @@
               battle = buildBattleFromEvents(data.battleId, events);
             }
             renderBattleDetails(battle, events);
+          } else if (type === 'guild') {
+            // Switch to guild tab and load guild
+            switchSearchTab('guild');
+            if (data.guildId) {
+              document.getElementById('serverSelect').value = data.server || 'asia';
+              await searchGuild(data.guildId, data.guildName || '', true);
+            }
           }
         } catch (error) {
           showError(error.message);
@@ -4081,6 +4714,31 @@
       
       if (hash && hash.length > 1) {
         try {
+          // Check for new simple guild format: #guild/guildId/server
+          const guildMatch = hash.match(/^#guild\/([^\/]+)\/([^\/]+)$/);
+          if (guildMatch) {
+            const guildId = guildMatch[1];
+            const server = guildMatch[2];
+            console.log('Guild hash detected:', guildId, server);
+            
+            // Switch to guild tab
+            switchSearchTab('guild');
+            document.getElementById('serverSelect').value = server;
+            currentServer = server;
+            
+            showLoading();
+            hideError();
+            try {
+              await searchGuild(guildId, '', true);
+            } catch (e) {
+              console.error('Failed to load guild:', e);
+              showError(t('guildLoadError'));
+            } finally {
+              hideLoading();
+            }
+            return;
+          }
+          
           const [type, dataStr] = hash.substring(1).split('/');
           console.log('Parsed type:', type, 'dataStr length:', dataStr?.length);
           
