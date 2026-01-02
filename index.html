@@ -2240,9 +2240,6 @@
       const guild = currentGuild;
       const members = currentGuildMembers;
       
-      // Debug: show guild data
-      console.log('Guild data:', JSON.stringify(guild, null, 2));
-      
       // Format numbers
       const formatNumber = (num) => {
         if (!num) return '0';
@@ -2339,6 +2336,7 @@
       `;
       
       document.getElementById('resultsSection').innerHTML = html;
+      document.getElementById('resultsSection').classList.add('visible');
     }
     
     function renderGuildMembersRows(members) {
@@ -3109,9 +3107,7 @@
 
       autocompleteTimeout = setTimeout(async () => {
         try {
-          console.log('Autocomplete search:', query, 'type:', currentSearchType);
           const results = await fetchAPI(`/search?q=${encodeURIComponent(query)}`);
-          console.log('Autocomplete results:', results);
           
           if (currentSearchType === 'guild') {
             // Guild autocomplete
@@ -3193,7 +3189,6 @@
           e.preventDefault(); // Prevent blur
           const index = parseInt(item.dataset.guildIndex);
           const guild = window._guildAutocompleteData[index];
-          console.log('Guild mousedown:', index, guild);
           if (guild) {
             selectGuild(guild.Id, guild.Name);
           }
@@ -3212,7 +3207,6 @@
     }
     
     function selectGuild(guildId, guildName) {
-      console.log('selectGuild called:', guildId, guildName);
       searchInput.value = guildName;
       autocompleteList.classList.remove('visible');
       searchGuild(guildId, guildName);
