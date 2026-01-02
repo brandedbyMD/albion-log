@@ -2164,8 +2164,8 @@
       searchInput.placeholder = type === 'guild' ? t('searchPlaceholderGuild') : t('searchPlaceholder');
       searchInput.value = '';
       
-      // Hide autocomplete
-      document.getElementById('autocompleteList').style.display = 'none';
+      // Hide autocomplete (use classList, not style.display)
+      document.getElementById('autocompleteList').classList.remove('visible');
       
       // Clear results
       document.getElementById('resultsSection').innerHTML = '';
