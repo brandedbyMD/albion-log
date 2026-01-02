@@ -17,7 +17,7 @@
       --accent: #3b82f6;
       --kill: #22c55e;
       --death: #ef4444;
-      --assist: #f59e0b;
+      --assist: #3b82f6;
     }
 
     [data-theme="dark"] {
@@ -305,6 +305,33 @@
       font-family: monospace;
       font-size: 0.9rem;
     }
+
+    /* Feedback Button */
+    .feedback-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+      z-index: 100;
+      text-decoration: none;
+    }
+
+    .feedback-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -414,7 +441,7 @@
           </tr>
           <tr>
             <td><span class="badge badge-assist">ASSIST</span></td>
-            <td>オレンジ</td>
+            <td>青</td>
             <td>キルに貢献したログ</td>
           </tr>
         </table>
@@ -429,7 +456,7 @@
         <h3>ログカードの見方</h3>
         <ul>
           <li><strong>左側</strong> - 自分の情報（装備・IP）</li>
-          <li><strong>中央</strong> - 結果アイコン（⚔️/💀）・名声・時間・場所</li>
+          <li><strong>中央</strong> - 結果アイコン（⚔️/💀）・名声・時間</li>
           <li><strong>右側</strong> - 相手の情報（装備・IP）</li>
         </ul>
 
@@ -445,7 +472,6 @@
         <ul>
           <li><strong>バトル概要</strong> - 参加人数、総名声、発生時間</li>
           <li><strong>参加者一覧</strong> - 全参加者の装備とキル/デス数</li>
-          <li><strong>ギルド別統計</strong> - ギルドごとのキル/デス集計</li>
         </ul>
 
         <h2 id="ja-favorites">⭐ お気に入り機能</h2>
@@ -460,7 +486,7 @@
 
         <h3>お気に入りを見る</h3>
         <ol class="step-list">
-          <li>画面右上の ⭐ ボタンをクリック</li>
+          <li>画面右上の ☆ ボタンをクリック</li>
           <li>登録したプレイヤー一覧が表示されます</li>
           <li>プレイヤー名をクリックでページに移動</li>
         </ol>
@@ -471,7 +497,7 @@
         <p>画面右上の <span class="icon-btn">🌙</span> / <span class="icon-btn">☀️</span> ボタンでダークモード/ライトモードを切り替えられます。</p>
 
         <h3>言語切り替え</h3>
-        <p>画面右上の <span class="icon-btn">🌐</span> ボタンで日本語/英語を切り替えられます。</p>
+        <p>画面右上のプルダウンメニューで日本語/英語を切り替えられます。</p>
 
         <h3>データについて</h3>
         <ul>
@@ -580,7 +606,7 @@
           </tr>
           <tr>
             <td><span class="badge badge-assist">ASSIST</span></td>
-            <td>Orange</td>
+            <td>Blue</td>
             <td>You assisted in a kill</td>
           </tr>
         </table>
@@ -595,7 +621,7 @@
         <h3>Reading Log Cards</h3>
         <ul>
           <li><strong>Left side</strong> - Your info (equipment, IP)</li>
-          <li><strong>Center</strong> - Result icon (⚔️/💀), fame, time, location</li>
+          <li><strong>Center</strong> - Result icon (⚔️/💀), fame, time</li>
           <li><strong>Right side</strong> - Enemy info (equipment, IP)</li>
         </ul>
 
@@ -611,7 +637,6 @@
         <ul>
           <li><strong>Battle Overview</strong> - Participants, total fame, timestamp</li>
           <li><strong>Participants List</strong> - All participants with equipment and K/D</li>
-          <li><strong>Guild Statistics</strong> - Kill/death counts by guild</li>
         </ul>
 
         <h2 id="en-favorites">⭐ Favorites</h2>
@@ -626,7 +651,7 @@
 
         <h3>Viewing Favorites</h3>
         <ol class="step-list">
-          <li>Click the ⭐ button in the top right</li>
+          <li>Click the ☆ button in the top right</li>
           <li>Your saved players will be displayed</li>
           <li>Click a player name to go to their page</li>
         </ol>
@@ -637,7 +662,7 @@
         <p>Click the <span class="icon-btn">🌙</span> / <span class="icon-btn">☀️</span> button in the top right to switch between dark and light mode.</p>
 
         <h3>Language Toggle</h3>
-        <p>Click the <span class="icon-btn">🌐</span> button in the top right to switch between Japanese and English.</p>
+        <p>Use the dropdown menu in the top right to switch between Japanese and English.</p>
 
         <h3>About Data Storage</h3>
         <ul>
@@ -653,6 +678,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Feedback Button -->
+  <a href="/" class="feedback-btn" title="フィードバック / Feedback" onclick="localStorage.setItem('openFeedback', 'true')">💬</a>
 
   <script>
     // Check saved theme

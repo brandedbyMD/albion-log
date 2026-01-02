@@ -5060,6 +5060,12 @@
     
     // Restore from hash on page load
     initFromHash();
+    
+    // Check if redirected from other pages to open feedback
+    if (localStorage.getItem('openFeedback') === 'true') {
+      localStorage.removeItem('openFeedback');
+      setTimeout(() => openFeedbackModal(), 300);
+    }
   </script>
 
   <!-- Feedback Button & Modal -->
