@@ -2565,6 +2565,10 @@
     }
     
     function viewPlayerFromGuild(playerId, playerName) {
+      // Save current player state before navigating
+      if (currentPlayer) {
+        replaceState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
+      }
       // Switch to player tab and search
       switchSearchTab('player');
       searchPlayer(playerId, playerName);
@@ -2578,6 +2582,11 @@
     // Navigate to guild page by guild name
     async function viewGuildByName(guildName) {
       if (!guildName) return;
+      
+      // Save current player state before navigating
+      if (currentPlayer) {
+        replaceState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
+      }
       
       showLoading();
       hideError();
@@ -4040,6 +4049,11 @@
 
     // Search player by name (for clicking names in battle log)
     async function searchPlayerByName(playerName) {
+      // Save current player state before navigating
+      if (currentPlayer) {
+        replaceState('player', { playerName: currentPlayer.Name, playerId: currentPlayer.Id });
+      }
+      
       searchInput.value = playerName;
       hideError();
       showLoading();
