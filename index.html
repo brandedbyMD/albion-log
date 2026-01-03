@@ -3477,7 +3477,7 @@
       return response.json();
     }
 
-    async function searchPlayer(playerIdOrName, playerNameHint = null, skipHistory = false) {
+    async function searchPlayer(playerIdOrName, playerNameHint = null, skipHistory = false, targetMlSkip = 100) {
       // If playerNameHint is provided, playerIdOrName is the ID
       // Otherwise, playerIdOrName is the name and we need to search
       let playerId, playerName;
@@ -3529,9 +3529,9 @@
           currentPlayer = searchResult.players[0];
         }
       } else {
-        // Called with (playerName, skipHistory) - original behavior
+        // Called with (playerName) or (playerName, null, skipHistory, targetMlSkip)
         playerName = playerIdOrName;
-        skipHistory = playerNameHint || false; // playerNameHint is actually skipHistory in this case
+        // skipHistory is already set from the parameter
         
         const searchResult = await fetchAPI(`/search?q=${encodeURIComponent(playerName)}`);
         
@@ -3559,8 +3559,12 @@
       mlIsLoading = false;
       
       try {
-        // Fetch initial 100 events (2 pages) in parallel
-        const pageOffsets = [0, 50];
+        // Calculate how many pages to fetch based on targetMlSkip
+        const numPages = Math.max(2, Math.ceil(targetMlSkip / 50));
+        const pageOffsets = Array.from({ length: numPages }, (_, i) => i * 50);
+        
+        console.log(`Fetching ${numPages} pages (target: ${targetMlSkip} events)`);
+        
         const mlPromises = pageOffsets.map(skip => 
           fetch(`/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`)
             .then(res => res.ok ? res.json() : null)
@@ -3581,7 +3585,7 @@
         if (!lastResult || !lastResult.events || lastResult.events.length < 50) {
           mlHasMore = false;
         }
-        mlCurrentSkip = 100; // Next load starts at 100
+        mlCurrentSkip = pageOffsets.length * 50; // Next load starts after last fetched page
         
         console.log('Total Murder Ledger events:', allMlEvents.length);
         
@@ -5050,6 +5054,7 @@
       if (type === 'player') {
         data.viewMode = currentViewMode;
         data.server = currentServer;
+        data.mlSkip = mlCurrentSkip; // Save how much data was loaded
       }
       if (type === 'battle') {
         data.server = currentServer;
@@ -5065,6 +5070,7 @@
         data.viewMode = currentViewMode;
         data.scrollY = window.scrollY;
         data.server = currentServer;
+        data.mlSkip = mlCurrentSkip; // Save how much data was loaded
       }
       if (type === 'battle') {
         data.server = currentServer;
@@ -5107,15 +5113,25 @@
             switchSearchTab('player');
             // Restore view mode before rendering
             currentViewMode = data.viewMode || 'events';
+            // Restore server
+            if (data.server) {
+              document.getElementById('serverSelect').value = data.server;
+              currentServer = data.server;
+            }
+            // Calculate target skip (load same amount of data as before)
+            const targetSkip = data.mlSkip || 100;
             // Use playerId if available for more reliable loading
             if (data.playerId && data.playerName) {
-              await searchPlayer(data.playerId, data.playerName, true);
+              await searchPlayer(data.playerId, data.playerName, true, targetSkip);
             } else {
-              await searchPlayer(data.playerName, true);
+              await searchPlayer(data.playerName, null, true, targetSkip);
             }
-            // Restore scroll position after a short delay
+            // Restore scroll position after rendering is complete
             if (data.scrollY) {
-              setTimeout(() => window.scrollTo(0, data.scrollY), 100);
+              // Use requestAnimationFrame to ensure DOM is updated
+              requestAnimationFrame(() => {
+                setTimeout(() => window.scrollTo(0, data.scrollY), 50);
+              });
             }
           } else if (type === 'battle') {
             const events = await fetchAPI(`/events/battle/${data.battleId}?offset=0&limit=51`);
@@ -5204,8 +5220,15 @@
                 hideError();
                 try {
                   console.log('Calling searchPlayer with:', data.playerId, data.playerName);
-                  await searchPlayer(data.playerId, data.playerName, true);
+                  const targetSkip = data.mlSkip || 100;
+                  await searchPlayer(data.playerId, data.playerName, true, targetSkip);
                   console.log('searchPlayer completed successfully');
+                  // Restore scroll position if available
+                  if (data.scrollY) {
+                    requestAnimationFrame(() => {
+                      setTimeout(() => window.scrollTo(0, data.scrollY), 50);
+                    });
+                  }
                 } catch (e) {
                   console.error('Failed to load player:', e);
                   showError((currentLanguage === 'ja' ? 'プレイヤーデータの読み込みに失敗しました: ' : 'Failed to load player data: ') + e.message);
