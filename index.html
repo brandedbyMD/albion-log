@@ -1405,6 +1405,27 @@
       }
     }
 
+    /* Load More Indicator */
+    .load-more-indicator {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .load-more-spinner {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .load-more-spinner::before {
+      content: '⏳ ';
+    }
+
+    .load-more-end {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
     /* Footer */
     .site-footer {
       margin-top: 60px;
@@ -1921,6 +1942,12 @@
     let cachedMyWeapons = new Map();
     let cachedOpponentWeapons = new Map();
     
+    // Infinite scroll state
+    let mlCurrentSkip = 0;
+    let mlHasMore = true;
+    let mlIsLoading = false;
+    const ML_PAGE_SIZE = 50;
+    
     // Search type state
     let currentSearchType = 'player'; // 'player' or 'guild'
     let currentGuild = null;
@@ -1943,6 +1970,7 @@
     
     // Search history (localStorage)
     const HISTORY_KEY = 'albion_log_search_history';
+    const GUILD_HISTORY_KEY = 'albion_log_guild_search_history';
     const ITEM_NAMES_KEY = 'albion_item_names_cache_v3'; // v3: with manual mappings
     const THEME_KEY = 'albion_log_theme';
     const FAVORITES_KEY = 'albion_log_favorites';
@@ -2139,7 +2167,15 @@
     let currentLanguage = 'ja'; // Default to Japanese
     
     function initLanguage() {
-      currentLanguage = localStorage.getItem(LANGUAGE_KEY) || 'ja';
+      const savedLang = localStorage.getItem(LANGUAGE_KEY);
+      if (savedLang) {
+        currentLanguage = savedLang;
+      } else {
+        // Auto-detect from browser language
+        const browserLang = navigator.language || navigator.userLanguage || 'en';
+        currentLanguage = browserLang.startsWith('ja') ? 'ja' : 'en';
+        localStorage.setItem(LANGUAGE_KEY, currentLanguage);
+      }
       updateLanguageSelect();
       // Update static UI text based on saved language
       updateAllUIText();
@@ -2317,6 +2353,11 @@
         }
         
         renderGuildPage();
+        
+        // Add to guild search history
+        if (guildInfo.Name) {
+          addToSearchHistory(guildInfo.Name, 'guild');
+        }
       } catch (error) {
         console.error('Guild search error:', error);
         showError(t('guildLoadError'));
@@ -3089,20 +3130,22 @@
     // Initialize cache on load
     loadItemNamesCache();
     
-    function getSearchHistory() {
+    function getSearchHistory(type = 'player') {
       try {
-        return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        const key = type === 'guild' ? GUILD_HISTORY_KEY : HISTORY_KEY;
+        return JSON.parse(localStorage.getItem(key) || '[]');
       } catch {
         return [];
       }
     }
     
-    function addToSearchHistory(name) {
-      let history = getSearchHistory();
+    function addToSearchHistory(name, type = 'player') {
+      const key = type === 'guild' ? GUILD_HISTORY_KEY : HISTORY_KEY;
+      let history = getSearchHistory(type);
       history = history.filter(h => h !== name);
       history.unshift(name);
       history = history.slice(0, 10);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      localStorage.setItem(key, JSON.stringify(history));
     }
 
     // DOM Elements
@@ -3120,20 +3163,15 @@
       currentServer = serverSelect.value;
     });
 
-    // Show history on focus (player search only)
+    // Show history on focus (both player and guild search)
     searchInput.addEventListener('focus', () => {
-      if (currentSearchType === 'player' && searchInput.value.trim().length < 2) {
+      if (searchInput.value.trim().length < 2) {
         showHistory();
       }
     });
 
     function showHistory() {
-      if (currentSearchType !== 'player') {
-        autocompleteList.classList.remove('visible');
-        return;
-      }
-      
-      const history = getSearchHistory();
+      const history = getSearchHistory(currentSearchType);
       if (history.length === 0) {
         autocompleteList.classList.remove('visible');
         return;
@@ -3188,9 +3226,10 @@
     }
     
     function removeFromHistory(name) {
-      let history = getSearchHistory();
+      const key = currentSearchType === 'guild' ? GUILD_HISTORY_KEY : HISTORY_KEY;
+      let history = getSearchHistory(currentSearchType);
       history = history.filter(h => h !== name);
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      localStorage.setItem(key, JSON.stringify(history));
       showHistory();
     }
 
@@ -3201,11 +3240,7 @@
       if (autocompleteTimeout) clearTimeout(autocompleteTimeout);
       
       if (query.length < 2) {
-        if (currentSearchType === 'player') {
-          showHistory();
-        } else {
-          autocompleteList.classList.remove('visible');
-        }
+        showHistory();
         return;
       }
 
@@ -3518,9 +3553,14 @@
       let allMlEvents = [];
       let murderLedgerSuccess = false;
       
+      // Reset infinite scroll state
+      mlCurrentSkip = 0;
+      mlHasMore = true;
+      mlIsLoading = false;
+      
       try {
-        // Fetch 200 events (4 pages) in parallel
-        const pageOffsets = [0, 50, 100, 150];
+        // Fetch initial 100 events (2 pages) in parallel
+        const pageOffsets = [0, 50];
         const mlPromises = pageOffsets.map(skip => 
           fetch(`/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`)
             .then(res => res.ok ? res.json() : null)
@@ -3535,6 +3575,13 @@
             allMlEvents = allMlEvents.concat(mlData.events);
           }
         });
+        
+        // Check if there might be more
+        const lastResult = mlResults[mlResults.length - 1];
+        if (!lastResult || !lastResult.events || lastResult.events.length < 50) {
+          mlHasMore = false;
+        }
+        mlCurrentSkip = 100; // Next load starts at 100
         
         console.log('Total Murder Ledger events:', allMlEvents.length);
         
@@ -3717,6 +3764,127 @@
       }
       
       await renderPlayerPage();
+    }
+    
+    // Load more events (infinite scroll)
+    async function loadMoreEvents() {
+      if (mlIsLoading || !mlHasMore || !currentPlayer) return;
+      
+      mlIsLoading = true;
+      console.log('Loading more events, skip:', mlCurrentSkip);
+      
+      // Show loading indicator
+      const loadMoreIndicator = document.getElementById('loadMoreIndicator');
+      if (loadMoreIndicator) {
+        loadMoreIndicator.innerHTML = `<div class="load-more-spinner">${currentLanguage === 'ja' ? '読み込み中...' : 'Loading...'}</div>`;
+      }
+      
+      try {
+        // Fetch next 100 events (2 pages)
+        const pageOffsets = [mlCurrentSkip, mlCurrentSkip + 50];
+        const mlPromises = pageOffsets.map(skip => 
+          fetch(`/api/murderledger/players/${encodeURIComponent(currentPlayer.Name)}/events?skip=${skip}&take=50&server=${currentServer}`)
+            .then(res => res.ok ? res.json() : null)
+            .catch(() => null)
+        );
+        
+        const mlResults = await Promise.all(mlPromises);
+        let newEvents = [];
+        
+        mlResults.forEach((mlData, index) => {
+          if (mlData && mlData.events && mlData.events.length > 0) {
+            console.log(`Murder Ledger page (skip=${pageOffsets[index]}):`, mlData.events.length, 'events');
+            newEvents = newEvents.concat(mlData.events);
+          }
+        });
+        
+        // Check if there might be more
+        const lastResult = mlResults[mlResults.length - 1];
+        if (!lastResult || !lastResult.events || lastResult.events.length < 50) {
+          mlHasMore = false;
+        }
+        mlCurrentSkip += 100;
+        
+        if (newEvents.length > 0) {
+          // Process new events
+          const playerNameLower = currentPlayer.Name.toLowerCase();
+          
+          newEvents.forEach(e => {
+            const killerName = (e.killer?.name || '').toLowerCase();
+            const victimName = (e.victim?.name || '').toLowerCase();
+            const participantCount = e.participant_count || 1;
+            const isPrimary = e.killer?.is_primary || false;
+            
+            const isKiller = killerName === playerNameLower;
+            const isVictim = victimName === playerNameLower;
+            
+            const convertedEvent = {
+              EventId: e.id,
+              BattleId: e.battle_id,
+              TimeStamp: new Date(e.time * 1000).toISOString(),
+              TotalVictimKillFame: e.total_kill_fame || 0,
+              Location: e.location || '',
+              KillArea: e.kill_area || '',
+              Killer: e.killer ? {
+                Id: e.killer.id,
+                Name: e.killer.name,
+                GuildName: e.killer.guild_name || '',
+                GuildId: e.killer.guild_id || '',
+                AllianceName: e.killer.alliance_name || '',
+                AllianceTag: e.killer.alliance_tag || '',
+                AllianceId: e.killer.alliance_id || '',
+                AverageItemPower: e.killer.item_power || 0,
+                Equipment: convertMlEquipment(e.killer.loadout)
+              } : null,
+              Victim: e.victim ? {
+                Id: e.victim.id,
+                Name: e.victim.name,
+                GuildName: e.victim.guild_name || '',
+                GuildId: e.victim.guild_id || '',
+                AllianceName: e.victim.alliance_name || '',
+                AllianceTag: e.victim.alliance_tag || '',
+                AllianceId: e.victim.alliance_id || '',
+                AverageItemPower: e.victim.item_power || 0,
+                Equipment: convertMlEquipment(e.victim.loadout),
+                Inventory: []
+              } : null,
+              Participants: [],
+              GroupMembers: [],
+              numberOfParticipants: participantCount,
+              groupMemberCount: e.party_size || 1,
+              tags: e.tags || {}
+            };
+            
+            if (isKiller && isPrimary) {
+              currentSoloKills.push({ ...convertedEvent, eventType: 'kill' });
+            } else if (isKiller && !isPrimary) {
+              currentAssists.push({ ...convertedEvent, eventType: 'assist' });
+            } else if (isVictim) {
+              currentDeaths.push({ ...convertedEvent, eventType: 'death' });
+            }
+          });
+          
+          currentKills = [...currentSoloKills, ...currentAssists];
+          
+          console.log('After loading more - Solo kills:', currentSoloKills.length, 'Assists:', currentAssists.length, 'Deaths:', currentDeaths.length);
+          
+          // Re-render content
+          renderPlayerContent();
+        }
+        
+        // Update load more indicator
+        if (loadMoreIndicator) {
+          if (!mlHasMore) {
+            loadMoreIndicator.innerHTML = `<div class="load-more-end">${currentLanguage === 'ja' ? 'すべてのログを読み込みました' : 'All logs loaded'}</div>`;
+          } else {
+            loadMoreIndicator.innerHTML = '';
+          }
+        }
+      } catch (error) {
+        console.error('Load more error:', error);
+      } finally {
+        mlIsLoading = false;
+      }
     }
 
     async function searchBattle(battleId) {
@@ -4255,7 +4423,7 @@
         });
 
         // Improved battle log cards
-        container.innerHTML = Array.from(battleMap.entries()).slice(0, 100).map(([battleId, data]) => {
+        container.innerHTML = Array.from(battleMap.entries()).map(([battleId, data]) => {
           const kills = data.events.filter(e => e.eventType === 'kill').length;
           const assists = data.events.filter(e => e.eventType === 'assist').length;
           const deaths = data.events.filter(e => e.eventType === 'death').length;
@@ -4388,7 +4556,7 @@
         // Murder Ledger style individual events
         container.innerHTML = filteredEvents.length === 0 
           ? `<div style="text-align:center;padding:40px;color:var(--text-secondary)">${currentLanguage === 'ja' ? 'フィルター条件に一致するログがありません' : 'No logs match the filter criteria'}</div>`
-          : filteredEvents.slice(0, 200).map(event => {
+          : filteredEvents.map(event => {
           const eventType = event.eventType;
           const isKill = eventType === 'kill';
           const isAssist = eventType === 'assist';
@@ -4546,6 +4714,12 @@
           `;
         }).join('');
       }
+      
+      // Add load more indicator at the end
+      const loadMoreHtml = mlHasMore 
+        ? `<div id="loadMoreIndicator" class="load-more-indicator"></div>`
+        : `<div id="loadMoreIndicator" class="load-more-indicator"><div class="load-more-end">${currentLanguage === 'ja' ? 'すべてのログを読み込みました' : 'All logs loaded'}</div></div>`;
+      container.innerHTML += loadMoreHtml;
     }
 
     // Convert KillArea to readable location name
@@ -4920,7 +5094,9 @@
     // Handle browser back/forward
     window.addEventListener('popstate', async (event) => {
       if (event.state) {
-        const { type, data } = event.state;
+        const state = event.state;
+        const type = state.type;
+        const data = state.data || state; // Support both formats
         
         hideError();
         showLoading();
@@ -4953,9 +5129,12 @@
           } else if (type === 'guild') {
             // Switch to guild tab and load guild
             switchSearchTab('guild');
-            if (data.guildId) {
-              document.getElementById('serverSelect').value = data.server || 'asia';
-              await searchGuild(data.guildId, data.guildName || '', true);
+            const guildId = data.guildId || state.guildId;
+            const guildName = data.guildName || state.guildName || '';
+            const server = data.server || state.server || 'asia';
+            if (guildId) {
+              document.getElementById('serverSelect').value = server;
+              await searchGuild(guildId, guildName, true);
             }
           }
         } catch (error) {
@@ -5079,6 +5258,20 @@
     
     // Restore from hash on page load
     initFromHash();
+    
+    // Infinite scroll - load more events when near bottom
+    window.addEventListener('scroll', () => {
+      if (!currentPlayer || mlIsLoading || !mlHasMore) return;
+      
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Load more when 500px from bottom
+      if (scrollY + windowHeight >= documentHeight - 500) {
+        loadMoreEvents();
+      }
+    });
     
     // Check if redirected from other pages to open feedback
     if (localStorage.getItem('openFeedback') === 'true') {
